@@ -15,5 +15,6 @@
 | 11   | get      | /api/users/:uid/todolist                               | 课程中心ddl查询            |
 | 12   | get      | /api/empty_room                                        | 空教室查询                 |
 | 13   | get      | /api/users/:uid/get_score                              | 成绩查询                   |
+| 14   | post     | /api/users/verify                                      | 验证用户                    |
 |      |          |                                                        |                            |
 |      |          |                                                        |                            |

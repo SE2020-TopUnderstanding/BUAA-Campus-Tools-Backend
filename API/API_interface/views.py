@@ -2,8 +2,8 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from snippets.models import CourseTable
-from snippets.serializers import CourseSerializer
+from .models import CourseTable
+from .serializers import CourseSerializer
 
 
 class JSONResponse(HttpResponse):
@@ -17,18 +17,7 @@ class JSONResponse(HttpResponse):
 
 
 @csrf_exempt
-def snippet_list(request):
-    """
-    get all students' class
-    """
-    if request.method == 'GET':
-        snippets = CourseTable.objects.all()
-        serializer = CourseSerializer(snippets, many=True)
-        return JSONResponse(serializer.data)
-
-
-@csrf_exempt
-def snippet_detail(request, pk):
+def course_list(request, pk):
     """
     get specific student's class
     """

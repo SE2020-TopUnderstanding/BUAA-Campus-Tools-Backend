@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from snippets.models import CourseTable
+from .models import CourseTable
 
 
 class CourseSerializer(serializers.ModelSerializer):

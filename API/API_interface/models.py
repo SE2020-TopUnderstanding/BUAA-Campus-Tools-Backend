@@ -21,7 +21,7 @@ class Course(models.Model):
     # the course's place, e.g. New Teaching Building F201
     place = models.CharField(max_length=20)
     # the course's start week ,e.g. 1-7,9-16
-    week = models.CharField(max_length=40)
+    week = models.CharField(max_length=60)
     # many to many
     teacher_course = models.ManyToManyField(Teacher, through='TeacherCourse')
 

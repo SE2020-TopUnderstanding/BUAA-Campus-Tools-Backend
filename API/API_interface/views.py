@@ -1,19 +1,21 @@
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.views import APIView
+from django.http import Http404
 from .serializers import *
 from .models import *
 
 
-@api_view(['get'])
-def course_list(request, pk):
-    try:
-        result = Student.objects.get(id=pk)
-    except Student.DoesNotExist:
-        # if cannot find, return 404
-        return Response(status=status.HTTP_404_NOT_FOUND)
+class CourseList(APIView):
+    @staticmethod
+    def get_object(pk):
+        try:
+            return Student.objects.get(id=pk)
+        except Student.DoesNotExist:
+            # if cannot find, return 404
+            raise Http404
 
-    if request.method == 'GET':
-        # response to 'GET' method
-        serializer = StudentSerializer(result)
+    def get(self, request, pk):
+        student = self.get_object(pk)
+        serializer = StudentSerializer(student)
         return Response(serializer.data)

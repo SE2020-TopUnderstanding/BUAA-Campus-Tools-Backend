@@ -1,20 +1,33 @@
 ### 接口规格（暂定）
 
-| #    | 请求方法 | 请求路径                                               | 用途                       |
-| ---- | -------- | ------------------------------------------------------ | -------------------------- |
-| 1    | post     | /api/users/phone_num/verify/code                       | 手机验证发送验证码         |
-| 2    | post     | /api/users/phone_num/verify                            | 验证验证码是否正确         |
-| 3    | post     | /api/users/email/verify                                | 验证邮箱，给邮箱寄信       |
-| 4    | get      | /api/users/email/verify/:uid/:hash_code                | 验证邮箱，邮箱点击链接返回 |
-| 5    | post     | /api/users/forgetpassword/email                        | 忘记密码，绑定的邮箱       |
-| 6    | get      | /api/users/forgetpassword/email/verify/:uid/:hash_code | 忘记密码，邮箱转跳         |
-| 7    | post     | /api/users/forgetpassword/phone_num/send               | 忘记密码，手机             |
-| 8    | post     | /api/users/forgetpassword/phone_num/verify             | 忘记密码，手机验证         |
-| 9    | get      | /api/users/:uid/get_class                              | 获取课表                   |
-| 10   | get      | /api/users/:uid/update_class                           | 更新课表                   |
-| 11   | get      | /api/users/:uid/todolist                               | 课程中心ddl查询            |
-| 12   | get      | /api/empty_room                                        | 空教室查询                 |
-| 13   | get      | /api/users/:uid/get_score                              | 成绩查询                   |
-| 14   | post     | /api/users/verify                                      | 验证用户                    |
-|      |          |                                                        |                            |
-|      |          |                                                        |                            |
+| #    | 请求方法 | 请求路径               | 用途            |
+| ---- | -------- | ---------------------- | --------------- |
+| 1    | post     | /api/users/verify      | 用户验证        |
+| 2    | get      | /api/users/timetable   | 获取课表        |
+| 3    | get      | /api/users/score       | 获取成绩        |
+| 4    | get      | /api/users/todolist    | 获取课程中心ddl |
+| 5    | get      | /api/users/empty_rooms | 获取空教室      |
+| 6    | get      | /api/users/tests       | 获取考试时间表  |
+|      |          |                        |                 |
+|      |          |                        |                 |
+
+## 数据元素定义
+
+- 课程：只有BID、上课周、上课时间、教师、教室、学期完全相同才算同一门课
+    - 一周上两次的课也会算作两门不同的课
+
+    - 主键为我们自己定义的id
+
+    - 由于调课现象的存在，应该只能如此来区分
+
+    - 查询参数及返回值：
+
+        ```
+        # 可使用的参数有：
+        # student_id: 附带学生学号，查询指定学生课表
+        # semester: 附带学年学期，查询指定学期课表
+        # week: 附带周数，查询指定周的课表，若参数值为all,则查询该学期全部周的课表
+        # 例：127.0.0.1/timetable?student_id=17333333&semester=2020_Spring&week=3
+        # 查询学号为17373333 2020春季学期第三周课表
+        # 没有提供参数或提供参数不正确，均返回404错误
+        ```

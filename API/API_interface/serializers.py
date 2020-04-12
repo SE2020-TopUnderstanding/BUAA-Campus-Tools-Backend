@@ -1,8 +1,33 @@
 from rest_framework import serializers
-from .models import CourseTable
+from .models import *
 
 
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CourseTable
-        fields = ('student_id', 'semester', 'course_name', 'course_time', 'teacher', 'class_week_start', 'class_week_end')
+        model = Course
+        fields = '__all__'
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = '__all__'
+        depth = 2
+
+
+class TeacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Teacher
+        fields = '__all__'
+
+
+class StudentCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentCourse
+        exclude = ('id',)
+
+
+class TeacherCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeacherCourse
+        fields = '__all__'

@@ -11,7 +11,6 @@ vpnUrl = 'https://e2.buaa.edu.cn/users/sign_in'
 '''
 this class will create a browser and login the Buaa vpn page
 ip address won't change, so it may be banned from the network
-and I have not handled certain errors 
 more efforts are needed
 '''
 class VpnLogin:
@@ -25,7 +24,7 @@ class VpnLogin:
         opt.add_argument('--no-sandbox')                # avoid DevToolsActivePort Not Exist error
         opt.add_argument('--user-agent=%s' % userAgent) # user agent may be different in other computers
         self.browser = webdriver.Chrome(options=opt)    # start the chrome
-        self.login(userName, password)
+        self.loginSuccess = self.login(userName, password) 
 
     def login(self, userName, password):
         self.browser.get(vpnUrl)                        # open the login page
@@ -39,6 +38,61 @@ class VpnLogin:
         inputPassword.send_keys(password)               # fill the password text box
         commit.click()                                  # push the login button
 
+        locator = (By.XPATH, '/html/body/div[5]/div/ul')                                    # an item on https://e2.buaa.edu.cn/
+        try:
+            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   # wait until the item appears
+        except Exception:
+            try:
+                # check whether we get the error message on the login page or not
+                error_text = self.browser.find_element_by_xpath('//*[@id="canvas"]/div[2]/div[2]/div[1]').text 
+                print(error_text)                       # print the message if we get it
+            except Exception:
+                if self.browser.current_url == vpnUrl:  # if we are still on the login page
+                    print('timeout')                    # the request should be timeout
+                else:                                   # if we are on another page, maybe God knows what happened
+                    print('some unknown errors happened')
+            return -1
+        return 0
+            
+
+    def switchToJiaoWu(self):
+        if self.loginSuccess == -1:                     # if we failed to login the vpn pages
+            return -1
+        pushButton = self.browser.find_element_by_xpath('/html/body/div[5]/div/ul/li[5]/a') # find the jiaowu push button
+        pushButton.click()                              # open the https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome link
+        windows = self.browser.window_handles           # get all the windows
+        if len(windows) == 1:                           # if there are only one window
+            print('there is only one page')
+            return -2
+        self.browser.switch_to_window(windows[-1])      # switch to the latest window
+        locator = (By.XPATH, '//*[@id="menu_6"]/span')  # an item on https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome
+        try:
+            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   # wait until the item appears
+        except Exception:
+            print('timeout or switch to an unknown page')
+            return -3
+        return 0                                        # return success
+
+    def switchToCourse(self):
+        if self.loginSuccess == -1:
+            return -1
+        pushButton = self.browser.find_element_by_xpath('/html/body/div[5]/div/ul/li[3]/a') # find the course push button
+        pushButton.click()                              # open the https://course.e2.buaa.edu.cn/portal link
+        windows = self.browser.window_handles           # get all the windows
+        if len(windows) == 1:                           # if there are only one window
+            print('there is only one page')
+            return -2
+        self.browser.switch_to_window(windows[-1])      # switch to the latest window
+        locator = (By.XPATH, '//*[@id="toolMenu"]/ul/li[5]/a/span[2]')                      # an item on https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome
+        try:
+            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   # wait until the item appears
+        except Exception:
+            print('timeout or switch to an unknown page')
+            return -3
+        return 0                                        # return success
+
+    def getBrowser(self):
+        return self.browser
 
 # for test 
 if __name__ == "__main__": 

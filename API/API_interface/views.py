@@ -1,4 +1,3 @@
-from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import Http404
@@ -8,14 +7,24 @@ from .models import *
 
 class CourseList(APIView):
     @staticmethod
-    def get_object(pk):
-        try:
-            return Student.objects.get(id=pk)
-        except Student.DoesNotExist:
-            # if cannot find, return 404
+    def get(request):
+        req = request.query_params.dict()
+        result = StudentCourse.objects.all()
+        if len(req) > 0:
+            for key, value in req.items():
+                if key == 'student_id':
+                    result = result.filter(student_id__id=value)
+                elif key == 'semester':
+                    result = result.filter(course_id__semester=value)
+                elif key == 'week':
+                    if value != 'all':
+                        value += ','
+                        result = result.filter(course_id__week__icontains=value)
+                elif key == 'format':
+                    pass
+                else:
+                    raise Http404
+            course_serializer = StudentCourseSerializer(result, many=True)
+            return Response(course_serializer.data)
+        else:
             raise Http404
-
-    def get(self, request, pk):
-        student = self.get_object(pk)
-        serializer = StudentSerializer(student)
-        return Response(serializer.data)

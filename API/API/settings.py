@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'API_interface',
     'API_interface2',
+    'score_query',
 ]
 
 MIDDLEWARE = [

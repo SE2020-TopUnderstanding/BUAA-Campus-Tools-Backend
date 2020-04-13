@@ -21,4 +21,5 @@ urlpatterns = [
     path('timetable/', include('API_interface.urls')),
     path('', include('API_interface2.urls')),
     path('score/', include('score_query.urls')),
+    path('tests/', include('tests_query.urls')),
 ]

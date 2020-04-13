@@ -27,6 +27,7 @@ class Course(models.Model):
 
 
 class Student(models.Model):
+    objects = models.Manager()
     # student's id, e.g. 17373000
     id = models.CharField(max_length=10, primary_key=True)
     # student's name, e.g kkk

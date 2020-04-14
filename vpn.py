@@ -19,78 +19,80 @@ class VpnLogin:
     def __init__(self, userName, password, userAgent = '', randomIpAddress = False):
         
         userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36'
-        opt = webdriver.ChromeOptions()                 # Chrome options
+        opt = webdriver.ChromeOptions()                 
         #opt.add_argument('--headless')                 # hide the chrome, it's for the release version
-        opt.add_argument('--disable-gpu')               # google says it can avoid some bugs
-        opt.add_argument('--no-sandbox')                # avoid DevToolsActivePort Not Exist error
-        opt.add_argument('--user-agent=%s' % userAgent) # user agent may be different in other computers
-        self.browser = webdriver.Chrome(options=opt)    # start the chrome
+        opt.add_argument('--disable-gpu')               
+        opt.add_argument('--no-sandbox')                
+        opt.add_argument('--user-agent=%s' % userAgent) 
+        self.browser = webdriver.Chrome(options=opt)    
         self.loginSuccess = self.login(userName, password) 
 
     def login(self, userName, password):
-        self.browser.get(vpnUrl)                        # open the login page
+        self.browser.get(vpnUrl)                        
         self.browser.maximize_window()                  # Used for debugging
         
         #find and fill the username and password text box and commit
-        inputUserName = self.browser.find_element_by_xpath('//*[@id="user_login"]')         # find the username text box
-        inputPassword = self.browser.find_element_by_xpath('//*[@id="user_password"]')      # find the password text box
-        commit = self.browser.find_element_by_xpath('//*[@id="login-form"]/div[3]/input')   # find the commit pushbutton
-        inputUserName.send_keys(userName)               # fill the username text box
-        inputPassword.send_keys(password)               # fill the password text box
-        commit.click()                                  # push the login button
+        inputUserName = self.browser.find_element_by_xpath('//*[@id="user_login"]')         
+        inputPassword = self.browser.find_element_by_xpath('//*[@id="user_password"]')      
+        commit = self.browser.find_element_by_xpath('//*[@id="login-form"]/div[3]/input')   
+        inputUserName.send_keys(userName)               
+        inputPassword.send_keys(password)               
+        commit.click()                                  
 
-        locator = (By.XPATH, '/html/body/div[5]/div/ul')                                    # an item on https://e2.buaa.edu.cn/
+        locator = (By.XPATH, '/html/body/div[5]/div/ul')                                    
         try:
-            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   # wait until the item appears
+            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   
         except Exception:
             try:
                 # check whether we get the error message on the login page or not
                 error_text = self.browser.find_element_by_xpath('//*[@id="canvas"]/div[2]/div[2]/div[1]').text 
-                print(error_text)                       # print the message if we get it
+                print(error_text)                       
+                return -1
             except Exception:
                 if self.browser.current_url == vpnUrl:  # if we are still on the login page
                     print('timeout')                    # the request should be timeout
+                    return -2
                 else:                                   # if we are on another page, maybe God knows what happened
                     print('some unknown errors happened')
-            return -1
+                return -3
         return 0
             
 
     def switchToJiaoWu(self):
-        if self.loginSuccess == -1:                     # if we failed to login the vpn pages
-            return -1
-        pushButton = self.browser.find_element_by_xpath('/html/body/div[5]/div/ul/li[5]/a') # find the jiaowu push button
-        pushButton.click()                              # open the https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome link
+        if self.loginSuccess != 0:                     
+            return self.loginSuccess
+        pushButton = self.browser.find_element_by_xpath('/html/body/div[5]/div/ul/li[5]/a') 
+        pushButton.click()                              
         windows = self.browser.window_handles           # get all the windows
         if len(windows) == 1:                           # if there are only one window
             print('there is only one page')
-            return -2
+            return -4
         self.browser.switch_to_window(windows[-1])      # switch to the latest window
-        locator = (By.XPATH, '//*[@id="menu_6"]/span')  # an item on https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome
+        locator = (By.XPATH, '//*[@id="menu_6"]/span')  
         try:
-            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   # wait until the item appears
+            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   
         except Exception:
             print('timeout or switch to an unknown page')
-            return -3
-        return 0                                        # return success
+            return -5
+        return 0                                        
 
     def switchToCourse(self):
-        if self.loginSuccess == -1:
-            return -1
-        pushButton = self.browser.find_element_by_xpath('/html/body/div[5]/div/ul/li[3]/a') # find the course push button
-        pushButton.click()                              # open the https://course.e2.buaa.edu.cn/portal link
+        if self.loginSuccess != 0:
+            return self.loginSuccess
+        pushButton = self.browser.find_element_by_xpath('/html/body/div[5]/div/ul/li[3]/a') 
+        pushButton.click()                              
         windows = self.browser.window_handles           # get all the windows
         if len(windows) == 1:                           # if there are only one window
             print('there is only one page')
-            return -2
+            return -4
         self.browser.switch_to_window(windows[-1])      # switch to the latest window
-        locator = (By.XPATH, '//*[@id="toolMenu"]/ul/li[5]/a/span[2]')                      # an item on https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome
+        locator = (By.XPATH, '//*[@id="toolMenu"]/ul/li[5]/a/span[2]')                      
         try:
-            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   # wait until the item appears
+            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   
         except Exception:
             print('timeout or switch to an unknown page')
-            return -3
-        return 0                                        # return success
+            return -5
+        return 0                                        
 
     def getBrowser(self):
         return self.browser

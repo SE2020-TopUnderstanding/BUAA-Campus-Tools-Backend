@@ -8,7 +8,7 @@ class courseReq():
         vpn = VpnLogin(userName, password)  # login
         success = vpn.switchToJiaoWu()      # switch
         #TODO: handle errors
-        self.browser = vpn.getBrowser()     # get a browser. it's current page is https://course.e2.buaa.edu.cn/portal 
+        self.browser = vpn.getBrowser()     
 
 
 # for test

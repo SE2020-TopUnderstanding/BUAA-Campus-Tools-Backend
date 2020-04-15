@@ -84,23 +84,33 @@ class query_classroom(APIView):#输入：校区，日期，第几节到第几节
 '''
 返回格式
 {
-    "课程1": [
+    "计网": [
         {
-            "作业": ""
-            "dll":""
-            "状态":""
-        },
-        {
-             "作业": ""
-            "dll":""
-            "状态":""
+            "dll": "2010-10-11",
+            "homework": "团队作业",
+            "state": "已提交"
         }
     ],
-    "课程2": [
+    "软工": [
         {
-            "作业": ""
-            "dll":""
-            "状态":""
+            "dll": "2010-10-9",
+            "homework": "团队作业",
+            "state": "已提交"
+        },
+        {
+            "dll": "2010-10-10",
+            "homework": "个人作业",
+            "state": "已提交"
+        },
+        {
+            "dll": "2010-10-12",
+            "homework": "最后一次作业",
+            "state": "未提交"
+        },
+        {
+            "dll": "2010-10-13",
+            "homework": "团队作业",
+            "state": "未提交"
         }
     ]
 }
@@ -112,13 +122,12 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
     def post(self, request, format=None):#
         student_id = request.data["student_id"]
         content = {}
-
         re = Dll_t.objects.filter(student_id=student_id)
 
         course_re = re.values("course").distinct()
 
         for i in course_re:
-            cr_re = re.filter(teaching_building=i["course"]).values("homework","dll", "state").distinct()
+            cr_re = re.filter(course=i["course"]).values("homework","dll", "state").distinct()
             content.update({i["course"]:cr_re})
         return Response(content)
 

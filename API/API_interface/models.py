@@ -30,6 +30,10 @@ class Student(models.Model):
     objects = models.Manager()
     # student's id, e.g. 17373000
     id = models.CharField(max_length=10, primary_key=True)
+    # 统一身份认证账号
+    usr_name = models.CharField(max_length=30, unique=True)
+    # 统一身份认证密码（密文）
+    usr_password = models.CharField(max_length=30)
     # student's name, e.g kkk
     name = models.CharField(max_length=20)
     # student's major, e.g cs

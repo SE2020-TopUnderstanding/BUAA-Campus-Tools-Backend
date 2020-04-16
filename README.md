@@ -1,15 +1,15 @@
 ### 接口规格（暂定）
 
-| #    | 请求方法 | 请求路径               | 用途            |
-| ---- | -------- | ---------------------- | --------------- |
-| 1    | post     | /api/users/verify      | 用户验证        |
-| 2    | get      | /api/users/timetable   | 获取课表        |
-| 3    | get      | /api/users/score       | 获取成绩        |
-| 4    | get      | /api/users/todolist    | 获取课程中心ddl |
-| 5    | get      | /api/users/empty_rooms | 获取空教室      |
-| 6    | get      | /api/users/tests       | 获取考试时间表  |
-|      |          |                        |                 |
-|      |          |                        |                 |
+| #    | 请求方法 | 请求路径             | 用途            |
+| ---- | -------- | -------------------- | --------------- |
+| 1    | post     | hostname/login       | 用户验证        |
+| 2    | get      | hostname/timetable   | 获取课表        |
+| 3    | get      | hostname/score       | 获取成绩        |
+| 4    | get      | hostname/todolist    | 获取课程中心ddl |
+| 5    | get      | hostname/empty_rooms | 获取空教室      |
+| 6    | get      | hostname/tests       | 获取考试时间表  |
+| 7    | post     | hostname/timetable   | 添加数据        |
+| 8    | post     | hostname/score       | 添加数据        |
 
 ## 数据元素定义
 
@@ -29,7 +29,8 @@
         # week: 附带周数，查询指定周的课表，若参数值为all,则查询该学期全部周的课表
         # 例：127.0.0.1/timetable?student_id=17333333&semester=2020_Spring&week=3
         # 查询学号为17373333 2020春季学期第三周课表
-        # 没有提供参数或提供参数不正确，均返回404错误
+        # 没有提供参数或参数数量正确，返回400错误
+        # 参数类型不正确，返回404错误
         ```
 
 
@@ -129,14 +130,13 @@
     }
     ```
 
-    
-=======
 - 成绩：
 
     ```
         # 参数1:学生学号 e.g. 17373333
         # 参数2：学期 e.g.2020_Spring
-        # 参数类型错误、不给参数均返回404错误
+        # 没有提供参数或参数数量正确，返回400错误
+    	# 参数类型不正确，返回404错误
         # 例:127.0.0.1/score?student_id=11111111&semester=2020_Spring
         # 获得学号为11111111，2020春季学期的成绩
     ```
@@ -147,7 +147,8 @@
         # 参数1：student_id e.g.17373333
         # 参数2：semester e.g. 2020_Spring
         # 参数3: week e.g. 19
-        # 不给参数，参数数量不正确均返回404错误
+        # 没有提供参数或参数数量正确，返回400错误
+    	# 参数类型不正确，返回404错误
         # 例：127.0.0.1/tests?student_id=17373333&semester=2020_Spring&week=19
         # 查询学号为17373333 2020春季学期第19周课表
     ```

@@ -36,8 +36,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'API_interface',
-    'API_interface2',
+    'course_query',
+    'empty_room_query',
+    'ddl_query',
     'score_query',
     'tests_query',
 ]
@@ -77,16 +78,20 @@ WSGI_APPLICATION = 'API.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'backend_db',
-        'USER': 'backend',
-        'PASSWORD': 'se2020djlj',
-        'HOST': '114.115.208.32',
-        'PORT': '3306',
-        'charset': 'utf8',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
+"""
+'ENGINE': 'django.db.backends.mysql',
+'NAME': 'backend_db',
+'USER': 'backend',
+'PASSWORD': 'se2020djlj',
+'HOST': '114.115.208.32',
+'PORT': '3306',
+'charset': 'utf8',
+"""
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 

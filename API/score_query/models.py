@@ -1,5 +1,5 @@
 from django.db import models
-from API_interface.models import Student
+from course_query.models import Student
 
 
 class Score(models.Model):
@@ -9,6 +9,8 @@ class Score(models.Model):
     course_name = models.CharField(max_length=20)
     # semester
     semester = models.CharField(max_length=20)
+    # bid
+    bid = models.CharField(max_length=15)
     # credit
     credit = models.FloatField(default=0)
     # score

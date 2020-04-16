@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import Http404
-from API_interface.models import Student
+from course_query.models import Student
 from .models import *
 
 class login(APIView):
@@ -122,7 +122,7 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
     def post(self, request, format=None):#
         student_id = request.data["student_id"]
         content = {}
-        re = Dll_t.objects.filter(student_id=student_id)
+        re = DDL_t.objects.filter(student_id=student_id)
 
         course_re = re.values("course").distinct()
 

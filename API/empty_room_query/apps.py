@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class ApiInterface2Config(AppConfig):
-    name = 'API_interface2'
+    name = 'empty_room_query'

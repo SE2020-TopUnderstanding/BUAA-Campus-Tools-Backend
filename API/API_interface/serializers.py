@@ -30,14 +30,11 @@ class TeacherSerializerLimited(serializers.ModelSerializer):
 class StudentCourseSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='course_id.name')
     semester = serializers.CharField(source='course_id.semester')
-    week = serializers.CharField(source='course_id.week')
-    place = serializers.CharField(source='course_id.place')
-    time = serializers.CharField(source='course_id.time')
     teacher_course = TeacherSerializerLimited(source='course_id.teacher_course', many=True)
 
     class Meta:
         model = StudentCourse
-        exclude = ('student_id', 'course_id','id',)
+        exclude = ('student_id', 'course_id', 'id',)
 
 
 class TeacherCourseSerializer(serializers.ModelSerializer):

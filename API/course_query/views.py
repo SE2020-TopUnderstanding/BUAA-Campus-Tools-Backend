@@ -70,6 +70,12 @@ class CourseList(APIView):
                 teacher = info[2]
                 week = info[3]
                 time = info[4]
+                # 增加课程信息
+                try:
+                    course = Course.objects.get(name=name)
+                except Course.DoesNotExist:
+                    course = Course(name=name)
+                    course.save()
                 # 增加教师信息
                 teacher = teacher.replace(' ', '')
                 teachers = teacher.split('，')
@@ -79,12 +85,6 @@ class CourseList(APIView):
                     except Teacher.DoesNotExist:
                         teacher = Teacher(name=key)
                         teacher.save()
-                    # 增加课程信息
-                    try:
-                        course = Course.objects.get(name=name)
-                    except Course.DoesNotExist:
-                        course = Course(name=name)
-                        course.save()
                     # 增加关联关系
                     try:
                         course = Course.objects.get(name=name, teachercourse__teacher_id__name=teacher.name)

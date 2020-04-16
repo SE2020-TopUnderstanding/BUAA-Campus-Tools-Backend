@@ -1,5 +1,4 @@
 from django.db import models
-from course_query.models import Student
 
 
 class Classroom_t(models.Model):  # 空教室表

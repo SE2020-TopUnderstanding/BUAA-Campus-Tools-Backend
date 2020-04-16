@@ -51,7 +51,7 @@ class CourseList(APIView):
         """
         req = request.data
         student_id = req['student_id']
-        if len(req) > 0:
+        if len(req) == 2:
             # 找不到这个同学肯定有问题
             try:
                 student = Student.objects.get(id=student_id)
@@ -64,7 +64,7 @@ class CourseList(APIView):
             return HttpResponseBadRequest()
 
         for info in req['info']:
-            if len(info) > 0:
+            if len(info) == 5:
                 name = info[0]
                 place = info[1]
                 teacher = info[2]
@@ -91,8 +91,10 @@ class CourseList(APIView):
                     except Course.DoesNotExist:
                         new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
                         new_teacher_course.save()
-                    # 保存信息
+                # 保存信息
                 new_student_course = StudentCourse(student_id=student, course_id=course
                                                        , week=week, time=time, place=place)
                 new_student_course.save()
+            else:
+                return HttpResponseBadRequest()
         return HttpResponse(status=201)

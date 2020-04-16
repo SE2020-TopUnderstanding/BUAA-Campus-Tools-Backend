@@ -46,14 +46,17 @@ class ScoreList(APIView):
         except Student.DoesNotExist:
             raise Http404
         for key in req['info']:
-            bid = key[0]
-            course_name = key[1]
-            credit = key[2]
-            score = key[3]
-            try:
-                Score.objects.get(bid=bid)
-            except Score.DoesNotExist:
-                new_score = Score(student_id=student, semester=semester, course_name=course_name
-                                  , bid=bid, credit=credit, score=score)
-                new_score.save()
+            if len(key) == 4:
+                bid = key[0]
+                course_name = key[1]
+                credit = key[2]
+                score = key[3]
+                try:
+                    Score.objects.get(bid=bid)
+                except Score.DoesNotExist:
+                    new_score = Score(student_id=student, semester=semester, course_name=course_name
+                                      , bid=bid, credit=credit, score=score)
+                    new_score.save()
+            else:
+                return HttpResponseBadRequest()
         return HttpResponse(status=201)

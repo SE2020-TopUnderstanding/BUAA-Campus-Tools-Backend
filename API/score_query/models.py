@@ -1,5 +1,5 @@
 from django.db import models
-from API_interface.models import Student
+from course_query.models import Student
 
 
 class Score(models.Model):

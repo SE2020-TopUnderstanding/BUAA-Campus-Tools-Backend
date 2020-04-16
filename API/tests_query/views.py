@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from .serializers import *
 from .models import *
 
@@ -33,3 +33,7 @@ class TestList(APIView):
             return HttpResponseBadRequest()
         test_serializer = TestSerializer(result, many=True)
         return Response(test_serializer.data)
+
+    @staticmethod
+    def post(self, request):
+        return HttpResponse(status=201)

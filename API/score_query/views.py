@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from django.http import Http404, HttpResponseBadRequest
 from .serializers import *
 from .models import *
+from course_query.models import Student
 
 
 class ScoreList(APIView):
@@ -30,3 +31,24 @@ class ScoreList(APIView):
             return HttpResponseBadRequest()
         score_serializer = ScoreSerializer(result, many=True)
         return Response(score_serializer.data)
+
+    @staticmethod
+    def post(self, request):
+        req = request.data
+        # 找不到这个学生肯定有问题
+        semester = req['semester']
+        try:
+            student = Student.objects.get(student_id=req['student_id'])
+        except Student.DoesNotExist:
+            raise Http404
+        for key in req['info']:
+            bid = key[0]
+            course_name = key[1]
+            credit = key[2]
+            score = key[3]
+            try:
+                Score.objects.get(bid=bid)
+            except Score.DoesNotExist:
+                new_score = Score(student_id=student, semester=semester, course_name=course_name
+                                  , bid=bid, credit=credit, score=score)
+                new_score.save()

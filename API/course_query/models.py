@@ -12,8 +12,6 @@ class Course(models.Model):
     # 我们定义，只有除id外的所有属性域都相同的才算同一门课程，一周上两次的课按照两门课来对待
     # course's bid, e.g.B2F020550
     bid = models.CharField(max_length=20)
-    # the course's semester, e.g 2019 Spring
-    semester = models.CharField(max_length=30)
     # the course's name, e.g. Software Engineering
     name = models.CharField(max_length=60)
     # many to many
@@ -45,6 +43,8 @@ class StudentCourse(models.Model):
     place = models.CharField(max_length=20)
     # the course's start week ,e.g. 1-7,9-16
     week = models.CharField(max_length=60)
+    # the course's semester, e.g 2019 Spring
+    semester = models.CharField(max_length=30)
     student_id = models.ForeignKey(Student, on_delete=models.CASCADE)
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
 

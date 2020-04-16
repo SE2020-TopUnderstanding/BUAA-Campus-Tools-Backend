@@ -6,16 +6,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select 
 
 import time
+import json
 
 vpnUrl = 'https://e2.buaa.edu.cn/users/sign_in'
 
-'''
-this class will create a browser and login the Buaa vpn page
-ip address won't change, so it may be banned from the network
-more efforts are needed
-'''
-class VpnLogin:
 
+class VpnLogin:
+    '''
+    this class will create a browser and login the Buaa vpn page
+    ip address won't change, so it may be banned from the network
+    more efforts are needed
+    '''
     def __init__(self, userName, password, userAgent = '', randomIpAddress = False):
         
         userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36'

@@ -1,9 +1,10 @@
 from vpn import *
 
-'''
-this class is going to get messages from jiaowu.buaa.edu.cn
-'''
+
 class jiaoWuReq():
+    '''
+    this class is going to get messages from jiaowu.buaa.edu.cn
+    '''
     def __init__(self, userName, password):
         self.status = 0
         for i in range(3):
@@ -28,32 +29,34 @@ class jiaoWuReq():
         #self.getGrade()                    # for debug
         #self.getSchedule()                 # for debug
 
-    '''
-    init step's result
-    status = 0 : success
-    status = -1 : error occur on the network, usually due to username and password
-    status = -2 : timeout for 3 times
-    status = -3 : unknown error
-    '''
+    
     def getStatus(self):
+        '''
+        init step's result
+        status = 0 : success
+        status = -1 : error occur on the network, usually due to username and password
+        status = -2 : timeout for 3 times
+        status = -3 : unknown error
+        '''
         return self.status
 
-    '''
-    this func will get all the grades in a time
-    a list will be returned
-    data type:
-    [
-        # sorted by semester
-        [   
-            [id, semester, department, course code, course character, course type, credit, isExamed, retest mark, grade, convertion grade, grade edit]
-            [id, semester, department, course code, course character, course type, credit, isExamed, retest mark, grade, convertion grade, grade edit]
-            ...
+    
+    def getGrade(self):
+        '''
+        this func will get all the grades in a time
+        a list will be returned
+        data type:
+        [
+            # sorted by semester
+            [   
+                [id, semester, department, course code, course character, course type, credit, isExamed, retest mark, grade, convertion grade, grade edit]
+                [id, semester, department, course code, course character, course type, credit, isExamed, retest mark, grade, convertion grade, grade edit]
+                ...
+                ...
+            ]
             ...
         ]
-        ...
-    ]
-    '''
-    def getGrade(self):
+        '''
         if self.status != 0:
             return self.status
         # this label cannot click, so we use js to click the label
@@ -107,19 +110,20 @@ class jiaoWuReq():
             selectDate = Select(self.browser.find_element_by_xpath('//*[@id="xnxqid"]'))        # reget the select options
         return allGrades
 
-    '''
-    this func will get all the empty classrooms in a time
-    a list will be returned
-    data type:
-    [
-        sorted by weeks
-        {                   time
-            roomName : [1 0 0 1 ...] 1:empty 0:occupied
-        }
-        ...
-    ]
-    '''
+    
     def getEmptyClassroom(self):
+        '''
+        this func will get all the empty classrooms in a time
+        a list will be returned
+        data type:
+        [
+            sorted by weeks
+            {                   time
+                roomName : [1 0 0 1 ...] 1:empty 0:occupied
+            }
+            ...
+        ]
+        '''
         if self.status != 0:
             return self.status
         # this label cannot click, so we use js to click the label
@@ -188,23 +192,24 @@ class jiaoWuReq():
             allEmptyClassrooms.append(classRooms)                                               
         return allEmptyClassrooms
 
-    '''
-    this func will get all the class schedules in a time
-    a list will be returned
-    data type:
-    [
-        ['lesson', ' ', ' ', ' ', ' ', ' ', ' ']
-        ...
-        ['datas'] other lessons
-    ]
-    '''            
+         
     def getSchedule(self):
+        '''
+        this func will get all the class schedules in a time
+        a list will be returned
+        data type:
+        [
+            ['lesson', ' ', ' ', ' ', ' ', ' ', ' ']
+            ...
+            ['datas'] other lessons
+        ]
+        '''       
         if self.status != 0:
             return self.status
         # this label cannot click, so we use js to click the label
         scheduleLabel = self.browser.find_element_by_xpath('/html/body/div[2]/div[2]/div/div[6]/div/a[6]')
         self.browser.execute_script("arguments[0].click();", scheduleLabel)
-        time.sleep(0.5)                                                                             
+        #time.sleep(0.5)                                                                             
         self.browser.switch_to.frame('iframename')                                                  
         locator = (By.XPATH, '/html/body/div[1]/div/div[8]/div[2]/table')
         try:
@@ -212,6 +217,12 @@ class jiaoWuReq():
         except Exception:
             print('timeout or switch to an unknown page')
             return -4
+
+        idPlace = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[8]/div[1]/span')
+        studentId = idPlace.text
+        studentId = studentId.split('(')[1]
+        studentId = studentId.split(')')[0]
+
         table = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[8]/div[2]/table')     
         tableRows = table.find_elements_by_tag_name('tr')[1:-2]   
         schedules = []
@@ -226,6 +237,35 @@ class jiaoWuReq():
         other = []
         other.append(table.find_elements_by_tag_name('tr')[-1].find_elements_by_tag_name('td')[0].text)
         schedules.append(other)
+
+
+        '''
+        a demo for the data sort
+        this part will be moved to data.py in next few days
+        '''
+        aimLessons = []
+        for i in range(len(schedules) - 1):
+            for j in range(len(schedules[i])):
+                curStr = schedules[i][j]
+                if curStr == ' ':
+                    continue
+                lesson, info = curStr.split('\n')
+                teachers, info = info.split('[')
+                week, info = info.split(']')
+                place, time = info.split(' ')
+                curInfo = []
+                print(place[1:-1])
+                curInfo.append(lesson)
+                curInfo.append(place[1:-1])
+                curInfo.append(teachers)
+                curInfo.append(week)
+                curInfo.append(time)
+                aimLessons.append(curInfo)
+        scheduleChart = {}
+        scheduleChart['studentId'] = studentId
+        scheduleChart['infomations'] = aimLessons
+        returnJson = json.dumps(scheduleChart, ensure_ascii=False)
+        print(returnJson)
         return schedules
 
 # for test

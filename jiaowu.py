@@ -202,8 +202,8 @@ class jiaoWuReq():
         if self.status != 0:
             return self.status
         # this label cannot click, so we use js to click the label
-        emptyClassroomLabel = self.browser.find_element_by_xpath('/html/body/div[2]/div[2]/div/div[6]/div/a[6]')
-        self.browser.execute_script("arguments[0].click();", emptyClassroomLabel)
+        scheduleLabel = self.browser.find_element_by_xpath('/html/body/div[2]/div[2]/div/div[6]/div/a[6]')
+        self.browser.execute_script("arguments[0].click();", scheduleLabel)
         time.sleep(0.5)                                                                             
         self.browser.switch_to.frame('iframename')                                                  
         locator = (By.XPATH, '/html/body/div[1]/div/div[8]/div[2]/table')

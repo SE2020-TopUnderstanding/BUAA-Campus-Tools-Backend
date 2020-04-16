@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from .serializers import *
 from .models import *
 from course_query.models import Student
@@ -52,3 +52,4 @@ class ScoreList(APIView):
                 new_score = Score(student_id=student, semester=semester, course_name=course_name
                                   , bid=bid, credit=credit, score=score)
                 new_score.save()
+        return HttpResponse(status=201)

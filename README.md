@@ -1,15 +1,15 @@
 ### 接口规格（暂定）
 
-| #    | 请求方法 | 请求路径               | 用途            |
-| ---- | -------- | ---------------------- | --------------- |
-| 1    | post     | /api/users/verify      | 用户验证        |
-| 2    | get      | /api/users/timetable   | 获取课表        |
-| 3    | get      | /api/users/score       | 获取成绩        |
-| 4    | get      | /api/users/todolist    | 获取课程中心ddl |
-| 5    | get      | /api/users/empty_rooms | 获取空教室      |
-| 6    | get      | /api/users/tests       | 获取考试时间表  |
-|      |          |                        |                 |
-|      |          |                        |                 |
+| #    | 请求方法 | 请求路径             | 用途            |
+| ---- | -------- | -------------------- | --------------- |
+| 1    | post     | hostname/login       | 用户验证        |
+| 2    | get      | hostname/timetable   | 获取课表        |
+| 3    | get      | hostname/score       | 获取成绩        |
+| 4    | get      | hostname/todolist    | 获取课程中心ddl |
+| 5    | get      | hostname/empty_rooms | 获取空教室      |
+| 6    | get      | hostname/tests       | 获取考试时间表  |
+| 7    | post     | hostname/timetable   | 添加数据        |
+| 8    | post     | hostname/score       | 添加数据        |
 
 ## 数据元素定义
 

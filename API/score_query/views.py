@@ -7,16 +7,16 @@ from course_query.models import Student
 
 
 class ScoreList(APIView):
-    """
-    参数1:学生学号 e.g. 17373333
-    参数2：学期 e.g.2020_Spring
-    参数数量错误、不给参数均返回400错误
-    参数错误，返回404错误
-    例:127.0.0.1/score?student_id=11111111&semester=2020_Spring
-    获得学号为11111111，2020春季学期的成绩
-    """
     @staticmethod
     def get(request):
+        """
+        参数1:学生学号 e.g. 17373333
+        参数2：学期 e.g.2020_Spring
+        参数数量错误、不给参数均返回400错误
+        参数错误，返回404错误
+        例:127.0.0.1/score?student_id=11111111&semester=2020_Spring
+        获得学号为11111111，2020春季学期的成绩
+        """
         req = request.query_params.dict()
         result = Score.objects.all()
         if (len(req) > 0) and (len(req) < 3):
@@ -34,9 +34,13 @@ class ScoreList(APIView):
 
     @staticmethod
     def post(self, request):
+        """
+        根据post的json数据将数据插入数据库；
+        格式：{student_id:(id), semester:(sm), info:[[课程名称1，学分1...],[课程名称2，学分2...]}
+        """
         req = request.data
-        # 找不到这个学生肯定有问题
         semester = req['semester']
+        # 找不到这个学生肯定有问题
         try:
             student = Student.objects.get(student_id=req['student_id'])
         except Student.DoesNotExist:

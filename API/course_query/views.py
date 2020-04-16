@@ -45,6 +45,10 @@ class CourseList(APIView):
 
     @staticmethod
     def post(request):
+        """
+        根据post的json文件来将相关数据插入数据库；
+        格式：{student_id:(id), info:[[课程名称1，地点1...],[课程名称2，地点2...]}
+        """
         req = request.data
         student_id = req['student_id']
         if len(req) > 0:

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'ddl_query',
     'score_query',
     'tests_query',
+    'user_login',
 ]
 
 MIDDLEWARE = [

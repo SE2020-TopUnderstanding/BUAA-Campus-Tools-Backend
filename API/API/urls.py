@@ -23,4 +23,5 @@ urlpatterns = [
     path('ddl/', include('ddl_query.urls')),
     path('score/', include('score_query.urls')),
     path('tests/', include('tests_query.urls')),
+    path('login/', include('user_login.urls')),
 ]

@@ -93,7 +93,7 @@ class CourseList(APIView):
                         new_teacher_course.save()
                 # 保存信息
                 new_student_course = StudentCourse(student_id=student, course_id=course
-                                                       , week=week, time=time, place=place)
+                                                   , week=week, time=time, place=place)
                 new_student_course.save()
             else:
                 return HttpResponseBadRequest()

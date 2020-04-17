@@ -16,6 +16,6 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
         course_re = re.values("course").distinct()
 
         for i in course_re:
-            cr_re = re.filter(course=i["course"]).values("homework","dll", "state").distinct()
+            cr_re = re.filter(course=i["course"]).values("homework", "ddl", "state").distinct()
             content.update({i["course"]:cr_re})
         return Response(content)

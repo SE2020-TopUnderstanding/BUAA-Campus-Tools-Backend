@@ -6,17 +6,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select 
 import sys
 
+import datetime
 import time
 
 vpnUrl = 'https://e2.buaa.edu.cn/users/sign_in'
 
-'''
-this class will create a browser and login the Buaa vpn page
-ip address won't change, so it may be banned from the network
-more efforts are needed
-'''
-class VpnLogin:
 
+class VpnLogin:
+    '''
+    this class will create a browser and login the Buaa vpn page
+    ip address won't change, so it may be banned from the network
+    more efforts are needed
+    '''
     def __init__(self, userName, password, userAgent = '', randomIpAddress = False):
         
         

@@ -9,10 +9,11 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
         """
         输入：学号，输出：作业，dll，提交状态，课程
         参数1:学生学号 e.g. 17373349
-        例:http --form GET http://127.0.0.1:8000/ddl/ student_id="17373349"
+        例:http://127.0.0.1:8000/ddl/?student_id=17373349
         返回作业，dll，提交状态，课程
         """
-        student_id = request.data["student_id"]
+        req = request.query_params.dict()
+        student_id = req["student_id"]
         print(student_id)
         content = {}
 

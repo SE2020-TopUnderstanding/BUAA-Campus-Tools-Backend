@@ -57,7 +57,7 @@
   - 访问方法
 
     ```
-    http --form GET http://127.0.0.1:8000/classroom/ campus="新主楼" date="2020-4-18" section="1,2,3,"
+    http://127.0.0.1:8000/classroom/?campus=新主楼&date=2020-4-18&section=1,2,3,
     
     注意，由于只查询连续的节数所以若查询1-3节请将section设为"1,2,3,"
     ```
@@ -91,7 +91,7 @@
   - 访问访问
 
     ```
-    http --form GET http://127.0.0.1:8000/ddl/ student_id="17373349"
+    http://127.0.0.1:8000/ddl/?student_id=17373349
     ```
 
   - 访问结果

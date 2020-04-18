@@ -15,16 +15,17 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
         req = request.query_params.dict()
         student_id = req["student_id"]
         print(student_id)
-        content = {}
+        content = []
 
 
         re = DDL_t.objects.filter(student_id=student_id)
 
         course_re = re.values("course").distinct()
 
+        
         for i in course_re:
-            cr_re = re.filter(course=i["course"]).values("homework", "ddl", "state").distinct().order_by("state")
-            content.update({i["course"]:cr_re})
+            cr_re = re.filter(course=i["course"]).values("homework", "ddl", "state").distinct().order_by("-state")
+            content.append({"name":i["course"],"content":cr_re})
         return Response(content)
       
     def post(self, request, format=None):#

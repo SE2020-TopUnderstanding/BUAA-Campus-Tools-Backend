@@ -52,7 +52,7 @@ class CourseList(APIView):
         req = request.data
         student_id = req['student_id']
         semester = req['semester']
-        if len(req) == 2:
+        if len(req) == 3:
             # 找不到这个同学肯定有问题
             try:
                 student = Student.objects.get(id=student_id)

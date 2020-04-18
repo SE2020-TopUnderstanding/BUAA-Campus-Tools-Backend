@@ -1,7 +1,7 @@
+from .LoginRequest.loginJudge import *
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from course_query.models import Student
-
 
 class login(APIView):
     def get(self, request, format=None):
@@ -15,17 +15,30 @@ class login(APIView):
         参数1:用户名 e.g. mushan，用户密码 e.g. h1010
         例:http --form POST http://127.0.0.1:8000/login/ usr_name="mushan" usr_password="h1010"
         返回:登录状态
+        0 -> failed, username or password is wrong
+        -1 -> failed, request timeout
+        -2 -> failed, unknown exception
         """
         
         usr_name = request.data["usr_name"]
         usr_password = request.data["usr_password"]
+        ans = getStudentInfo(usr_name,usr_password)
+        
+        state = 1
         #调用爬虫接口进行验证并取得下面的值
-        major = "计算机科学与技术"
-        grade = "2017"
-        student_id = 17373349
-        name = "bin"
-        content = {"state":1}#1代表成功，2代表无该账号，3代表密码错误
-
-        Student(id="1").save()
-        print(Student.objects.filter(id="1").values("id"))
+        if ans == 0:
+            state = 0
+        elif ans == -1:
+            state = -1
+        elif ans == -2:
+            state = -2
+        else:
+            student_id = str(ans[0])
+            name = ans[2]
+            grade = ans[3]
+            major = "计算机科学与技术"
+            Student(usr_name=usr_name,usr_password=usr_password,id=student_id, name=name,grade=grade,major=major).save()
+        
+        print(Student.objects.filter(usr_name=usr_name).values("name","grade"))
+        content = {"state":state}#1代表成功，2代表无该账号，3代表密码错误
         return Response(content)

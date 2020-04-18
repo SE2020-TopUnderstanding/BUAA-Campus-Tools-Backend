@@ -47,10 +47,11 @@ class CourseList(APIView):
     def post(request):
         """
         根据post的json文件来将相关数据插入数据库；
-        格式：{student_id:(id), info:[[课程名称1，地点1...],[课程名称2，地点2...]}
+        格式：{student_id:(id), semester:(sm), info:[[课程名称1，地点1...],[课程名称2，地点2...]}
         """
         req = request.data
         student_id = req['student_id']
+        semester = req['semester']
         if len(req) == 2:
             # 找不到这个同学肯定有问题
             try:
@@ -93,7 +94,7 @@ class CourseList(APIView):
                         new_teacher_course.save()
                 # 保存信息
                 new_student_course = StudentCourse(student_id=student, course_id=course
-                                                   , week=week, time=time, place=place)
+                                                   , week=week, time=time, place=place, semester=semester)
                 new_student_course.save()
             else:
                 return HttpResponseBadRequest()

@@ -26,12 +26,10 @@ class CourseList(APIView):
         """
         req = request.query_params.dict()
         result = StudentCourse.objects.all()
-        if (len(req) > 0) and (len(req) < 4):
+        if (len(req) > 0) and (len(req) < 3):
             for key, value in req.items():
                 if key == 'student_id':
                     result = result.filter(student_id__id=value)
-                elif key == 'semester':
-                    result = result.filter(course_id__semester=value)
                 elif key == 'week':
                     if value != 'all':
                         value += ','

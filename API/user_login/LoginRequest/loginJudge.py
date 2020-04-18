@@ -1,4 +1,4 @@
-from vpn import *
+from .vpn import *
 
 def loginJudge(username, password):
     '''

@@ -39,7 +39,7 @@
   - 访问方法
 
     ```
-    http http://114.115.208.32:8000/login/ usr_name="123" usr_password="321"
+    http --form GET http://127.0.0.1:8000/login/ usr_name="mushan" usr_passwor="132"
     ```
 
   - 结果
@@ -57,7 +57,7 @@
   - 访问方法
 
     ```
-    http http://127.0.0.1:8000/query/classroom/ campus="学院路校区" date="2020-04-13" section="1,2,"
+    http://127.0.0.1:8000/classroom/?campus=新主楼&date=2020-4-18&section=1,2,3,
     
     注意，由于只查询连续的节数所以若查询1-3节请将section设为"1,2,3,"
     ```
@@ -91,45 +91,41 @@
   - 访问访问
 
     ```
-    http http://127.0.0.1:8000/query/dll/ student_id="1"
+    http://127.0.0.1:8000/ddl/?student_id=17373349
     ```
 
   - 访问结果
 
     ```
+    
     {
-        "计网": [
+        "计算机网络": [
             {
-                "dll": "2010-10-11",
-                "homework": "团队作业",
-                "state": "已提交"
+                "ddl": "2020-4-17 10:02",
+                "homework": "实验报告",
+                "state": "提交"
             }
         ],
-        "软工": [
+        "软件工程": [
             {
-                "dll": "2010-10-9",
-                "homework": "团队作业",
-                "state": "已提交"
+                "ddl": "2020-4-18 9:02",
+                "homework": "结对项目",
+                "state": "提交"
             },
             {
-                "dll": "2010-10-10",
-                "homework": "个人作业",
-                "state": "已提交"
-            },
-            {
-                "dll": "2010-10-12",
-                "homework": "最后一次作业",
+                "ddl": "2020-4-19 9:02",
+                "homework": "个人项目",
                 "state": "未提交"
             },
             {
-                "dll": "2010-10-13",
-                "homework": "团队作业",
+                "ddl": "2020-4-17 14:10",
+                "homework": "团队项目",
                 "state": "未提交"
             }
         ]
     }
     ```
-
+  
 - 成绩：
 
     ```

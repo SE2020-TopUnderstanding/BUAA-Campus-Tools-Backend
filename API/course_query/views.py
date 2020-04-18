@@ -26,12 +26,10 @@ class CourseList(APIView):
         """
         req = request.query_params.dict()
         result = StudentCourse.objects.all()
-        if (len(req) > 0) and (len(req) < 4):
+        if (len(req) > 0) and (len(req) < 3):
             for key, value in req.items():
                 if key == 'student_id':
                     result = result.filter(student_id__id=value)
-                elif key == 'semester':
-                    result = result.filter(course_id__semester=value)
                 elif key == 'week':
                     if value != 'all':
                         value += ','
@@ -47,11 +45,12 @@ class CourseList(APIView):
     def post(request):
         """
         根据post的json文件来将相关数据插入数据库；
-        格式：{student_id:(id), info:[[课程名称1，地点1...],[课程名称2，地点2...]}
+        格式：{student_id:(id), semester:(sm), info:[[课程名称1，地点1...],[课程名称2，地点2...]}
         """
         req = request.data
         student_id = req['student_id']
-        if len(req) == 2:
+        semester = req['semester']
+        if len(req) == 3:
             # 找不到这个同学肯定有问题
             try:
                 student = Student.objects.get(id=student_id)
@@ -93,7 +92,7 @@ class CourseList(APIView):
                         new_teacher_course.save()
                 # 保存信息
                 new_student_course = StudentCourse(student_id=student, course_id=course
-                                                   , week=week, time=time, place=place)
+                                                   , week=week, time=time, place=place, semester=semester)
                 new_student_course.save()
             else:
                 return HttpResponseBadRequest()

@@ -81,7 +81,9 @@ class jiaoWuReq():
             return -4
         selectDate = Select(self.browser.find_element_by_xpath('//*[@id="xnxqid"]'))            
         allGrades = []
-        for i in range(len(selectDate.options) - 1):                                            # the first option cannot use
+        for i in range(len(selectDate.options)):                                            # the first option cannot use
+            if i == len(selectDate.options) - 1:
+                continue
             each = selectDate.options[i + 1]
             print(each.text)
             selectDate.select_by_visible_text(each.text)                                        
@@ -239,34 +241,7 @@ class jiaoWuReq():
         schedules.append(other)
 
 
-        '''
-        a demo for the data sort
-        this part will be moved to data.py in next few days
-        '''
-        aimLessons = []
-        for i in range(len(schedules) - 1):
-            for j in range(len(schedules[i])):
-                curStr = schedules[i][j]
-                if curStr == ' ':
-                    continue
-                lesson, info = curStr.split('\n')
-                teachers, info = info.split('[')
-                week, info = info.split(']')
-                place, time = info.split(' ')
-                curInfo = []
-                print(place[1:-1])
-                curInfo.append(lesson)
-                curInfo.append(place[1:-1])
-                curInfo.append(teachers)
-                curInfo.append(week)
-                curInfo.append(time)
-                aimLessons.append(curInfo)
-        scheduleChart = {}
-        scheduleChart['studentId'] = studentId
-        scheduleChart['infomations'] = aimLessons
-        returnJson = json.dumps(scheduleChart, ensure_ascii=False)
-        print(returnJson)
-        return schedules
+        return schedules, studentId
 
 # for test
 if __name__ == "__main__":

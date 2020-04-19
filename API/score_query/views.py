@@ -33,7 +33,7 @@ class ScoreList(APIView):
         return Response(score_serializer.data)
 
     @staticmethod
-    def post(self, request):
+    def post(request):
         """
         根据post的json数据将数据插入数据库；
         格式：{student_id:(id), semester:(sm), info:[[课程名称1，学分1...],[课程名称2，学分2...]}
@@ -42,7 +42,7 @@ class ScoreList(APIView):
         semester = req['semester']
         # 找不到这个学生肯定有问题
         try:
-            student = Student.objects.get(student_id=req['student_id'])
+            student = Student.objects.get(id=req['student_id'])
         except Student.DoesNotExist:
             raise Http404
         for key in req['info']:

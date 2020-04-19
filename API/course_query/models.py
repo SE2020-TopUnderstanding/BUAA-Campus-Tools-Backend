@@ -28,8 +28,6 @@ class Student(models.Model):
     usr_password = models.CharField(max_length=30)
     # student's name, e.g kkk
     name = models.CharField(max_length=20)
-    # student's major, e.g cs
-    major = models.CharField(max_length=30)
     # student's grade e.g 4
     grade = models.IntegerField(default=-1)
     # manytomany

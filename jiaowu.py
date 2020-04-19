@@ -241,7 +241,31 @@ class jiaoWuReq():
         schedules.append(other)
 
 
-        return schedules, studentId
+        return schedules
+
+    def getId(self):
+        if self.status != 0:
+            return self.status
+        # this label cannot click, so we use js to click the label
+        scheduleLabel = self.browser.find_element_by_xpath('/html/body/div[2]/div[2]/div/div[6]/div/a[6]')
+        self.browser.execute_script("arguments[0].click();", scheduleLabel)
+        #time.sleep(0.5)                                                                             
+        self.browser.switch_to.frame('iframename')                                                  
+        locator = (By.XPATH, '/html/body/div[1]/div/div[8]/div[2]/table')
+        try:
+            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))           
+        except Exception:
+            print('timeout or switch to an unknown page')
+            return -4
+
+        idPlace = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[8]/div[1]/span')
+        studentId = idPlace.text
+        studentId = studentId.split('(')[1]
+        studentId = studentId.split(')')[0]
+        return studentId
+
+    def quit(self):
+        self.browser.quit()
 
 # for test
 if __name__ == "__main__":

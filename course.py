@@ -122,7 +122,10 @@ class courseReq():
             self.browser.switch_to.default_content()                                            # reget the lessons
             curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
             lessons = curLessons.find_elements_by_xpath('li')
-        return ddls           
+        return ddls  
+
+    def quit(self):
+        self.browser.quit()         
 
 
 # for test

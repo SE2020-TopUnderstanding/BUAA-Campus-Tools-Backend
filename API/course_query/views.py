@@ -4,6 +4,25 @@ from django.http import Http404, HttpResponse
 from .serializers import *
 from .models import *
 from django.http import HttpResponseBadRequest
+from datetime import datetime
+
+
+def split_week(week):
+    weeks = []
+    parts = week.split("，")
+    for value in parts:
+        if '-' in value:
+            start = value.split('-')[0]
+            end = value.split('-')[1]
+            for i in range(int(start), int(end) + 1):
+                weeks.append(i)
+        else:
+            weeks.append(value)
+    output = ""
+    for value in weeks:
+        output += str(value)
+        output += ','
+    return output
 
 
 class CourseList(APIView):
@@ -24,20 +43,27 @@ class CourseList(APIView):
         没有提供参数，参数数量错误，返回400错误;
         参数错误，返回404错误;
         """
+        start_day = '2020-2-24'
         req = request.query_params.dict()
         result = StudentCourse.objects.all()
-        if (len(req) > 0) and (len(req) < 3):
+        if len(req) == 2:
             for key, value in req.items():
                 if key == 'student_id':
                     result = result.filter(student_id__id=value)
                 elif key == 'week':
-                    if value != 'all':
-                        value += ','
-                        result = result.filter(course_id__week__icontains=value)
+                    value += ','
+                    result = result.filter(week__icontains=value)
                 else:
                     raise Http404
             course_serializer = StudentCourseSerializer(result, many=True)
             return Response(course_serializer.data)
+        elif len(req) == 1:
+            content = []
+            date1 = datetime.strptime(req['date'], "%Y-%m-%d")
+            date2 = datetime.strptime(start_day, "%Y-%m-%d")
+            value = str(int((date1 - date2).days / 7) + 1)
+            content.append({"week": value})
+            return Response(content)
         else:
             return HttpResponseBadRequest()
 
@@ -92,7 +118,7 @@ class CourseList(APIView):
                         new_teacher_course.save()
                 # 保存信息
                 new_student_course = StudentCourse(student_id=student, course_id=course
-                                                   , week=week, time=time, place=place, semester=semester)
+                                                   , week=split_week(week), time=time, place=place, semester=semester)
                 new_student_course.save()
             else:
                 return HttpResponseBadRequest()

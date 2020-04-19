@@ -30,6 +30,7 @@ class TeacherSerializerLimited(serializers.ModelSerializer):
 class StudentCourseSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='course_id.name')
     teacher_course = TeacherSerializerLimited(source='course_id.teacher_course', many=True)
+    week = 0
 
     class Meta:
         model = StudentCourse

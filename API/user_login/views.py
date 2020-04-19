@@ -25,7 +25,8 @@ class login(APIView):
         ans = getStudentInfo(usr_name,usr_password)
         
         state = 1
-        #调用爬虫接口进行验证并取得下面的值
+        content = {}
+        student_id = ""
         if ans == 0:
             state = 0
         elif ans == -1:
@@ -40,5 +41,5 @@ class login(APIView):
             Student(usr_name=usr_name,usr_password=usr_password,id=student_id, name=name,grade=grade,major=major).save()
         
         print(Student.objects.filter(usr_name=usr_name).values("name","grade"))
-        content = {"state":state}#1代表成功，2代表无该账号，3代表密码错误
+        content = {"state":state, "student_id":student_id}#1代表成功，2代表无该账号，3代表密码错误
         return Response(content)

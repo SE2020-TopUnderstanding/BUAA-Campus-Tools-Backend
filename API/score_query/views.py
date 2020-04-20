@@ -4,7 +4,7 @@ from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from .serializers import *
 from .models import *
 from course_query.models import Student
-from request_queue.views import req_queue
+import request_queue.views as req_module
 
 
 class ScoreList(APIView):
@@ -40,17 +40,26 @@ class ScoreList(APIView):
         格式：{student_id:(id), semester:(sm), info:[[课程名称1，学分1...],[课程名称2，学分2...]}
         """
         req = request.data
-        semester = req['semester']
-        # 找不到这个学生肯定有问题
+        # 确保数据库中有此学生的记录
         try:
             student = Student.objects.get(id=req['student_id'])
         except Student.DoesNotExist:
             raise Http404
-        if len(req) == 1:
-            req_queue.put({'usr_name': student.usr_name, 'password': student.usr_password, 'req_type': "g"})
-            return HttpResponse(status=202)
 
+        # 前端的更新请求
+        if len(req) == 1:
+            req_module.req_id += 1
+            req_queue = req_module.req_queue
+            pending_work = req_module.pending_work
+            req_queue.put(
+                {'req_id': req_module.req_id, 'usr_name': student.usr_name, 'password': student.usr_password,
+                 'req_type': "g"})
+            pending_work.append(req_module.req_id)
+            return Response([{'id': req_module.req_id}])
+
+        # 爬虫的数据库插入请求
         elif len(req) == 3:
+            semester = req['semester']
             for key in req['info']:
                 if len(key) == 4:
                     bid = key[0]
@@ -66,5 +75,7 @@ class ScoreList(APIView):
                 else:
                     return HttpResponseBadRequest()
             return HttpResponse(status=201)
+
+        # 其他非法请求
         else:
             return HttpResponse(status=400)

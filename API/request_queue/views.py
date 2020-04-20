@@ -3,12 +3,15 @@ from rest_framework.views import APIView
 from django.http import HttpResponse
 import queue
 
+req_id = 0
 req_queue = queue.Queue()
+pending_work = []
 
 
 class Queue(APIView):
     @staticmethod
     def get(request):
+        # 爬虫在这里取得request
         content = []
         if req_queue.empty():
             return HttpResponse(status=204)
@@ -17,5 +20,12 @@ class Queue(APIView):
         return Response(content)
 
     @staticmethod
-    def post():
-        return HttpResponse(status=201)
+    def post(request):
+        # 爬虫执行完成时返回完成的request id
+        cur_id = int(request.data['req_id'])
+        try:
+            pending_work.remove(cur_id)
+        except ValueError:
+            return HttpResponse(status=404)
+
+        return HttpResponse(status=200)

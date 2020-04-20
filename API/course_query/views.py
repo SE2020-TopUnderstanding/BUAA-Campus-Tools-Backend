@@ -63,7 +63,7 @@ class CourseList(APIView):
                 content = []
                 date1 = datetime.strptime(req['date'], "%Y-%m-%d")
                 date2 = datetime.strptime(start_day, "%Y-%m-%d")
-                total_week = min(16, int((date1 - date2).days / 7))
+                total_week = min(16, int((date1 - date2).days / 7 + 1))
                 value = str(total_week)
                 content.append({"week": value})
                 return Response(content)

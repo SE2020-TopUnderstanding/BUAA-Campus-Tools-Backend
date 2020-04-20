@@ -4,6 +4,7 @@ from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from .serializers import *
 from .models import *
 from course_query.models import Student
+from request_queue.views import req_queue
 
 
 class ScoreList(APIView):
@@ -45,18 +46,25 @@ class ScoreList(APIView):
             student = Student.objects.get(id=req['student_id'])
         except Student.DoesNotExist:
             raise Http404
-        for key in req['info']:
-            if len(key) == 4:
-                bid = key[0]
-                course_name = key[1]
-                credit = key[2]
-                score = key[3]
-                try:
-                    Score.objects.get(bid=bid)
-                except Score.DoesNotExist:
-                    new_score = Score(student_id=student, semester=semester, course_name=course_name
-                                      , bid=bid, credit=credit, score=score)
-                    new_score.save()
-            else:
-                return HttpResponseBadRequest()
-        return HttpResponse(status=201)
+        if len(req) == 1:
+            req_queue.put({'usr_name': student.usr_name, 'password': student.usr_password, 'req_type': "g"})
+            return HttpResponse(status=202)
+
+        elif len(req) == 3:
+            for key in req['info']:
+                if len(key) == 4:
+                    bid = key[0]
+                    course_name = key[1]
+                    credit = key[2]
+                    score = key[3]
+                    try:
+                        Score.objects.get(bid=bid)
+                    except Score.DoesNotExist:
+                        new_score = Score(student_id=student, semester=semester, course_name=course_name
+                                          , bid=bid, credit=credit, score=score)
+                        new_score.save()
+                else:
+                    return HttpResponseBadRequest()
+            return HttpResponse(status=201)
+        else:
+            return HttpResponse(status=400)

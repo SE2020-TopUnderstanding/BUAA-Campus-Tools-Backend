@@ -5,6 +5,7 @@ from .serializers import *
 from .models import *
 from django.http import HttpResponseBadRequest
 from datetime import datetime
+from request_queue.views import req_queue
 
 
 def split_week(week):
@@ -78,19 +79,22 @@ class CourseList(APIView):
         格式：{student_id:(id), semester:(sm), info:[[课程名称1，地点1...],[课程名称2，地点2...]}
         """
         req = request.data
+        # 找不到这个同学肯定有问题
         student_id = req['student_id']
-        semester = req['semester']
+        try:
+            student = Student.objects.get(id=student_id)
+        except Student.DoesNotExist:
+            print("not exists:" + student_id)
+            raise Http404
+
         if len(req) == 3:
-            # 找不到这个同学肯定有问题
-            try:
-                student = Student.objects.get(id=student_id)
-            except Student.DoesNotExist:
-                print("not exists:" + student_id)
-                raise Http404
+            semester = req['semester']
             # 更新则默认将原记录删除
             StudentCourse.objects.filter(student_id=student_id).delete()
-        elif len(req) == 0:
-            pass
+        elif len(req) == 1:
+            print(req_queue)
+            req_queue.put({'usr_name': student.usr_name, 'password': student.usr_password, 'req_type': 's'})
+            return HttpResponse(status=202)
         else:
             return HttpResponseBadRequest()
 

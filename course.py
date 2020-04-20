@@ -24,7 +24,7 @@ class courseReq():
             elif success == 0:
                 break
         self.browser = vpn.getBrowser()         # get the browser.
-        self.getDdl()                           # for debug
+        #self.getDdl()                           # for debug
 
     def getStatus(self):
         '''
@@ -54,9 +54,9 @@ class courseReq():
         ddls = {}
         for i in range(len(lessons)):
             link = lessons[i].find_elements_by_xpath('a')[0]
-            print(link.get_attribute('href'))
+            #print(link.get_attribute('href'))
             curLesson = link.get_attribute('title')                                             # get lesson's name
-            print(curLesson)
+            #print(curLesson)
             link = link.get_attribute('href')
             
             self.browser.get(link)                                                              # switch to the lesson
@@ -75,7 +75,7 @@ class courseReq():
             except Exception:
                 try:
                     self.browser.find_element_by_xpath('/html/body/div/p')
-                    print('no homework founded\n')
+                    #print('no homework founded\n')
                     ddls[curLesson] = []
 
                     self.browser.switch_to.default_content()
@@ -95,15 +95,15 @@ class courseReq():
                 if len(datas) >= 1:
                     title = datas[0].find_elements_by_tag_name('a')[0]
                     title = title.text
-                    print(title)
+                    #print(title)
                     work.append(title)
                 if len(datas) >= 2:
                     status = datas[1].text
-                    print(status)
+                    #print(status)
                     work.append(status)
                 if len(datas) >= 3:
                     opendate = datas[2].text
-                    print(opendate)
+                    #print(opendate)
                     work.append(opendate)
                 if len(datas) >= 4:
                     duedate = datas[3].find_elements_by_tag_name('span')
@@ -111,11 +111,11 @@ class courseReq():
                         duedate = ''
                     else:
                         duedate = duedate[0].text
-                    print(duedate)
+                    #print(duedate)
                     work.append(duedate)
                 while len(work) < 4:
                     work.append('')
-                print()
+                #print()
                 jobs.append(work)
             ddls[curLesson] = jobs
 

@@ -1,6 +1,7 @@
 from jiaowu import *
 from course import *
 
+
 '''
 this class is goint to arrange the data 
 and create interface for background
@@ -112,6 +113,12 @@ class DataReq():
         it is difficult to finish it in time
         '''
         aimJson = []
+        dictXueYuan = {}
+        dictXueYuan['campus'] = '学院路校区'
+        xueYuan = []
+        dictShaHe = {}
+        dictShaHe['campus'] = '沙河校区'
+        shaHe = []
         for i in range(len(emptyClassroom)):
             thisWeek = emptyClassroom[i]
             for room, isEmpty in thisWeek.items():
@@ -133,6 +140,8 @@ class DataReq():
                     teaching_building = '教四'
                 elif room[0] == 'J' and room[1] == '5':
                     teaching_building = '教五'
+                elif room[0] == 'J' and room[1] == '0':
+                    teaching_building = '教零'
                 elif room[0] == '(' and room[1] == '一':
                     teaching_building = '一号楼'
                 elif room[0] == '(' and room[1] == '二':
@@ -166,13 +175,25 @@ class DataReq():
                 section = []
                 for j in range(len(isEmpty)):
                     if j % 6 == 5:
-                        # TODO: use i and j to getCurDate
-                        date = ''
+                        days = i * 7 + j / 6
+                        originDay = datetime.strptime('2020-02-24',"%Y-%m-%d")
+                        date = originDay + timedelta(days = days)
+                        date = date.strftime("%Y-%m-%d")
                         if isEmpty[j] == 1:
                             section.append(13)
                             section.append(14)
-                        # TODO: data insert
+                        dictCur = {}
+                        dictCur['teaching_building'] = teaching_building
+                        dictCur['classroom'] = classroom
+                        dictCur['date'] = date
+                        tmp = str(section.copy())
+                        tmp = tmp[:-1] + ',]'
+                        dictCur['section'] = tmp
 
+                        if campus == '沙河校区':
+                            shaHe.append(dictCur)
+                        else:
+                            xueYuan.append(dictCur)
                         section.clear()
                     else:
                         if isEmpty[j] == 1:
@@ -193,8 +214,13 @@ class DataReq():
                             if j % 6 == 4:
                                 section.append(11)
                                 section.append(12)
-        # TODO: data sort and return
-        return ''
+        dictShaHe['content'] = shaHe
+        dictXueYuan['content'] = xueYuan
+        aimJson.append(dictShaHe)
+        aimJson.append(dictXueYuan)
+        returnJson = json.dumps(aimJson, ensure_ascii=False)
+        print(returnJson)
+        return returnJson
 
     def dealWithSchedules(self, schedules, studentId):
         '''
@@ -241,7 +267,7 @@ class DataReq():
 if __name__ == "__main__":
     userName = input('Your username: ') 
     password = input('Your password: ')
-    DataReq(userName, password).request('d')
+    #DataReq(userName, password).request('d')
     #DataReq(userName, password).request('g')
     #DataReq(userName, password).request('e')
     #DataReq(userName, password).request('s')

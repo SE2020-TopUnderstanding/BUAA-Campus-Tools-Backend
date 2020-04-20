@@ -7,6 +7,7 @@ from selenium.webdriver.support.select import Select
 
 import time
 import json
+from datetime import datetime, date, timedelta
 
 vpnUrl = 'https://e2.buaa.edu.cn/users/sign_in'
 
@@ -21,7 +22,7 @@ class VpnLogin:
         
         userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36'
         opt = webdriver.ChromeOptions()                 
-        #opt.add_argument('--headless')                 # hide the chrome, it's for the release version
+        opt.add_argument('--headless')                 # hide the chrome, it's for the release version
         opt.add_argument('--disable-gpu')               
         opt.add_argument('--no-sandbox')                
         opt.add_argument('--user-agent=%s' % userAgent) 
@@ -30,7 +31,7 @@ class VpnLogin:
 
     def login(self, userName, password):
         self.browser.get(vpnUrl)                        
-        self.browser.maximize_window()                  # Used for debugging
+        #self.browser.maximize_window()                  # Used for debugging
         
         #find and fill the username and password text box and commit
         inputUserName = self.browser.find_element_by_xpath('//*[@id="user_login"]')         

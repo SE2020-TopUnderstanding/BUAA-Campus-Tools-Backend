@@ -85,7 +85,7 @@ class jiaoWuReq():
             if i == len(selectDate.options) - 1:
                 continue
             each = selectDate.options[i + 1]
-            print(each.text)
+            #print(each.text)
             selectDate.select_by_visible_text(each.text)                                        
             time.sleep(2)                                                                       
             searchButton = self.browser.find_element_by_xpath('//*[@id="queryform"]/div/table/tbody/tr[1]/td[9]/div/a')
@@ -145,10 +145,10 @@ class jiaoWuReq():
         for i in range(len(selectDate1.options) - 1):                                           # the first option cannot use
             each1 = selectDate1.options[i + 1]
             each2 = selectDate2.options[i + 1]
-            print(each1.text)
+            #print(each1.text)
             selectDate1.select_by_visible_text(each1.text)
             selectDate2.select_by_visible_text(each2.text)
-            time.sleep(2)                                                                       
+            time.sleep(0.5)                                                                       
             searchButton = self.browser.find_element_by_xpath('//*[@id="queryform"]/table/tbody/tr/td[11]/div/a')
             searchButton.click()                                                                
             locator = (By.XPATH, '/html/body/div/div/div[5]/table')
@@ -166,7 +166,7 @@ class jiaoWuReq():
                 for row in tableRows:                                                           # view the chart
                     classRoom = []
                     rooms = row.find_elements_by_tag_name('td')[1:]
-                    print(row.find_elements_by_tag_name('td')[0].text)
+                    #print(row.find_elements_by_tag_name('td')[0].text)
                     for room in rooms:
                         s = room.get_attribute('innerHTML')                                     # check whether it is empty
                         if s == '\n\t\t\t\t\t      \t \n\t\t\t\t\t      \t <div class=""></div>\n\t\t\t\t\t      \t':
@@ -188,7 +188,7 @@ class jiaoWuReq():
                 except Exception:
                     print('timeout or switch to an unknown page')
                     return -4
-                time.sleep(1)                                                                   
+                time.sleep(0.5)                                                                   
             selectDate1 = Select(self.browser.find_element_by_xpath('//*[@id="pageZc1"]'))      # reget the select options
             selectDate2 = Select(self.browser.find_element_by_xpath('//*[@id="pageZc2"]'))      # reget the select options
             allEmptyClassrooms.append(classRooms)                                               
@@ -232,10 +232,10 @@ class jiaoWuReq():
             schedule = []     
             lessons = row.find_elements_by_tag_name('td')[2:]                                       # catch all the lessons   
             for each in lessons:
-                print(each.text)
+                #print(each.text)
                 schedule.append(each.text)
             schedules.append(schedule)
-        print(table.find_elements_by_tag_name('tr')[-1].find_elements_by_tag_name('td')[0].text)    # other lessons
+        #print(table.find_elements_by_tag_name('tr')[-1].find_elements_by_tag_name('td')[0].text)    # other lessons
         other = []
         other.append(table.find_elements_by_tag_name('tr')[-1].find_elements_by_tag_name('td')[0].text)
         schedules.append(other)

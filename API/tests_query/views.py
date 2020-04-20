@@ -36,4 +36,5 @@ class TestList(APIView):
 
     @staticmethod
     def post(self, request):
+        # 暂时没有考试查询，一律返回201
         return HttpResponse(status=201)

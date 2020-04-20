@@ -1,15 +1,20 @@
 ### 接口规格（暂定）
 
-| #    | 请求方法 | 请求路径             | 用途            |
-| ---- | -------- | -------------------- | --------------- |
-| 1    | post     | hostname/login       | 用户验证        |
-| 2    | get      | hostname/timetable   | 获取课表        |
-| 3    | get      | hostname/score       | 获取成绩        |
-| 4    | get      | hostname/todolist    | 获取课程中心ddl |
-| 5    | get      | hostname/empty_rooms | 获取空教室      |
-| 6    | get      | hostname/tests       | 获取考试时间表  |
-| 7    | post     | hostname/timetable   | 添加数据        |
-| 8    | post     | hostname/score       | 添加数据        |
+| #    | 请求方法 | 请求路径                         | 用途                 |
+| ---- | -------- | -------------------------------- | -------------------- |
+| 1    | post     | hostname/login/                  | 用户验证             |
+| 2    | get      | hostname/timetable/              | 获取课表             |
+| 3    | get      | hostname/score/                  | 获取成绩             |
+| 4    | get      | hostname/todolist                | 获取课程中心ddl      |
+| 5    | get      | hostname/empty_rooms             | 获取空教室           |
+| 6    | get      | hostname/tests/                  | 获取考试时间表       |
+| 7    | post     | hostname/timetable               | 添加数据（爬虫用）   |
+| 8    | post     | hostname/score                   | 添加数据（爬虫用）   |
+| 9    | post     | hostname/timetable/ (student_id) | 请求更新             |
+| 10   | post     | hostname/score/ (student_id)     | 请求更新             |
+| 11   | get      | hostname/request                 | 接受任务(爬虫用)     |
+| 12   | get      | hostname/request?id=:id          | 获取某任务的状态     |
+| 13   | post     | hostname/request                 | 完成任务标记(爬虫用) |
 
 ## 数据元素定义
 
@@ -17,19 +22,25 @@
 
 - 课程：
 
-    - 查询参数及返回值：
+    - get方法查询参数及返回值：
 
         ```
         # 可使用的参数有：
         # student_id: 附带学生学号，查询指定学生课表
-        # week: 附带周数，查询指定周的课表，若参数值为all,则查询该学期全部周的课表
+        # week: 附带周数，查询指定周的课表
+        # date: 附带当天日期，返回本周为第n周
         # 例：127.0.0.1:8000/timetable/?student_id=17333333&week=3
         # 查询学号为17373333 当前学期第三周课表
+        # 例2：127.0.0.1:8000/timetable/?date=2020-4-19
+        # 查询2020年4月19号是第几周
         # 没有提供参数或参数数量正确，返回400错误
         # 参数类型不正确，返回404错误
         ```
-
-
+    
+    - post方法请求更新：
+    
+        ​	附带{'student_id': (:id)}格式请求更新
+    
 - 登录
 
   - 访问方法
@@ -121,7 +132,7 @@
         ]
     }
     ```
-  
+
 - 成绩：
 
     ```
@@ -132,6 +143,10 @@
     # 例:127.0.0.1:8000/score/?student_id=11111111&semester=2020_Spring
     # 获得学号为11111111，2020春季学期的成绩
     ```
+
+    - post方法请求更新：
+
+        附带{'student_id': (:id)}格式请求更新
 
 - 考期表：
 

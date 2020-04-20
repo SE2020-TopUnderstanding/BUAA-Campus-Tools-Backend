@@ -1,50 +1,69 @@
 from jiaowu import *
 from course import *
 
-
-'''
-this class is goint to arrange the data 
-and create interface for background
-'''
-
 class DataReq():
+    '''
+    this class is goint to arrange the data 
+    '''
     def __init__(self, userName, password):
         self.userName = userName
         self.password = password
 
     def request(self, requestType):
-        getStuId = jiaoWuReq(self.userName, self.password)
+        '''
+        catch all the reqs 
+        get and sort the datas
+        requestType: {'d':'ddls', 'g':'grades', 'e':'empty classrooms', 's':'schedule'}
+        '''
+        getStuId = jiaoWuReq(self.userName, self.password)              # get the student's id
         stuId = getStuId.getId()
         getStuId.quit()
-        if requestType == 'd':          # get ddl
+        if stuId == -1 or stuId == -2 or stuId == -3 or stuId == -4:    # if there is something wrong
+            print('something wrong')
+            print('usr_name: ' + self.userName)
+            print('requestType: ' + 'getStuId')
+            return stuId
+        if requestType == 'd':                                          # get ddl
             course = courseReq(self.userName, self.password)
             ddls = course.getDdl()
             course.quit()
-            if ddls == -1 or ddls == -2 or ddls == -3 or ddls == -4:
+            if ddls == -1 or ddls == -2 or ddls == -3 or ddls == -4:    # if there is something wrong
+                print('something wrong')
+                print('usr_name: ' + self.userName)
+                print('requestType: ddl')
                 return ddls
             else:
                 return self.dealWithDdl(ddls, stuId) 
-        elif requestType == 'g':        # get grades
+        elif requestType == 'g':                                        # get grades
             jiaowu = jiaoWuReq(self.userName, self.password)
             grades = jiaowu.getGrade()
             jiaowu.quit()
             if grades == -1 or grades == -2 or grades == -3 or grades == -4:
+                print('something wrong')
+                print('usr_name: ' + self.userName)
+                print('requestType: grades')
                 return grades
             else:
                 return self.dealWithGrades(grades, stuId) 
-        elif requestType == 'e':        # get empty classrooms
+        elif requestType == 'e':                                        # get empty classrooms
             jiaowu = jiaoWuReq(self.userName, self.password)
             emptyClassroom = jiaowu.getEmptyClassroom()
             jiaowu.quit()
             if emptyClassroom == -1 or emptyClassroom == -2 or emptyClassroom == -3 or emptyClassroom == -4:
+                print('something wrong')
+                print('usr_name: ' + self.userName)
+                print('requestType: empty calssroom')
                 return emptyClassroom
             else:
                 return self.dealWithEmptyClassroom(emptyClassroom) 
-        elif requestType == 's':        # get schedules
+        elif requestType == 's':                                        # get schedules
             jiaowu = jiaoWuReq(self.userName, self.password)
             schedules = jiaowu.getSchedule()
             jiaowu.quit()
             if schedules == -1 or schedules == -2 or schedules == -3 or schedules == -4:
+                print('something wrong')
+                print('usr_name: ' + self.userName)
+                print('requestType: schedule')
                 return schedules
             else:
                 return self.dealWithSchedules(schedules, stuId) 
@@ -59,7 +78,7 @@ class DataReq():
         for lesson, allDdl in ddls.items():
             curLessonDdl = {}
             content = []
-            for each in allDdl:
+            for each in allDdl:                                         # get all the needed items
                 curDdl = {}
                 if len(each) >= 4:
                     curDdl['ddl'] = each[3]
@@ -72,8 +91,8 @@ class DataReq():
             curLessonDdl['name'] = lesson
             ddl.append(curLessonDdl)
         aimJson['ddl'] = ddl
-        returnJson = json.dumps(aimJson, ensure_ascii=False)
-        print(returnJson)
+        returnJson = json.dumps(aimJson, ensure_ascii=False)            # get the json package
+        #print(returnJson)
         return returnJson
     
     def dealWithGrades(self, oriGrades, studentId):
@@ -86,7 +105,7 @@ class DataReq():
             semember = ''
             for j in range(len(oriGrades[i])):
                 curData = oriGrades[i][j]
-                lessonCode = curData[3]
+                lessonCode = curData[3]                                 # get all the needed datas
                 lessonName = curData[4]
                 credit = curData[7]
                 grades = curData[11]
@@ -102,15 +121,14 @@ class DataReq():
             scheduleChart['student_id'] = studentId
             scheduleChart['semember'] = semember
             scheduleChart['info'] = aimGrades
-            returnJson = json.dumps(scheduleChart, ensure_ascii=False)
-            print(returnJson)
+            returnJson = json.dumps(scheduleChart, ensure_ascii=False)  # get the json package
+            #print(returnJson)
             jsons.append(returnJson)
         return jsons
 
     def dealWithEmptyClassroom(self, emptyClassroom):
         '''
         data sort for empty classrooms
-        it is difficult to finish it in time
         '''
         aimJson = []
         dictXueYuan = {}
@@ -125,12 +143,12 @@ class DataReq():
                 campus = ''
                 teaching_building = ''
                 classroom = ''
-                if room[0] == 'J':
+                if room[0] == 'J':                                      # get the campus
                     campus = '沙河校区'
                 else:
                     campus = '学院路校区'
                 classroom = room
-                if room[0] == 'J' and room[1] == '1':
+                if room[0] == 'J' and room[1] == '1':                   # get the building
                     teaching_building = '教一'
                 elif room[0] == 'J' and room[1] == '2':
                     teaching_building = '教二'
@@ -173,8 +191,8 @@ class DataReq():
                 elif room[0] == 'H':
                     teaching_building = '新主楼H座'   
                 section = []
-                for j in range(len(isEmpty)):
-                    if j % 6 == 5:
+                for j in range(len(isEmpty)):                           # get the date and section
+                    if j % 6 == 5:                                      # if it is end of a day
                         days = i * 7 + j / 6
                         originDay = datetime.strptime('2020-02-24',"%Y-%m-%d")
                         date = originDay + timedelta(days = days)
@@ -195,7 +213,7 @@ class DataReq():
                         else:
                             xueYuan.append(dictCur)
                         section.clear()
-                    else:
+                    else:                                               # it is still in a single day
                         if isEmpty[j] == 1:
                             if j % 6 == 0:
                                 section.append(1)
@@ -218,8 +236,8 @@ class DataReq():
         dictXueYuan['content'] = xueYuan
         aimJson.append(dictShaHe)
         aimJson.append(dictXueYuan)
-        returnJson = json.dumps(aimJson, ensure_ascii=False)
-        print(returnJson)
+        returnJson = json.dumps(aimJson, ensure_ascii=False)            # get the json package
+        #print(returnJson)
         return returnJson
 
     def dealWithSchedules(self, schedules, studentId):
@@ -232,8 +250,9 @@ class DataReq():
                 curStr = schedules[i][j]
                 if curStr == ' ':
                     continue
-                lesson, info = curStr.split('\n')
-                teachers, info = info.split('[')
+                # TODO: data sort
+                lesson, info = curStr.split('\n')                       # get the informations
+                teachers, info = info.split('[')                        # some special conditions cannot be unpacked easily
                 week, info = info.split(']')
                 place, time = info.split(' ')
                 curInfo = []
@@ -259,8 +278,8 @@ class DataReq():
         scheduleChart = {}
         scheduleChart['student_id'] = studentId
         scheduleChart['info'] = aimLessons
-        returnJson = json.dumps(scheduleChart, ensure_ascii=False)
-        print(returnJson)
+        returnJson = json.dumps(scheduleChart, ensure_ascii=False)      # get the json package
+        #print(returnJson)
         return returnJson
 
 # for test

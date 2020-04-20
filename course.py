@@ -18,6 +18,8 @@ class courseReq():
                 if i == 2:
                     self.status = -2
                     break
+                else:
+                    vpn.getBrowser().quit()
             elif success == -3 or success == -4:
                 self.status = -3
                 break

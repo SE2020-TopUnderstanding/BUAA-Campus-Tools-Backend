@@ -18,6 +18,8 @@ class jiaoWuReq():
                 if i == 2:
                     self.status = -2
                     break
+                else:
+                    vpn.getBrowser().quit()
             elif success == -3 or success == -4:
                 self.status = -3
                 break
@@ -85,7 +87,7 @@ class jiaoWuReq():
             if i == len(selectDate.options) - 1:
                 continue
             each = selectDate.options[i + 1]
-            #print(each.text)
+            print(each.text)
             selectDate.select_by_visible_text(each.text)                                        
             time.sleep(2)                                                                       
             searchButton = self.browser.find_element_by_xpath('//*[@id="queryform"]/div/table/tbody/tr[1]/td[9]/div/a')

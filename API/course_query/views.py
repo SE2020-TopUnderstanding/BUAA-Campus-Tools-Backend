@@ -62,8 +62,8 @@ class CourseList(APIView):
                 content = []
                 date1 = datetime.strptime(req['date'], "%Y-%m-%d")
                 date2 = datetime.strptime(start_day, "%Y-%m-%d")
-                total_week = min(int((date1 - date2).days / 7) + 1, 16)
-                value = str(int((date1 - date2).days / 7) + 1)
+                total_week = min(16, int((date1 - date2).days / 7))
+                value = str(total_week)
                 content.append({"week": value})
                 return Response(content)
             else:
@@ -89,6 +89,8 @@ class CourseList(APIView):
                 raise Http404
             # 更新则默认将原记录删除
             StudentCourse.objects.filter(student_id=student_id).delete()
+        elif len(req) == 0:
+            pass
         else:
             return HttpResponseBadRequest()
 

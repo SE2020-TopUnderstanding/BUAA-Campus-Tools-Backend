@@ -71,6 +71,7 @@ class CourseList(APIView):
                 return Response(content)
             else:
                 return HttpResponseBadRequest()
+        # 其他非法请求
         else:
             return HttpResponseBadRequest()
 
@@ -81,14 +82,12 @@ class CourseList(APIView):
         格式：{student_id:(id), semester:(sm), info:[[课程名称1，地点1...],[课程名称2，地点2...]}
         """
         req = request.data
-
         # 确保数据库中有这个同学的信息
         student_id = req['student_id']
         try:
             student = Student.objects.get(id=student_id)
         except Student.DoesNotExist:
             raise Http404
-
         # 爬虫的数据库插入请求
         if len(req) == 3:
             semester = req['semester']
@@ -127,14 +126,13 @@ class CourseList(APIView):
                             new_teacher_course.save()
                     # 保存信息
                     new_student_course = StudentCourse(student_id=student, course_id=course
-                                                       , week=split_week(week), time=time, place=place, semester=semester)
+                                                       , week=split_week(week), time=time, place=place,
+                                                       semester=semester)
                     new_student_course.save()
-
                 # 不是5项表示数据有缺失
                 else:
                     return HttpResponseBadRequest()
             return HttpResponse(status=201)
-
         # 前端的更新请求
         elif len(req) == 1:
             req_module.req_id += 1
@@ -145,9 +143,6 @@ class CourseList(APIView):
                 {'req_id': req_id, 'usr_name': student.usr_name, 'password': student.usr_password, 'req_type': 's'})
             pending_work.append(req_module.req_id)
             return Response([{"id": req_id}])
-
         # 其他非法请求
         else:
             return HttpResponseBadRequest()
-
-

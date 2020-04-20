@@ -20,7 +20,7 @@ class ScoreList(APIView):
         """
         req = request.query_params.dict()
         result = Score.objects.all()
-        if (len(req) > 0) and (len(req) < 3):
+        if len(req) == 2:
             for key, value in req.items():
                 if key == 'semester':
                     result = result.filter(semester=value)

@@ -1,17 +1,20 @@
 ### 接口规格（暂定）
 
-| #    | 请求方法 | 请求路径                         | 用途               |
-| ---- | -------- | -------------------------------- | ------------------ |
-| 1    | post     | hostname/login                   | 用户验证           |
-| 2    | get      | hostname/timetable               | 获取课表           |
-| 3    | get      | hostname/score                   | 获取成绩           |
-| 4    | get      | hostname/todolist                | 获取课程中心ddl    |
-| 5    | get      | hostname/empty_rooms             | 获取空教室         |
-| 6    | get      | hostname/tests                   | 获取考试时间表     |
-| 7    | post     | hostname/timetable               | 添加数据（爬虫用） |
-| 8    | post     | hostname/score                   | 添加数据（爬虫用） |
-| 9    | post     | hostname/timetable/ (student_id) | 请求更新           |
-| 10   | post     | hostname/score/ (student_id)     | 请求更新           |
+| #    | 请求方法 | 请求路径                         | 用途                 |
+| ---- | -------- | -------------------------------- | -------------------- |
+| 1    | post     | hostname/login/                  | 用户验证             |
+| 2    | get      | hostname/timetable/              | 获取课表             |
+| 3    | get      | hostname/score/                  | 获取成绩             |
+| 4    | get      | hostname/todolist                | 获取课程中心ddl      |
+| 5    | get      | hostname/empty_rooms             | 获取空教室           |
+| 6    | get      | hostname/tests/                  | 获取考试时间表       |
+| 7    | post     | hostname/timetable               | 添加数据（爬虫用）   |
+| 8    | post     | hostname/score                   | 添加数据（爬虫用）   |
+| 9    | post     | hostname/timetable/ (student_id) | 请求更新             |
+| 10   | post     | hostname/score/ (student_id)     | 请求更新             |
+| 11   | get      | hostname/request                 | 接受任务(爬虫用)     |
+| 12   | get      | hostname/request?id=:id          | 获取某任务的状态     |
+| 13   | post     | hostname/request                 | 完成任务标记(爬虫用) |
 
 ## 数据元素定义
 

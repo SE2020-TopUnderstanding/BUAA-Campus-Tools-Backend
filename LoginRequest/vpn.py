@@ -30,6 +30,8 @@ class VpnLogin:
         opt.add_argument('--user-agent=%s' % userAgent) 
         self.browser = webdriver.Chrome(options=opt)    
         self.loginSuccess = self.login(userName, password) 
+        self.usr = userName
+        self.pw = password
 
     def login(self, userName, password):
 
@@ -77,8 +79,21 @@ class VpnLogin:
         try:
             WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   
         except Exception:
-            print('timeout or switch to an unknown page')
-            return -5
+            try:
+                input_id = self.browser.find_element_by_xpath('//*[@id="username"]')
+                input_pw = self.browser.find_element_by_xpath('//*[@id="password"]')
+                commit = self.browser.find_element_by_xpath('//*[@id="fm1"]/div[3]/input[4]')
+                input_id.send_keys(self.usr)               
+                input_pw.send_keys(self.pw)               
+                commit.click()
+                try:
+                    WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   
+                except Exception:
+                    print('timeout or switch to an unknown page')
+                    return -5
+            except Exception:
+                print('timeout or switch to an unknown page')
+                return -5
         return 0                                        
 
     def switchToCourse(self):
@@ -95,8 +110,21 @@ class VpnLogin:
         try:
             WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   
         except Exception:
-            print('timeout or switch to an unknown page')
-            return -5
+            try:
+                input_id = self.browser.find_element_by_xpath('//*[@id="username"]')
+                input_pw = self.browser.find_element_by_xpath('//*[@id="password"]')
+                commit = self.browser.find_element_by_xpath('//*[@id="fm1"]/div[3]/input[4]')
+                input_id.send_keys(self.usr)               
+                input_pw.send_keys(self.pw)               
+                commit.click()
+                try:
+                    WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))   
+                except Exception:
+                    print('timeout or switch to an unknown page')
+                    return -5
+            except Exception:
+                print('timeout or switch to an unknown page')
+                return -5
         return 0                                        
 
     def getBrowser(self):

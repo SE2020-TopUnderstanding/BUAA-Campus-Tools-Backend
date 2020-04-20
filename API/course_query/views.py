@@ -58,12 +58,16 @@ class CourseList(APIView):
             course_serializer = StudentCourseSerializer(result, many=True)
             return Response(course_serializer.data)
         elif len(req) == 1:
-            content = []
-            date1 = datetime.strptime(req['date'], "%Y-%m-%d")
-            date2 = datetime.strptime(start_day, "%Y-%m-%d")
-            value = str(int((date1 - date2).days / 7) + 1)
-            content.append({"week": value})
-            return Response(content)
+            if 'date' in req.keys():
+                content = []
+                date1 = datetime.strptime(req['date'], "%Y-%m-%d")
+                date2 = datetime.strptime(start_day, "%Y-%m-%d")
+                total_week = min(int((date1 - date2).days / 7) + 1, 16)
+                value = str(int((date1 - date2).days / 7) + 1)
+                content.append({"week": value})
+                return Response(content)
+            else:
+                return HttpResponseBadRequest()
         else:
             return HttpResponseBadRequest()
 

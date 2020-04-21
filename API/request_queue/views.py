@@ -1,11 +1,26 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
+from course_query.models import Student
 import queue
 
 req_id = 0
 req_queue = queue.Queue()
 pending_work = []
+
+
+def add_request(req_type, student_id):
+    global req_id, req_queue, pending_work
+    try:
+        student = Student.objects.get(id=student_id)
+    except Student.DoesNotExist:
+        raise Http404
+    req_id += 1
+    req_queue.put(
+        {'req_id': req_id, 'usr_name': student.usr_name, 'password': student.usr_password,
+         'req_type': req_type})
+    pending_work.append(req_id)
+    return req_id
 
 
 class Queue(APIView):
@@ -40,5 +55,60 @@ class Queue(APIView):
                 return HttpResponse(status=404)
 
             return HttpResponse(status=200)
+        else:
+            return HttpResponse(status=400)
+
+
+class CourseRequest(APIView):
+    @staticmethod
+    def post(request):
+        req = request.query_params.dict()
+        if len(req) == 1 and 'student_id' in req.keys():
+            request_id = add_request('s', req['student_id'])
+            return Response([{"id": request_id}])
+
+
+class RoomRequest(APIView):
+    @staticmethod
+    def post(request):
+        req = request.query_params.dict()
+        if len(req) == 1 and 'student_id' in req.keys():
+            request_id = add_request('e', req['student_id'])
+            return Response([{"id": request_id}])
+        else:
+            return HttpResponse(status=400)
+
+
+class DDLRequest(APIView):
+    @staticmethod
+    def post(request):
+        req = request.query_params.dict()
+        if len(req) == 1 and 'student_id' in req.keys():
+            request_id = add_request('d', req['student_id'])
+            return Response([{"id": request_id}])
+        else:
+            return HttpResponse(status=400)
+
+
+class ScoreRequest(APIView):
+
+    @staticmethod
+    def post(request):
+        req = request.query_params.dict()
+        if len(req) == 1 and 'student_id' in req.keys():
+            request_id = add_request('g', req['student_id'])
+            return Response([{"id": request_id}])
+        else:
+            return HttpResponse(status=400)
+
+
+class TestsRequest(APIView):
+
+    @staticmethod
+    def post(request):
+        req = request.query_params.dict()
+        if len(req) == 1 and 'student_id' in req.keys():
+            request_id = add_request('t', req['student_id'])
+            return Response([{"id": request_id}])
         else:
             return HttpResponse(status=400)

@@ -24,4 +24,6 @@ urlpatterns = [
     path('score/', include('score_query.urls')),
     path('tests/', include('tests_query.urls')),
     path('login/', include('user_login.urls')),
+    path('ping/', include('ping.urls')),
+    path('request/', include('request_queue.urls')),
 ]

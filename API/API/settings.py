@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'score_query',
     'tests_query',
     'user_login',
+    'ping',
+    'request_queue',
 ]
 
 MIDDLEWARE = [

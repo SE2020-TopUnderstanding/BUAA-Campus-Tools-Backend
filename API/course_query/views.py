@@ -5,7 +5,6 @@ from .serializers import *
 from .models import *
 from django.http import HttpResponseBadRequest
 from datetime import datetime
-import request_queue.views as req_module
 
 
 def split_week(week):
@@ -62,7 +61,7 @@ class CourseList(APIView):
                     value += ','
                     result = result.filter(week__icontains=value)
                 else:
-                    raise Http404
+                    return HttpResponseBadRequest()
             course_serializer = StudentCourseSerializer(result, many=True)
             return Response(course_serializer.data)
         # 当前周查询请求
@@ -139,16 +138,6 @@ class CourseList(APIView):
                     else:
                         return HttpResponseBadRequest()
             return HttpResponse(status=201)
-        # 前端的更新请求
-        elif len(req) == 1:
-            req_module.req_id += 1
-            req_id = req_module.req_id
-            req_queue = req_module.req_queue
-            pending_work = req_module.pending_work
-            req_queue.put(
-                {'req_id': req_id, 'usr_name': student.usr_name, 'password': student.usr_password, 'req_type': 's'})
-            pending_work.append(req_module.req_id)
-            return Response([{"id": req_id}])
         # 其他非法请求
         else:
             return HttpResponseBadRequest()

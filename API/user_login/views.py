@@ -5,7 +5,8 @@ from course_query.models import Student
 
 class login(APIView):
     def get(self, request, format=None):
-        content = {"state":"未定义"}
+        content = Student.objects.all().values("usr_name","usr_password")
+        
         return Response(content)
 
 
@@ -37,8 +38,7 @@ class login(APIView):
             student_id = str(ans[0])
             name = ans[2]
             grade = ans[3]
-            major = "计算机科学与技术"
-            Student(usr_name=usr_name,usr_password=usr_password,id=student_id, name=name,grade=grade,major=major).save()
+            Student(usr_name=usr_name,usr_password=usr_password,id=student_id, name=name,grade=grade).save()
         
         print(Student.objects.filter(usr_name=usr_name).values("name","grade"))
         content = {"state":state, "student_id":student_id}#1代表成功，2代表无该账号，3代表密码错误

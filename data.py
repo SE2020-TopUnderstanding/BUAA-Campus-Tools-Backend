@@ -15,11 +15,11 @@ class DataReq():
         get and sort the datas
         requestType: {'d':'ddls', 'g':'grades', 'e':'empty classrooms', 's':'schedule'}
         '''
-        print('start to get the data, usr_name: ' + userName)
+        print('start to get the data, usr_name: ' + self.userName)
         print('requestType: ' + requestType)
         getStuId = jiaoWuReq(self.userName, self.password)              # get the student's id
         stuId = getStuId.getId()
-        print('studentId: ' + stuId)
+        print('studentId: ' + str(stuId))
         getStuId.quit()
         if stuId == -1 or stuId == -2 or stuId == -3 or stuId == -4:    # if there is something wrong
             print('something wrong')
@@ -257,9 +257,9 @@ class DataReq():
                 curStrs = curStr.split('\n')
                 lesson = curStrs[0]
                 info = ''
-                for i in range(len(curStrs) - 1):
-                    info = info + curStrs[i + 1]
-                infos = info.split(',')
+                for k in range(len(curStrs) - 1):
+                    info = info + curStrs[k + 1]
+                infos = info.split('，')
                 types = []
                 tmpStr = ''
                 for each in infos:
@@ -267,8 +267,11 @@ class DataReq():
                     if each[-1] == '节':
                         types.append(tmpStr)
                         tmpStr = ''
+                    else:
+                        tmpStr = tmpStr + '，'
                 curInfos = []
                 for each in types:
+                    info = each
                     teachers, info = info.split('[')                        # some special conditions cannot be unpacked easily
                     week, info = info.split(']')
                     place, time = info.split(' ')
@@ -297,7 +300,7 @@ class DataReq():
         scheduleChart['student_id'] = studentId
         scheduleChart['info'] = aimLessons
         returnJson = json.dumps(scheduleChart, ensure_ascii=False)      # get the json package
-        print(returnJson)
+        #print(returnJson)
         return returnJson
 
 # for test

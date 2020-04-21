@@ -2,19 +2,34 @@ from data import *
 from multiprocessing import Queue
 import requests
 
-host = '127.0.0.1:8000/'
-#host = '114.115.208.32:8000/'                  # for local test
+#host = '127.0.0.1:8000/'
+host = 'http://114.115.208.32:8000/'                  # for local test
 headers = {'Content-Type': 'application/json'}
+
+def decrypt_string(message):
+    decode_result = ""
+    for char in message:
+        char_int = ord(char)                          # 返回ascall值
+        if  (char_int >= 97) & (char_int <= 122):     # 小写字母
+            decode_result += chr(122-(char_int-97))
+        elif (char_int >= 69) & (char_int <= 78):     # E-N
+            decode_result += chr(57-char_int+69)
+        elif (char_int >= 48) & (char_int <= 57):     # 0-9
+            decode_result += chr(69+char_int-48)
+        else:
+            decode_result += char
+    return decode_result
 
 def getAllStu():
     '''
     get all the students' usr_name and password
     '''
     url = host + 'login/'
-    req = requests.get(url)
+    params = {'password' : '123'}
+    req = requests.get(url, verify=False, params=params)
     jsons = req.json()
-    data = json.loads(jsons)
-    return data
+    #data = json.loads(jsons)
+    return jsons
 
 def reqSchedule(dataReq):
     '''
@@ -35,7 +50,7 @@ def reqSchedule(dataReq):
         print('error on the jiaowu web\n')  
         return 0
     scheduleUrl = host + 'timetable/'
-    requests.post(url=scheduleUrl, headers=headers, data=schedule)
+    requests.post(url=scheduleUrl, headers=headers, data=schedule.encode('utf-8'))
     return 1
 
 def reqGrades(dataReq):
@@ -57,7 +72,7 @@ def reqGrades(dataReq):
         print('error on the jiaowu web\n')  
         return 0
     gradesUrl = host + 'timetable/'
-    requests.post(url=gradesUrl, headers=headers, data=grades)
+    requests.post(url=gradesUrl, headers=headers, data=grades.encode('utf-8'))
     return 1
 
 def reqDdl(dataReq):
@@ -79,7 +94,7 @@ def reqDdl(dataReq):
         print('error on the jiaowu web\n')  
         return 0
     ddlUrl = host + 'timetable/'
-    requests.post(url=ddlUrl, headers=headers, data=ddl)
+    requests.post(url=ddlUrl, headers=headers, data=ddl.encode('utf-8'))
     return 1
 
 def reqEmptyClassroom(dataReq):
@@ -101,7 +116,7 @@ def reqEmptyClassroom(dataReq):
         print('error on the jiaowu web\n')  
         return 0
     emptyClassroomUrl = host + 'timetable/'
-    requests.post(url=emptyClassroomUrl, headers=headers, data=emptyClassroom)
+    requests.post(url=emptyClassroomUrl, headers=headers, data=emptyClassroom.encode('utf-8'))
     return 1
 
 def dealReqs():
@@ -120,7 +135,8 @@ def dealReqs():
 
     # due with the reqs
     jsons = req.json()
-    data = json.loads(jsons)
+    data = jsons
+    #data = json.loads(jsons)
     user = data['usr_name']
     password = data['password']
     reqType = data['req_type']
@@ -150,7 +166,7 @@ def dealReqs():
         return -2
     if success == 0:
         return -1
-    requests.post(url=askUrl, headers=headers, data=jsons)
+    requests.post(url=askUrl, headers=headers, data=jsons.encode('utf-8'))
     return 1
 
 def insect():
@@ -163,32 +179,31 @@ def insect():
         allStu = getAllStu()
         for j in range(len(allStu)):                        # flush all the students' datas
             usr = allStu[j]['usr_name']
-            pw = allStu[j]['usr_password']
+            pw = decrypt_string(allStu[j]['usr_password'])
+            #pw = allStu[j]['usr_password']
             curDataReq = DataReq(usr, pw)
             if j == 0:
                 success = 0
                 i = 0
                 while success == 0 and i < 3:
                     success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
+                    #success = 1
                     i += 1
             success = 0
             i = 0
             while success == 0 and i < 3:
-                success = reqEmptyClassroom(curDataReq)               
+                success = reqSchedule(curDataReq)              
                 i += 1
             success = 0
             i = 0
             while success == 0 and i < 3:
-                success = reqEmptyClassroom(curDataReq)               
+                success = reqGrades(curDataReq)         
                 i += 1
             success = 0
             i = 0
             while success == 0 and i < 3:
-                success = reqEmptyClassroom(curDataReq)               
-                i += 1
-            reqSchedule(curDataReq)
-            reqGrades(curDataReq)
-            reqDdl(curDataReq)
+                success = reqDdl(curDataReq)             
+                i += 1            
             dealReqs()
 
         while True:

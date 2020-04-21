@@ -87,7 +87,7 @@ class jiaoWuReq():
             if i == len(selectDate.options) - 1:
                 continue
             each = selectDate.options[i + 1]
-            print(each.text)
+            print(str(each.text))
             selectDate.select_by_visible_text(each.text)                                        
             time.sleep(2)                                                                       
             searchButton = self.browser.find_element_by_xpath('//*[@id="queryform"]/div/table/tbody/tr[1]/td[9]/div/a')

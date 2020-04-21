@@ -15,8 +15,11 @@ class DataReq():
         get and sort the datas
         requestType: {'d':'ddls', 'g':'grades', 'e':'empty classrooms', 's':'schedule'}
         '''
+        print('start to get the data, usr_name: ' + userName)
+        print('requestType: ' + requestType)
         getStuId = jiaoWuReq(self.userName, self.password)              # get the student's id
         stuId = getStuId.getId()
+        print('studentId: ' + stuId)
         getStuId.quit()
         if stuId == -1 or stuId == -2 or stuId == -3 or stuId == -4:    # if there is something wrong
             print('something wrong')
@@ -251,14 +254,31 @@ class DataReq():
                 if curStr == ' ':
                     continue
                 # TODO: data sort
-                lesson, info = curStr.split('\n')                       # get the informations
-                teachers, info = info.split('[')                        # some special conditions cannot be unpacked easily
-                week, info = info.split(']')
-                place, time = info.split(' ')
-                curInfo = []
-                curInfo.append(lesson)
-                curInfo.append(place[1:])
-                curInfo.append(teachers)
+                curStrs = curStr.split('\n')
+                lesson = curStrs[0]
+                info = ''
+                for i in range(len(curStrs) - 1):
+                    info = info + curStrs[i + 1]
+                infos = info.split(',')
+                types = []
+                tmpStr = ''
+                for each in infos:
+                    tmpStr = tmpStr + each
+                    if each[-1] == '节':
+                        types.append(tmpStr)
+                        tmpStr = ''
+                curInfos = []
+                for each in types:
+                    teachers, info = info.split('[')                        # some special conditions cannot be unpacked easily
+                    week, info = info.split(']')
+                    place, time = info.split(' ')
+                    curInfo = []
+                    curInfo.append(lesson)
+                    curInfo.append(place[1:])
+                    curInfo.append(teachers)
+                    curInfo.append(week)
+                    curInfo.append('周' + str(j + 1) + ' ' + time)
+                    curInfos.append(curInfo)
                 '''
                 this feature cannot be achieved easily
 
@@ -272,14 +292,12 @@ class DataReq():
                 elif len(week.split('-')) == 1:
                     curInfo.append(int(week))
                 '''
-                curInfo.append(week)
-                curInfo.append('周' + str(j + 1) + ' ' + time)
-                aimLessons.append(curInfo)
+                aimLessons.append(curInfos)
         scheduleChart = {}
         scheduleChart['student_id'] = studentId
         scheduleChart['info'] = aimLessons
         returnJson = json.dumps(scheduleChart, ensure_ascii=False)      # get the json package
-        #print(returnJson)
+        print(returnJson)
         return returnJson
 
 # for test
@@ -289,5 +307,5 @@ if __name__ == "__main__":
     #DataReq(userName, password).request('d')
     #DataReq(userName, password).request('g')
     #DataReq(userName, password).request('e')
-    #DataReq(userName, password).request('s')
+    DataReq(userName, password).request('s')
 

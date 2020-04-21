@@ -5,6 +5,42 @@ from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from .models import *
 
 
+def add_0(s):
+    if int(s)<10:
+        s = "0" + s
+    return s
+
+def standard_time(t):
+    '''
+    将爬虫爬的ddl时间修改为标准时间
+    数据库中2020-3-19 下午11:55
+    标准时间2020-03-19 23:55:00
+    '''
+    temp = t.split("-")
+    year = temp[0]
+    month = add_0(temp[1])
+    
+    temp2 = temp[2].split(" ")
+    day = add_0(temp2[0])
+    
+    time = ""
+    type = 0
+    if "上午" in temp2[1]:
+        time = temp2[1].replace('上午','')
+    elif "下午" in temp2[1]:
+        type = 1#代表下午
+        time = temp2[1].replace("下午",'')
+    temp3 = time.split(":")
+
+    if type == 0:
+        hour = add_0(temp3[0])
+    else:
+        hour = str(int(temp3[0])+12)
+    minute = add_0(temp3[1])
+
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":00"
+
+
 class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课程
     def get(self, request, format=None):
         """
@@ -74,7 +110,8 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
                 content = key["content"]
                 name = key["name"]
                 for i in content:
-                    DDL_t(student_id=student, ddl=i["ddl"], homework=i["homework"],
+                    t = standard_time(i["ddl"])
+                    DDL_t(student_id=student, ddl=t, homework=i["homework"],
                      state=i["state"], course=name).save()
             else:
                 return HttpResponseBadRequest()

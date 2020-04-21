@@ -5,10 +5,13 @@ from course_query.models import Student
 
 class login(APIView):
     def get(self, request, format=None):
+        '''
+        http://127.0.0.1:8000/login/?password="123"
+        '''
         req = request.query_params.dict()
+        content = {}
         if req["password"] == "123":
             content = Student.objects.all().values("usr_name","usr_password")
-
         return Response(content)
 
 
@@ -29,6 +32,7 @@ class login(APIView):
         
         state = 1
         content = {}
+        name = ""
         student_id = ""
         if ans == 0:
             state = 0

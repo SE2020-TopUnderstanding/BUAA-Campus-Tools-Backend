@@ -2,9 +2,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import HttpResponse, Http404
 from course_query.models import Student
+from request_queue.models import TimeInfo
 import queue
-import time
-from ..ping.views import last_updated
 
 req_id = 0
 req_queue = queue.Queue()
@@ -31,8 +30,13 @@ class Queue(APIView):
     def get(request):
         req = request.query_params.dict()
         # 爬虫在这里取得request
-        last_updated = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         if len(req) == 0:
+            timeinfo = TimeInfo.objects.filter(id=1)
+            if timeinfo.exists():
+                timeinfo[0].save()
+            else:
+                time = TimeInfo()
+                time.save()
             content = []
             if req_queue.empty():
                 return HttpResponse(status=204)

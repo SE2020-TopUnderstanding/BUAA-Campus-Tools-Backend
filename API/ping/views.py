@@ -1,7 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-last_updated = ""
+from request_queue.models import TimeInfo
 
 class Ping(APIView):
     @staticmethod
@@ -9,5 +8,5 @@ class Ping(APIView):
         return Response(status=200, data={
             "后端更新时间": "",
             "后端所在PR": "",
-            "爬虫上一次活跃时间": last_updated
+            "爬虫上一次活跃时间（显示的是UTC时间，应将这个时间+8小时）": TimeInfo.objects.get(id=1).time
         })

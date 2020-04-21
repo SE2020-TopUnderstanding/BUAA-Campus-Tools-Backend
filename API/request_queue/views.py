@@ -38,7 +38,7 @@ class Queue(APIView):
 
         # 前端在这里取得对应任务是否完成的信息, true为已完成
         elif len(req) == 1 and 'id' in req:
-            return Response([{'status': req['id'] not in pending_work}])
+            return Response([{'status': int(req['id']) not in pending_work}])
 
         # 其他非法请求
         else:

@@ -6,7 +6,7 @@ from .models import *
 
 
 def add_0(s):
-    if int(s)<10:
+    if (int(s)<10) & (s != "00"):
         s = "0" + s
     return s
 
@@ -33,12 +33,19 @@ def standard_time(t):
     temp3 = time.split(":")
 
     if type == 0:
-        hour = add_0(temp3[0])
+        if temp3[0] == "12":
+            hour = "00"
+        else:
+            hour = add_0(temp3[0])
     else:
-        hour = str(int(temp3[0])+12)
+        if temp3[0] == "12":
+            hour = "12"
+        else:
+            hour = str(int(temp3[0])+12)
     minute = add_0(temp3[1])
 
     return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":00"
+
 
 
 class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课程

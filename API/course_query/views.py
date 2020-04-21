@@ -9,20 +9,26 @@ import request_queue.views as req_module
 
 
 def split_week(week):
-    weeks = []
+    """分割 week
+    input: 1,2,3-5,4-6双
+    output: 1,2,3,4,5,4,6,
+    """
     parts = week.split("，")
+    output = ""
     for value in parts:
         if '-' in value:
             start = value.split('-')[0]
             end = value.split('-')[1]
-            for i in range(int(start), int(end) + 1):
-                weeks.append(i)
+            if '双' in end:
+                end = end.replace('双', '')
+                for i in range(int(start), int(end) + 1):
+                    if i % 2 == 0:
+                        output += str(i) + ","
+            else:
+                for i in range(int(start), int(end) + 1):
+                    output += str(i) + ","
         else:
-            weeks.append(value)
-    output = ""
-    for value in weeks:
-        output += str(value)
-        output += ','
+            output += (value + ",")
     return output
 
 
@@ -89,49 +95,49 @@ class CourseList(APIView):
         except Student.DoesNotExist:
             raise Http404
         # 爬虫的数据库插入请求
-        if len(req) == 3:
-            semester = req['semester']
+        if len(req) == 2:
+            semester = '2020_Spring'
             # 更新则默认将原记录删除
             StudentCourse.objects.filter(student_id=student_id).delete()
             # 将爬虫爬取的数据写入数据库
-            for info in req['info']:
-                # info必须有5项
-                if len(info) == 5:
-                    name = info[0]
-                    place = info[1]
-                    teacher = info[2]
-                    week = info[3]
-                    time = info[4]
-                    # 增加课程信息
-                    try:
-                        course = Course.objects.get(name=name)
-                    except Course.DoesNotExist:
-                        course = Course(name=name)
-                        course.save()
-                    # 增加教师信息
-                    teacher = teacher.replace(' ', '')
-                    teachers = teacher.split('，')
-                    # 一门课程可能有多个教师
-                    for key in teachers:
+            for lists in req['info']:
+                for info in lists:
+                    # info必须有5项
+                    if len(info) == 5:
+                        name = info[0].replace(' ', '')
+                        place = info[1]
+                        teacher = info[2].replace(' ', '')
+                        week = info[3]
+                        time = info[4]
+                        # 增加课程信息
                         try:
-                            teacher = Teacher.objects.get(name=key)
-                        except Teacher.DoesNotExist:
-                            teacher = Teacher(name=key)
-                            teacher.save()
-                        # 增加关联关系
-                        try:
-                            course = Course.objects.get(name=name, teachercourse__teacher_id__name=teacher.name)
+                            course = Course.objects.get(name=name)
                         except Course.DoesNotExist:
-                            new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
-                            new_teacher_course.save()
-                    # 保存信息
-                    new_student_course = StudentCourse(student_id=student, course_id=course
-                                                       , week=split_week(week), time=time, place=place,
-                                                       semester=semester)
-                    new_student_course.save()
-                # 不是5项表示数据有缺失
-                else:
-                    return HttpResponseBadRequest()
+                            course = Course(name=name)
+                            course.save()
+                        # 增加教师信息
+                        teachers = teacher.split('，')
+                        # 一门课程可能有多个教师
+                        for key in teachers:
+                            try:
+                                teacher = Teacher.objects.get(name=key)
+                            except Teacher.DoesNotExist:
+                                teacher = Teacher(name=key)
+                                teacher.save()
+                            # 增加关联关系
+                            try:
+                                course = Course.objects.get(name=name, teachercourse__teacher_id__name=teacher.name)
+                            except Course.DoesNotExist:
+                                new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
+                                new_teacher_course.save()
+                        # 保存信息
+                        new_student_course = StudentCourse(student_id=student, course_id=course
+                                                           , week=split_week(week), time=time, place=place,
+                                                           semester=semester)
+                        new_student_course.save()
+                    # 不是5项表示数据有缺失
+                    else:
+                        return HttpResponseBadRequest()
             return HttpResponse(status=201)
         # 前端的更新请求
         elif len(req) == 1:

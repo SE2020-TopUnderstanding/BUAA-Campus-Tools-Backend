@@ -5,7 +5,8 @@ from course_query.models import Student
 
 class login(APIView):
     def get(self, request, format=None):
-        content = {"state":"未定义"}
+        content = Student.objects.all().values("usr_name","usr_password")
+        
         return Response(content)
 
 

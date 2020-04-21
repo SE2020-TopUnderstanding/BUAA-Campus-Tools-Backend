@@ -43,5 +43,5 @@ class login(APIView):
             Student(usr_name=usr_name,usr_password=usr_password,id=student_id, name=name,grade=grade).save()
         
         print(Student.objects.filter(usr_name=usr_name).values("name","grade"))
-        content = {"state":state, "student_id":student_id, "name":name}#1代表成功，2代表无该账号，3代表密码错误
+        content = {"state":state, "student_id":student_id, "name":name}
         return Response(content)

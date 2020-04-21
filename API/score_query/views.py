@@ -4,7 +4,6 @@ from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from .serializers import *
 from .models import *
 from course_query.models import Student
-import request_queue.views as req_module
 
 
 class ScoreList(APIView):
@@ -45,20 +44,8 @@ class ScoreList(APIView):
             student = Student.objects.get(id=req['student_id'])
         except Student.DoesNotExist:
             raise Http404
-
-        # 前端的更新请求
-        if len(req) == 1:
-            req_module.req_id += 1
-            req_queue = req_module.req_queue
-            pending_work = req_module.pending_work
-            req_queue.put(
-                {'req_id': req_module.req_id, 'usr_name': student.usr_name, 'password': student.usr_password,
-                 'req_type': "g"})
-            pending_work.append(req_module.req_id)
-            return Response([{'id': req_module.req_id}])
-
         # 爬虫的数据库插入请求
-        elif len(req) == 3:
+        if len(req) == 3:
             semester = req['semester']
             for key in req['info']:
                 if len(key) == 4:

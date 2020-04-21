@@ -31,8 +31,12 @@ class Queue(APIView):
         req = request.query_params.dict()
         # 爬虫在这里取得request
         if len(req) == 0:
-            timeinfo = TimeInfo.objects.get(id=1)
-            timeinfo.save()
+            timeinfo = TimeInfo.objects.filter(id=1)
+            if timeinfo.exists():
+                timeinfo[0].save()
+            else:
+                time = TimeInfo()
+                time.save()
             content = []
             if req_queue.empty():
                 return HttpResponse(status=204)

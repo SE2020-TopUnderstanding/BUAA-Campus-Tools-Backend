@@ -33,7 +33,9 @@ def split_week(week):
 
 def split_time(time):
     times = time.strip().split(' ')
-    return times[0][1] + '_' + times[-1][1] + '_' + times[-1][-2]
+    day = times[0][1]
+    time_list = times[1].lstrip('第').rstrip('节').split('，')
+    return day + '_' + time_list[0] + '_' + time_list[-1]
 
 
 class CourseList(APIView):

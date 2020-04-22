@@ -1,6 +1,7 @@
 from data import *
 from multiprocessing import Queue
 import requests
+import traceback
 
 #host = '127.0.0.1:8000/'
 host = 'http://114.115.208.32:8000/'                  # for local test
@@ -23,10 +24,16 @@ def decrypt_string(message):
 def getAllStu():
     '''
     get all the students' usr_name and password
+    return jsons -> success
+    return -1 -> req fail
     '''
     url = host + 'login/'
-    params = {'password' : '123'}
-    req = requests.get(url, verify=False, params=params)
+    params = {'password' : 'djlj'}
+    try:
+        req = requests.get(url, verify=False, params=params)
+    except Exception:
+        print('req fail')
+        return -1
     jsons = req.json()
     #data = json.loads(jsons)
     return jsons
@@ -34,6 +41,9 @@ def getAllStu():
 def reqSchedule(dataReq):
     '''
     get the schedule's json and post it to the back 
+    return 1 -> success
+    return 0 -> web fail
+    return -5 -> req fail
     '''
     schedule = dataReq.request('s')
     # due with the errors
@@ -50,12 +60,19 @@ def reqSchedule(dataReq):
         print('error on the jiaowu web\n')  
         return 0
     scheduleUrl = host + 'timetable/'
-    requests.post(url=scheduleUrl, headers=headers, data=schedule.encode('utf-8'))
+    try:
+        requests.post(url=scheduleUrl, headers=headers, data=schedule.encode('utf-8'))
+    except Exception:
+        print('req fail')
+        return -5
     return 1
 
 def reqGrades(dataReq):
     '''
     get the grade's json and post it to the back 
+    return 1 -> success
+    return 0 -> web fail
+    return -5 -> req fail
     '''
     grades = dataReq.request('g')
     # due with the errors
@@ -71,13 +88,20 @@ def reqGrades(dataReq):
     elif grades == -4:
         print('error on the jiaowu web\n')  
         return 0
-    gradesUrl = host + 'timetable/'
-    requests.post(url=gradesUrl, headers=headers, data=grades.encode('utf-8'))
+    gradesUrl = host + 'score'
+    try:
+        requests.post(url=gradesUrl, headers=headers, data=grades.encode('utf-8'))
+    except Exception:
+        print('req fail')
+        return -5
     return 1
 
 def reqDdl(dataReq):
     '''
     get the ddl's json and post it to the back 
+    return 1 -> success
+    return 0 -> web fail
+    return -5 -> req fail
     '''
     ddl = dataReq.request('d')
     # due with the errors
@@ -93,13 +117,20 @@ def reqDdl(dataReq):
     elif ddl == -4:
         print('error on the jiaowu web\n')  
         return 0
-    ddlUrl = host + 'timetable/'
-    requests.post(url=ddlUrl, headers=headers, data=ddl.encode('utf-8'))
+    ddlUrl = host + 'ddl/'
+    try:
+        requests.post(url=ddlUrl, headers=headers, data=ddl.encode('utf-8'))
+    except Exception:
+        print('req fail')
+        return -5
     return 1
 
 def reqEmptyClassroom(dataReq):
     '''
     get the empty classroom's json and post it to the back 
+    return 1 -> success
+    return 0 -> web fail
+    return -5 -> req fail
     '''
     emptyClassroom = dataReq.request('e')
     # due with the errors
@@ -115,8 +146,12 @@ def reqEmptyClassroom(dataReq):
     elif emptyClassroom == -4:
         print('error on the jiaowu web\n')  
         return 0
-    emptyClassroomUrl = host + 'timetable/'
-    requests.post(url=emptyClassroomUrl, headers=headers, data=emptyClassroom.encode('utf-8'))
+    emptyClassroomUrl = host + 'classroom/'
+    try:
+        requests.post(url=emptyClassroomUrl, headers=headers, data=emptyClassroom.encode('utf-8'))
+    except Exception:
+        print('req fail')
+        return -5
     return 1
 
 def dealReqs():
@@ -126,9 +161,16 @@ def dealReqs():
     return 0 -> no req exists
     return -1 -> failed
     return -2 -> empty classroom req
+    return -5 -> req get fail
+    return -6 -> req post fail
     '''
     askUrl = host + 'request/'
-    req = requests.get(askUrl)
+    try:
+        req = requests.get(askUrl)
+    except Exception:
+        print('req get fail')
+        return -5
+        
     
     if req.status_code == 204:                  # if there is not any reqs
         return 0
@@ -144,17 +186,17 @@ def dealReqs():
     success = 0
     if reqType == 's':
         i = 0
-        while success == 0 and i < 3:
+        while success != 1 and i < 3:
             success = reqSchedule(dataReq)
             i += 1
     if reqType == 'g':
         i = 0
-        while success == 0 and i < 3:
+        while success != 1 and i < 3:
             success = reqGrades(dataReq)
             i += 1
     if reqType == 'd':
         i = 0
-        while success == 0 and i < 3:
+        while success != 1 and i < 3:
             success = reqDdl(dataReq)
             i += 1
     '''
@@ -166,7 +208,11 @@ def dealReqs():
         return -2
     if success == 0:
         return -1
-    requests.post(url=askUrl, headers=headers, data=jsons.encode('utf-8'))
+    try:
+        requests.post(url=askUrl, headers=headers, data=jsons.encode('utf-8'))
+    except Exception:
+        print('req post fail')
+        return -6
     return 1
 
 def insect():
@@ -174,7 +220,9 @@ def insect():
     the main func
     circle and circle again to get all the datas
     '''
+    print('爬虫部署成功！')
     while True:
+        print('开始新一轮循环')
         now = datetime.now()                                # get the cur time
         allStu = getAllStu()
         for j in range(len(allStu)):                        # flush all the students' datas
@@ -185,23 +233,23 @@ def insect():
             if j == 0:
                 success = 0
                 i = 0
-                while success == 0 and i < 3:
+                while success != 1 and i < 3:
                     success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
                     #success = 1
                     i += 1
             success = 0
             i = 0
-            while success == 0 and i < 3:
+            while success != 1 and i < 3:
                 success = reqSchedule(curDataReq)              
                 i += 1
             success = 0
             i = 0
-            while success == 0 and i < 3:
+            while success != 1 and i < 3:
                 success = reqGrades(curDataReq)         
                 i += 1
             success = 0
             i = 0
-            while success == 0 and i < 3:
+            while success != 1 and i < 3:
                 success = reqDdl(curDataReq)             
                 i += 1            
             dealReqs()
@@ -210,7 +258,8 @@ def insect():
             afterProc = datetime.now()                      # get the cur time
             deltatime = afterProc - now
             seconds = deltatime.total_seconds()
-            if seconds >= 7200 and dealReqs() == 0:         # will not flush the datas until 2h later and no reqs exist
+            limitTime = len(allStu) * 3.5 + 20
+            if seconds >= limitTime * 60 and dealReqs() == 0:         # will not flush the datas until 2h later and no reqs exist
                 break
             dealReqs()                                      # deal with the reqs in the waiting time
             time.sleep(5)                                   # avoid the cpu from circling all the time
@@ -253,4 +302,8 @@ def testTime():
 # start the program                
 if __name__ == '__main__':
     #testTime()
-    insect()
+    try:
+        insect()
+    except Exception as e:
+        print(traceback.format_exc())
+        insect()

@@ -2,6 +2,7 @@ from .LoginRequest.loginJudge import *
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from course_query.models import Student
+from django.http import Http404, HttpResponseBadRequest, HttpResponse
 
 class login(APIView):
     def get(self, request, format=None):
@@ -24,8 +25,16 @@ class login(APIView):
         0 -> failed, username or password is wrong
         -1 -> failed, request timeout
         -2 -> failed, unknown exception
+        没有提供参数，参数数量错误，返回400错误;
+        参数错误，返回404错误;
         """
         
+        req = request.data
+        if len(req) != 2:
+            return HttpResponseBadRequest()
+        if ("usr_name" not in req) | ("usr_password" not in req):
+            return HttpResponse(status=404)
+
         usr_name = request.data["usr_name"]
         usr_password = request.data["usr_password"]
         ans = getStudentInfo(usr_name,usr_password)

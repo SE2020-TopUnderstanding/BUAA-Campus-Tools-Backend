@@ -1,4 +1,5 @@
 from .vpn import *
+from .Password import *
 
 def loginJudge(username, password):
     '''
@@ -13,15 +14,22 @@ def loginJudge(username, password):
             vpn = VpnLogin(username, password)
             success = vpn.getStatus()
             if success == -1:
+                vpn.getBrowser().quit()
                 return 0
             elif success == 0:
+                vpn.getBrowser().quit()
                 return 1
             elif success == -2:
                 if i == 2:
+                    vpn.getBrowser().quit()
                     return -1
+                else:
+                    vpn.getBrowser().quit()
             elif success == -3:
+                vpn.getBrowser().quit()
                 return -2
     except Exception:
+        vpn.getBrowser().quit()
         return -2
 
 def getStudentInfo(username, password):
@@ -33,18 +41,26 @@ def getStudentInfo(username, password):
            -2 -> failed, unknown exception
     password and major cannot be returned
     '''
+    
+    password = decrypt_string(password)
+
     try:
         for i in range(3):
             vpn = VpnLogin(username, password)
             success = vpn.getStatus()
             if success == -1:
+                vpn.getBrowser().quit()
                 return 0
             elif success == 0:
                 break
             elif success == -2:
                 if i == 2:
+                    vpn.getBrowser().quit()
                     return -1
+                else:
+                    vpn.getBrowser().quit()
             elif success == -3:
+                vpn.getBrowser().quit()
                 return -2
         success = vpn.switchToJiaoWu()              # switch
         browser = vpn.getBrowser()
@@ -60,6 +76,7 @@ def getStudentInfo(username, password):
             WebDriverWait(browser, 5).until(EC.presence_of_element_located(locator))           
         except Exception:
             print('timeout or switch to an unknown page')
+            vpn.getBrowser().quit()
             return -4
 
         idPlace = browser.find_element_by_xpath('/html/body/div[1]/div/div[8]/div[1]/span')
@@ -91,8 +108,10 @@ def getStudentInfo(username, password):
         ans.append(name)
         ans.append(grade)
         print(ans)
+        vpn.getBrowser().quit()
         return ans
     except Exception:
+        vpn.getBrowser().quit()
         return -2
 
 

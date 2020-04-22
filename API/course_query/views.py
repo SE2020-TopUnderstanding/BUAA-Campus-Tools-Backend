@@ -31,6 +31,13 @@ def split_week(week):
     return output
 
 
+def split_time(time):
+    times = time.strip().split(' ')
+    day = times[0][1]
+    time_list = times[1].lstrip('第').rstrip('节').split('，')
+    return day + '_' + time_list[0] + '_' + time_list[-1]
+
+
 class CourseList(APIView):
     """
     本类接收get, post请求
@@ -61,7 +68,8 @@ class CourseList(APIView):
                     value += ','
                     result = result.filter(week__icontains=value)
                 else:
-                    return HttpResponseBadRequest()
+                    message = '您附加的参数名有错误，只允许\'student_id\', \'week\''
+                    return HttpResponse(message, status=400)
             course_serializer = StudentCourseSerializer(result, many=True)
             return Response(course_serializer.data)
         # 当前周查询请求
@@ -75,10 +83,12 @@ class CourseList(APIView):
                 content.append({"week": value})
                 return Response(content)
             else:
-                return HttpResponseBadRequest()
+                message = '您附加参数有错误，请检查参数是否为date'
+                return HttpResponse(message, status=400)
         # 其他非法请求
         else:
-            return HttpResponseBadRequest()
+            message = '您附加参数数量有错误，请检查参数个数是否为1个或2个'
+            return HttpResponse(message, status=400)
 
     @staticmethod
     def post(request):
@@ -92,7 +102,8 @@ class CourseList(APIView):
         try:
             student = Student.objects.get(id=student_id)
         except Student.DoesNotExist:
-            raise Http404
+            message = '数据库中没有这个学生，请检查是否有严重错误'
+            return HttpResponse(message, status=404)
         # 爬虫的数据库插入请求
         if len(req) == 2:
             semester = '2020_Spring'
@@ -131,13 +142,15 @@ class CourseList(APIView):
                                 new_teacher_course.save()
                         # 保存信息
                         new_student_course = StudentCourse(student_id=student, course_id=course
-                                                           , week=split_week(week), time=time, place=place,
+                                                           , week=split_week(week), time=split_time(time), place=place,
                                                            semester=semester)
                         new_student_course.save()
                     # 不是5项表示数据有缺失
                     else:
-                        return HttpResponseBadRequest()
+                        message = 'info里的元素一定要为5项，请检查'
+                        return HttpResponse(message, status=400)
             return HttpResponse(status=201)
         # 其他非法请求
         else:
-            return HttpResponseBadRequest()
+            message = '参数数量不正确'
+            return HttpResponse(message, status=400)

@@ -16,13 +16,20 @@ class query_classroom(APIView):
         参数2：日期 e.g. 2020-4-18
         参数3：第几节到第几节 e.g. 1,2,3,
         例:http://127.0.0.1:8000/classroom/?campus=学院路校区&date=2020-04-20&section=1,2,3,
-        返回:登录状态
+        返回:查询结果
+        没有提供参数，参数数量错误，返回400错误;
+        参数错误，返回404错误;
         """
         req = request.query_params.dict()
+
+        if len(req) != 3:
+            return HttpResponseBadRequest()
+        if ("campus" not in req) | ("date" not in req) | ("section" not in req):
+            return HttpResponse(status=404)
+
         campus = req["campus"]
         date = req["date"]
         section = req["section"]
-        #调用爬虫取得
         content = {}
         re = Classroom_t.objects.filter(campus=campus, date=date,
                                         section__contains=section)

@@ -240,7 +240,7 @@ def insect():
                 i = 0
                 while success != 1 and i < 3:
                     #success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
-                    success = 1
+                    #success = 1
                     i += 1
             success = 0
             i = 0

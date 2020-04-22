@@ -122,7 +122,7 @@ class DataReq():
             
             scheduleChart = {}
             scheduleChart['student_id'] = studentId
-            scheduleChart['semember'] = semember
+            scheduleChart['semester'] = semember
             scheduleChart['info'] = aimGrades
             returnJson = json.dumps(scheduleChart, ensure_ascii=False)  # get the json package
             #print(returnJson)

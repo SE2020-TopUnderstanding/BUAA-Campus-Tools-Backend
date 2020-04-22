@@ -89,12 +89,13 @@ def reqGrades(dataReq):
         print('error on the jiaowu web\n')  
         return 0
     gradesUrl = host + 'score/'
-    try:
-        requests.post(url=gradesUrl, headers=headers, data=grades.encode('utf-8'))
-    except Exception:
-        print('req fail')
-        print(traceback.format_exc())
-        return -5
+    for each in grades:
+        try:
+            requests.post(url=gradesUrl, headers=headers, data=each.encode('utf-8'))
+        except Exception:
+            print('req fail')
+            print(traceback.format_exc())
+            return -5
     return 1
 
 def reqDdl(dataReq):
@@ -148,11 +149,12 @@ def reqEmptyClassroom(dataReq):
         print('error on the jiaowu web\n')  
         return 0
     emptyClassroomUrl = host + 'classroom/'
-    try:
-        requests.post(url=emptyClassroomUrl, headers=headers, data=emptyClassroom.encode('utf-8'))
-    except Exception:
-        print('req fail')
-        return -5
+    for each in emptyClassroom:
+        try:
+            requests.post(url=emptyClassroomUrl, headers=headers, data=each.encode('utf-8'))
+        except Exception:
+            print('req fail')
+            return -5
     return 1
 
 def dealReqs():
@@ -249,12 +251,14 @@ def insect():
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqGrades(curDataReq)         
+                success = reqGrades(curDataReq)    
+                #success = 1       
                 i += 1
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqDdl(curDataReq)             
+                success = reqDdl(curDataReq)    
+                #success = 1         
                 i += 1            
             dealReqs()
 

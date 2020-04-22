@@ -124,25 +124,22 @@ class DataReq():
             scheduleChart['student_id'] = studentId
             scheduleChart['semember'] = semember
             scheduleChart['info'] = aimGrades
-            #returnJson = json.dumps(scheduleChart, ensure_ascii=False)  # get the json package
+            returnJson = json.dumps(scheduleChart, ensure_ascii=False)  # get the json package
             #print(returnJson)
-            jsons.append(scheduleChart)
-        returnJson = json.dumps(jsons, ensure_ascii=False)            # get the json package
-        return returnJson
+            jsons.append(returnJson)
+        #returnJson = json.dumps(jsons, ensure_ascii=False)            # get the json package
+        return jsons
 
     def dealWithEmptyClassroom(self, emptyClassroom):
         '''
         data sort for empty classrooms
         '''
-        aimJson = []
-        dictXueYuan = {}
-        dictXueYuan['campus'] = '学院路校区'
-        xueYuan = []
-        dictShaHe = {}
-        dictShaHe['campus'] = '沙河校区'
-        shaHe = []
+        aimJsons = []
         for i in range(len(emptyClassroom)):
             thisWeek = emptyClassroom[i]
+            curWeek = []
+            for m in range(7):
+                curWeek.append([])
             for room, isEmpty in thisWeek.items():
                 campus = ''
                 teaching_building = ''
@@ -173,11 +170,13 @@ class DataReq():
                 elif room[0] == '(' and room[1] == '四':
                     teaching_building = '四号楼'
                 elif room[0] == '主' and room[1] == 'M':
-                    teaching_building = '主M楼'
+                    teaching_building = '主M'
                 elif room[0] == '主' and room[1] == '北':
-                    teaching_building = '主北楼'
+                    teaching_building = '主北'
                 elif room[0] == '主' and room[1] == '南':
-                    teaching_building = '主南楼'
+                    teaching_building = '主南'
+                elif room[0] == '主':
+                    teaching_building = '主楼'
                 elif room[0] == 'A':
                     teaching_building = '新主楼A座'   
                 elif room[0] == 'B':
@@ -196,26 +195,19 @@ class DataReq():
                     teaching_building = '新主楼H座'   
                 section = []
                 for j in range(len(isEmpty)):                           # get the date and section
-                    if j % 6 == 5:                                      # if it is end of a day
-                        days = i * 7 + j / 6
-                        originDay = datetime.strptime('2020-02-24',"%Y-%m-%d")
-                        date = originDay + timedelta(days = days)
-                        date = date.strftime("%Y-%m-%d")
+                    if j % 6 == 5:                                      # if it is end of a day                       
                         if isEmpty[j] == 1:
                             section.append(13)
                             section.append(14)
                         dictCur = {}
+                        dictCur['campus'] = campus
                         dictCur['teaching_building'] = teaching_building
                         dictCur['classroom'] = classroom
-                        dictCur['date'] = date
+                        #dictCur['date'] = date
                         tmp = str(section.copy())
                         tmp = tmp[:-1] + ',]'
                         dictCur['section'] = tmp
-
-                        if campus == '沙河校区':
-                            shaHe.append(dictCur)
-                        else:
-                            xueYuan.append(dictCur)
+                        curWeek[j // 6].append(dictCur)
                         section.clear()
                     else:                                               # it is still in a single day
                         if isEmpty[j] == 1:
@@ -236,13 +228,23 @@ class DataReq():
                             if j % 6 == 4:
                                 section.append(11)
                                 section.append(12)
-        dictShaHe['content'] = shaHe
-        dictXueYuan['content'] = xueYuan
-        aimJson.append(dictShaHe)
-        aimJson.append(dictXueYuan)
-        returnJson = json.dumps(aimJson, ensure_ascii=False)            # get the json package
+            for m in range(7):
+                curDate = {}
+                days = i * 7 + m // 6
+                originDay = datetime.strptime('2020-02-24',"%Y-%m-%d")
+                date = originDay + timedelta(days = days)
+                date = date.strftime("%Y-%m-%d")
+                curDate['date'] = date
+                curDate['classroom'] = curWeek[m].copy()
+                returnJson = json.dumps(curDate, ensure_ascii=False)            # get the json package
+                f = open('empty.txt', 'a', encoding='utf-8')
+                f.write(returnJson)
+                f.close()
+                print(returnJson)
+                aimJsons.append(curDate)
+        
         #print(returnJson)
-        return returnJson
+        return aimJsons
 
     def dealWithSchedules(self, schedules, studentId):
         '''
@@ -311,5 +313,5 @@ if __name__ == "__main__":
     #DataReq(userName, password).request('d')
     #DataReq(userName, password).request('g')
     #DataReq(userName, password).request('e')
-    DataReq(userName, password).request('s')
+    #DataReq(userName, password).request('s')
 

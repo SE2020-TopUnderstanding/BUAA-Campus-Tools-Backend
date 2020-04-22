@@ -7,5 +7,5 @@ class Classroom_t(models.Model):  # 空教室表
     teaching_building = models.CharField(max_length=30)  # 教学楼
     classroom = models.CharField(max_length=30)  # 教室
     date = models.CharField(max_length=30)  # 日期
-    section = models.CharField(max_length=30)  # 节数
+    section = models.CharField(max_length=50)  # 节数
 

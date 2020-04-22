@@ -43,26 +43,25 @@ class query_classroom(APIView):
 
     def post(self, request, format=None):#
         '''
-            [
+        {
+            "date":"2020-04-20",
+            "classroom":[
                 {
                     "campus":"学院路校区",
                     "content":[
                         {
                             "teaching_building":"一号楼",
                             "classroom":"(一)203",
-                            "date":"2020-04-20",
                             "section":"1,2,3,4,5,7,"
                         },
                         {
                             "teaching_building":"一号楼",
                             "classroom":"(一)204",
-                            "date":"2020-04-20",
                             "section":"1,2,3,4,7,"
-                        }
+                        },
                         {
                             "teaching_building":"三号楼",
                             "classroom":"(三)202",
-                            "date":"2020-04-20",
                             "section":"3,4,5,7,8,"
                         }
                     ]
@@ -73,22 +72,26 @@ class query_classroom(APIView):
                         {
                             "teaching_building":"三号楼",
                             "classroom":"(三)202",
-                            "date":"2020-04-20",
                             "section":"3,4,5,7,8,"
                         }
                     ]
                 }
-            ]
+            ]    
+        }
         '''
         req = request.data
-        Classroom_t.objects.all().delete()
-        for key in req:
+        try:
+            Classroom_t.objects.filter(date=req['date']).delete()
+        except Student.DoesNotExist:
+            raise Http404
+
+        for key in req["classroom"]:
             if len(key) == 2:
                 campus = key["campus"]
                 content = key["content"]
                 for i in content:
                     Classroom_t(campus=campus,teaching_building=i["teaching_building"],
-                        classroom=i["classroom"],date=i["date"],section=i["section"]).save()
+                        classroom=i["classroom"],date=req["date"],section=i["section"]).save()
             else:
                 return HttpResponseBadRequest()
 

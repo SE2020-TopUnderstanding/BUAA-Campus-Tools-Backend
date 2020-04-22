@@ -28,7 +28,7 @@ def getAllStu():
     return -1 -> req fail
     '''
     url = host + 'login/'
-    params = {'password' : 'djlj'}
+    params = {'password' : '123'}
     try:
         req = requests.get(url, verify=False, params=params)
     except Exception:

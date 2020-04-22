@@ -124,10 +124,11 @@ class DataReq():
             scheduleChart['student_id'] = studentId
             scheduleChart['semember'] = semember
             scheduleChart['info'] = aimGrades
-            returnJson = json.dumps(scheduleChart, ensure_ascii=False)  # get the json package
+            #returnJson = json.dumps(scheduleChart, ensure_ascii=False)  # get the json package
             #print(returnJson)
-            jsons.append(returnJson)
-        return jsons
+            jsons.append(scheduleChart)
+        returnJson = json.dumps(jsons, ensure_ascii=False)            # get the json package
+        return returnJson
 
     def dealWithEmptyClassroom(self, emptyClassroom):
         '''

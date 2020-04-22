@@ -88,11 +88,12 @@ def reqGrades(dataReq):
     elif grades == -4:
         print('error on the jiaowu web\n')  
         return 0
-    gradesUrl = host + 'score'
+    gradesUrl = host + 'score/'
     try:
         requests.post(url=gradesUrl, headers=headers, data=grades.encode('utf-8'))
     except Exception:
         print('req fail')
+        print(traceback.format_exc())
         return -5
     return 1
 
@@ -225,6 +226,8 @@ def insect():
         print('开始新一轮循环')
         now = datetime.now()                                # get the cur time
         allStu = getAllStu()
+        if allStu == -1:
+            continue
         for j in range(len(allStu)):                        # flush all the students' datas
             usr = allStu[j]['usr_name']
             pw = decrypt_string(allStu[j]['usr_password'])
@@ -240,7 +243,8 @@ def insect():
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqSchedule(curDataReq)              
+                success = reqSchedule(curDataReq)  
+                #success = 1           
                 i += 1
             success = 0
             i = 0

@@ -26,9 +26,11 @@ class ScoreList(APIView):
                 elif key == 'student_id':
                     result = result.filter(student_id=value)
                 else:
-                    raise Http404
+                    message = '您附加的参数名称有错误，只允许\'semester\',\'student_id\''
+                    return HttpResponse(message, status=400)
         else:
-            return HttpResponseBadRequest()
+            message = '您附加的参数个数有错误，只允许2个'
+            return HttpResponse(message, status=400)
         score_serializer = ScoreSerializer(result, many=True)
         return Response(score_serializer.data)
 
@@ -43,7 +45,8 @@ class ScoreList(APIView):
         try:
             student = Student.objects.get(id=req['student_id'])
         except Student.DoesNotExist:
-            raise Http404
+            message = '数据库中没有这个学生，请检查是否有严重错误'
+            return HttpResponse(message, status=404)
         # 爬虫的数据库插入请求
         if len(req) == 3:
             semester = req['semester']
@@ -60,9 +63,11 @@ class ScoreList(APIView):
                                           , bid=bid, credit=credit, score=score)
                         new_score.save()
                 else:
-                    return HttpResponseBadRequest()
+                    message = 'info里的元素个数错误，只能为4个'
+                    return HttpResponse(message, status=400)
             return HttpResponse(status=201)
 
         # 其他非法请求
         else:
-            return HttpResponse(status=400)
+            message = '参数个数有错误，只能为3个'
+            return HttpResponse(message, status=400)

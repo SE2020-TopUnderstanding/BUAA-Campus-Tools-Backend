@@ -23,6 +23,11 @@ def split_week(week):
                 for i in range(int(start), int(end) + 1):
                     if i % 2 == 0:
                         output += str(i) + ","
+            elif '单' in end:
+                end = end.replace('单', '')
+                for i in range(int(start), int(end) + 1):
+                    if i % 2 == 1:
+                        output += str(i) + ","
             else:
                 for i in range(int(start), int(end) + 1):
                     output += str(i) + ","
@@ -65,8 +70,9 @@ class CourseList(APIView):
                 if key == 'student_id':
                     result = result.filter(student_id__id=value)
                 elif key == 'week':
-                    value += ','
-                    result = result.filter(week__icontains=value)
+                    if value != 'all':
+                        value += ','
+                        result = result.filter(week__icontains=value)
                 else:
                     message = '您附加的参数名有错误，只允许\'student_id\', \'week\''
                     return HttpResponse(message, status=400)

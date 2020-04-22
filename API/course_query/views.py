@@ -31,6 +31,11 @@ def split_week(week):
     return output
 
 
+def split_time(time):
+    times = time.strip().split(' ')
+    return times[0][1] + '_' + times[-1][1] + '_' + times[-1][-2]
+
+
 class CourseList(APIView):
     """
     本类接收get, post请求
@@ -131,7 +136,7 @@ class CourseList(APIView):
                                 new_teacher_course.save()
                         # 保存信息
                         new_student_course = StudentCourse(student_id=student, course_id=course
-                                                           , week=split_week(week), time=time, place=place,
+                                                           , week=split_week(week), time=split_time(time), place=place,
                                                            semester=semester)
                         new_student_course.save()
                     # 不是5项表示数据有缺失

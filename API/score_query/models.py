@@ -6,7 +6,7 @@ class Score(models.Model):
     # student_id
     student_id = models.ForeignKey(Student, on_delete=models.CASCADE)
     # course's name
-    course_name = models.CharField(max_length=60)
+    course_name = models.CharField(max_length=120)
     # semester
     semester = models.CharField(max_length=30)
     # bid

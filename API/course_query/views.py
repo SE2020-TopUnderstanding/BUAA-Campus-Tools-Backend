@@ -23,6 +23,11 @@ def split_week(week):
                 for i in range(int(start), int(end) + 1):
                     if i % 2 == 0:
                         output += str(i) + ","
+            elif '单' in end:
+                end = end.replace('单', '')
+                for i in range(int(start), int(end) + 1):
+                    if i % 2 == 1:
+                        output += str(i) + ","
             else:
                 for i in range(int(start), int(end) + 1):
                     output += str(i) + ","

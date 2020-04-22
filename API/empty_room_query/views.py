@@ -48,33 +48,27 @@ class query_classroom(APIView):
             "classroom":[
                 {
                     "campus":"学院路校区",
-                    "content":[
-                        {
-                            "teaching_building":"一号楼",
-                            "classroom":"(一)203",
-                            "section":"1,2,3,4,5,7,"
-                        },
-                        {
-                            "teaching_building":"一号楼",
-                            "classroom":"(一)204",
-                            "section":"1,2,3,4,7,"
-                        },
-                        {
-                            "teaching_building":"三号楼",
-                            "classroom":"(三)202",
-                            "section":"3,4,5,7,8,"
-                        }
-                    ]
+                    "teaching_building":"一号楼",
+                    "classroom":"(一)203",
+                    "section":"1,2,3,4,5,7,"
                 },
                 {
-                    "campus":"沙河校区",
-                    "content":[
-                        {
-                            "teaching_building":"三号楼",
-                            "classroom":"(三)202",
-                            "section":"3,4,5,7,8,"
-                        }
-                    ]
+                    "campus":"学院路校区",
+                    "teaching_building":"一号楼",
+                    "classroom":"(一)204",
+                    "section":"1,2,3,4,7,"
+                },
+                {
+                    "campus":"学院路校区",
+                    "teaching_building":"三号楼",
+                    "classroom":"(三)202",
+                    "section":"3,4,5,7,8,"
+                },
+                {
+                    "campus":"学院路校区",
+                    "teaching_building":"三号楼",
+                    "classroom":"(三)202",
+                    "section":"3,4,5,7,8,"
                 }
             ]    
         }
@@ -86,14 +80,8 @@ class query_classroom(APIView):
             raise Http404
 
         for key in req["classroom"]:
-            if len(key) == 2:
-                campus = key["campus"]
-                content = key["content"]
-                for i in content:
-                    Classroom_t(campus=campus,teaching_building=i["teaching_building"],
-                        classroom=i["classroom"],date=req["date"],section=i["section"]).save()
-            else:
-                return HttpResponseBadRequest()
+                    Classroom_t(campus=key["campus"],teaching_building=key["teaching_building"],
+                        classroom=key["classroom"],date=req["date"],section=key["section"]).save()
 
         content = {"state":1}
         return Response(content)

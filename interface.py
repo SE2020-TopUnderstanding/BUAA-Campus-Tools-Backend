@@ -237,8 +237,8 @@ def insect():
                 success = 0
                 i = 0
                 while success != 1 and i < 3:
-                    success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
-                    #success = 1
+                    #success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
+                    success = 1
                     i += 1
             success = 0
             i = 0
@@ -263,7 +263,7 @@ def insect():
             deltatime = afterProc - now
             seconds = deltatime.total_seconds()
             limitTime = len(allStu) * 3.5 + 20
-            if seconds >= limitTime * 60 and dealReqs() == 0:         # will not flush the datas until 2h later and no reqs exist
+            if seconds >= 0 and dealReqs() == 0:         # will not flush the datas until 2h later and no reqs exist
                 break
             dealReqs()                                      # deal with the reqs in the waiting time
             time.sleep(5)                                   # avoid the cpu from circling all the time

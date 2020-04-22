@@ -62,7 +62,16 @@ class courseReq():
             link = link.get_attribute('href')
             
             self.browser.get(link)                                                              # switch to the lesson
-            workButton = self.browser.find_element_by_xpath('//*[@id="toolMenu"]/ul/li[6]/a')
+            workButtons = self.browser.find_element_by_xpath('//*[@id="toolMenu"]/ul')
+            workButtons = workButtons.find_elements_by_tag_name('a')
+            workButton = 0
+            for each in workButtons:
+                if each.get_attribute('title') == '在线发布、提交和批改作业':
+                    workButton = each
+                    break
+            if workButton == 0:
+                continue
+
             workButton.click()
             frame = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[2]/div[3]/div/div/div[2]/iframe')
             self.browser.switch_to.frame(frame)                                                 # switch to another frame to get datas  

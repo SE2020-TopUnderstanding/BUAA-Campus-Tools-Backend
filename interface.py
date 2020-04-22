@@ -117,7 +117,7 @@ def reqDdl(dataReq):
         print('unknown errors\n')  
         return 0
     elif ddl == -4:
-        print('error on the jiaowu web\n')  
+        print('error on the course web\n')  
         return 0
     ddlUrl = host + 'ddl/'
     try:

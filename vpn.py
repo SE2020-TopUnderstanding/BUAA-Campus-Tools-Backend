@@ -26,6 +26,7 @@ class VpnLogin:
         opt.add_argument('--disable-gpu')               
         opt.add_argument('--no-sandbox')                
         opt.add_argument('--user-agent=%s' % userAgent) 
+        opt.add_argument('--lang=zh-cn')
         self.browser = webdriver.Chrome(options=opt)    
         self.loginSuccess = self.login(userName, password) 
         self.usr = userName

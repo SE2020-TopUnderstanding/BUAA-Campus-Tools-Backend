@@ -147,7 +147,7 @@ class jiaoWuReq():
         for i in range(len(selectDate1.options) - 1):                                           # the first option cannot use
             each1 = selectDate1.options[i + 1]
             each2 = selectDate2.options[i + 1]
-            #print(each1.text)
+            print(each1.text)
             selectDate1.select_by_visible_text(each1.text)
             selectDate2.select_by_visible_text(each2.text)
             time.sleep(0.5)                                                                       

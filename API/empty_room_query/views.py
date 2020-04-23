@@ -15,7 +15,7 @@ class query_classroom(APIView):
         参数1:校区 e.g. 新主楼
         参数2：日期 e.g. 2020-4-18
         参数3：第几节到第几节 e.g. 1,2,3,
-        例:http://127.0.0.1:8000/classroom/?campus=学院路校区&date=2020-04-20&section=1,2,3,
+        例:http://114.115.208.32:8000/classroom/?campus=学院路校区&date=2020-04-20&section=1, 2, 3,
         返回:查询结果
         没有提供参数，参数数量错误，返回400错误;
         参数错误，返回400错误;

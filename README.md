@@ -297,7 +297,7 @@
   - 访问方法
     GET
     ```
-    http://127.0.0.1:8000/classroom/?campus=学院路校区&date=2020-4-18&section=1,2,3,
+    http://114.115.208.32:8000/classroom/?campus=学院路校区&date=2020-04-20&section=1, 2, 3,
     ```
   - 访问结果
     ```

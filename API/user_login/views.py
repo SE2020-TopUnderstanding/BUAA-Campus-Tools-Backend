@@ -62,13 +62,13 @@ class login(APIView):
         student_id = ""
         if ans == 0:
             state = 0
-            return HttpResponse(status=400,content={"state":state, "student_id":"", "name":""})
+            return Response(status=400,data={"state":state, "student_id":"", "name":""})
         elif ans == -1:
             state = -1
-            return HttpResponse(status=400,content={"state":state, "student_id":"", "name":""})
+            return Response(status=500,data={"state":state, "student_id":"", "name":""})
         elif ans == -2:
             state = -2
-            return HttpResponse(status=400,content={"state":state, "student_id":"", "name":""})
+            return Response(status=500,data={"state":state, "student_id":"", "name":""})
         else:
             student_id = str(ans[0])
             name = ans[2]

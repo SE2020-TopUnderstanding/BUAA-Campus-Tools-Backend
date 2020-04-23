@@ -48,9 +48,9 @@ class login(APIView):
 
         
         if len(req) != 2:
-            return HttpResponse(status=500,content={"state":"-2", "student_id":"", "name":""})
+            return Response(status=500,data={"state":"-2", "student_id":"", "name":""})
         if ("usr_name" not in req) | ("usr_password" not in req):
-            return HttpResponse(status=500,content={"state":"-2", "student_id":"", "name":""})
+            return Response(status=500,data={"state":"-2", "student_id":"", "name":""})
 
         usr_name = request.data["usr_name"]
         usr_password = request.data["usr_password"]

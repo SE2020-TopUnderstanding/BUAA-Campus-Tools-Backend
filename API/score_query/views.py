@@ -1,9 +1,10 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import Http404, HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponse
 from .serializers import *
 from .models import *
 from course_query.models import Student
+from request_queue.models import RequestRecord
 
 
 class ScoreList(APIView):
@@ -17,6 +18,14 @@ class ScoreList(APIView):
         例:127.0.0.1/score?student_id=11111111&semester=2020_Spring
         获得学号为11111111，2020春季学期的成绩
         """
+        # 记录次数
+        try:
+            count = RequestRecord.objects.get(name='score')
+        except RequestRecord.DoesNotExist:
+            count = RequestRecord(name='score', count=0)
+        count.count += 1
+        count.save()
+        # 查询
         req = request.query_params.dict()
         result = Score.objects.all()
         if len(req) == 2:
@@ -26,9 +35,11 @@ class ScoreList(APIView):
                 elif key == 'student_id':
                     result = result.filter(student_id=value)
                 else:
-                    raise Http404
+                    message = '您附加的参数名称有错误，只允许\'semester\',\'student_id\''
+                    return HttpResponse(message, status=400)
         else:
-            return HttpResponseBadRequest()
+            message = '您附加的参数个数有错误，只允许2个'
+            return HttpResponse(message, status=400)
         score_serializer = ScoreSerializer(result, many=True)
         return Response(score_serializer.data)
 
@@ -43,16 +54,17 @@ class ScoreList(APIView):
         try:
             student = Student.objects.get(id=req['student_id'])
         except Student.DoesNotExist:
-            raise Http404
+            message = '数据库中没有这个学生，服务器数据库可能有错误'
+            return HttpResponse(message, status=500)
         # 爬虫的数据库插入请求
         if len(req) == 3:
             semester = req['semester']
             for key in req['info']:
                 if len(key) == 4:
-                    bid = key[0]
-                    course_name = key[1]
-                    credit = key[2]
-                    score = key[3]
+                    bid = key[0].replace(' ', '')
+                    course_name = key[1].replace(' ', '')
+                    credit = key[2].replace(' ', '')
+                    score = key[3].replace(' ', '')
                     try:
                         Score.objects.get(bid=bid)
                     except Score.DoesNotExist:
@@ -60,9 +72,11 @@ class ScoreList(APIView):
                                           , bid=bid, credit=credit, score=score)
                         new_score.save()
                 else:
-                    return HttpResponseBadRequest()
+                    message = 'info里的元素个数错误，只能为4个'
+                    return HttpResponse(message, status=400)
             return HttpResponse(status=201)
 
         # 其他非法请求
         else:
-            return HttpResponse(status=400)
+            message = '参数个数有错误，只能为3个'
+            return HttpResponse(message, status=400)

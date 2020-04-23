@@ -42,7 +42,8 @@ class Queue(APIView):
 
         # 其他非法请求
         else:
-            return HttpResponse(status=400)
+            message = '参数数量个数或名称错误，只能为0个，或1个且是\'id\''
+            return HttpResponse(message, status=400)
 
     @staticmethod
     def post(request):
@@ -52,11 +53,13 @@ class Queue(APIView):
             try:
                 pending_work.remove(cur_id)
             except ValueError:
-                return HttpResponse(status=404)
+                message = '没有这个任务号'
+                return HttpResponse(message, status=404)
 
             return HttpResponse(status=200)
         else:
-            return HttpResponse(status=400)
+            message = '没有\'req_id\'参数'
+            return HttpResponse(message, status=400)
 
 
 class CourseRequest(APIView):
@@ -66,6 +69,9 @@ class CourseRequest(APIView):
         if len(req) == 1 and 'student_id' in req.keys():
             request_id = add_request('s', req['student_id'])
             return Response([{"id": request_id}])
+        else:
+            message = '参数数量或名称错误，只能为1个且为\'student_id\''
+            return HttpResponse(message, status=400)
 
 
 class RoomRequest(APIView):
@@ -76,7 +82,8 @@ class RoomRequest(APIView):
             request_id = add_request('e', req['student_id'])
             return Response([{"id": request_id}])
         else:
-            return HttpResponse(status=400)
+            message = '参数数量或名称错误，只能为1个且为\'student_id\''
+            return HttpResponse(message, status=400)
 
 
 class DDLRequest(APIView):
@@ -87,7 +94,8 @@ class DDLRequest(APIView):
             request_id = add_request('d', req['student_id'])
             return Response([{"id": request_id}])
         else:
-            return HttpResponse(status=400)
+            message = '参数数量或名称错误，只能为1个且为\'student_id\''
+            return HttpResponse(message, status=400)
 
 
 class ScoreRequest(APIView):
@@ -99,7 +107,8 @@ class ScoreRequest(APIView):
             request_id = add_request('g', req['student_id'])
             return Response([{"id": request_id}])
         else:
-            return HttpResponse(status=400)
+            message = '参数数量或名称错误，只能为1个且为\'student_id\''
+            return HttpResponse(message, status=400)
 
 
 class TestsRequest(APIView):
@@ -111,4 +120,5 @@ class TestsRequest(APIView):
             request_id = add_request('t', req['student_id'])
             return Response([{"id": request_id}])
         else:
-            return HttpResponse(status=400)
+            message = '参数数量或名称错误，只能为1个且为\'student_id\''
+            return HttpResponse(message, status=400)

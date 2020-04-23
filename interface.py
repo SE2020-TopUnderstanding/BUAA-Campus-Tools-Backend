@@ -213,20 +213,13 @@ def dealReqs():
         return -2
     if success == 0:
         return -1
-    if reqType == 'g':
-        for each in jsons:
-            try:
-                requests.post(url=askUrl, headers=headers, data=each.encode('utf-8'))
-            except Exception:
-                print('req fail')
-                print(traceback.format_exc())
-                return -6
-    else:
-        try:
-            requests.post(url=askUrl, headers=headers, data=jsons.encode('utf-8'))
-        except Exception:
-            print('req post fail')
-            return -6
+    try:
+        jsons = json.dumps(jsons, ensure_ascii=False)
+        requests.post(url=askUrl, headers=headers, data=jsons.encode('utf-8'))
+    except Exception:
+        print('req post fail')
+        print(traceback.format_exc())
+        return -6
     return 1
 
 def insect_other():

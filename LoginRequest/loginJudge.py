@@ -8,6 +8,7 @@ def loginJudge(username, password):
            -1 -> failed, request timeout
            -2 -> failed, unknown exception
     '''
+    vpn = ''
     try:
         for i in range(3):
             vpn = VpnLogin(username, password)
@@ -28,6 +29,8 @@ def loginJudge(username, password):
                 vpn.getBrowser().quit()
                 return -2
     except Exception:
+        if vpn == '':
+            return -2
         vpn.getBrowser().quit()
         return -2
 
@@ -40,6 +43,7 @@ def getStudentInfo(username, password):
            -2 -> failed, unknown exception
     password and major cannot be returned
     '''
+    vpn = ''
     try:
         for i in range(3):
             vpn = VpnLogin(username, password)
@@ -107,6 +111,8 @@ def getStudentInfo(username, password):
         vpn.getBrowser().quit()
         return ans
     except Exception:
+        if vpn == '':
+            return -2
         vpn.getBrowser().quit()
         return -2
 

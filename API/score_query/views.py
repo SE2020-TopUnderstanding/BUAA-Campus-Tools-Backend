@@ -66,7 +66,7 @@ class ScoreList(APIView):
                     credit = key[2].replace(' ', '')
                     score = key[3].replace(' ', '')
                     try:
-                        Score.objects.get(bid=bid)
+                        Score.objects.get(student_id=student, bid=bid)
                     except Score.DoesNotExist:
                         new_score = Score(student_id=student, semester=semester, course_name=course_name
                                           , bid=bid, credit=credit, score=score)

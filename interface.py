@@ -2,6 +2,7 @@ from data import *
 from multiprocessing import Queue
 import requests
 import traceback
+import sys
 
 #host = '127.0.0.1:8000/'
 host = 'http://114.115.208.32:8000/'                  # for local test
@@ -218,22 +219,26 @@ def dealReqs():
         return -6
     return 1
 
-def insect():
-    '''
-    the main func
-    circle and circle again to get all the datas
-    '''
+def insect_other():
     print('爬虫部署成功！')
+    print('将进行课表、成绩、空教室的查询')
     while True:
         print('开始新一轮循环')
         now = datetime.now()                                # get the cur time
+        '''
+        time_begin = datetime.strptime(str(datetime.now().date()) + '3:00',"%Y-%m-%d%H:%M")
+        time_end = datetime.strptime(str(datetime.now().date()) + '3:30',"%Y-%m-%d%H:%M")
+        while now > time_end or now < time_begin:
+            dealReqs()                                      # deal with the reqs in the waiting time
+            time.sleep(5)                                   # avoid the cpu from circling all the time
+            now = datetime.now()
+        '''
         allStu = getAllStu()
         if allStu == -1:
             continue
         for j in range(len(allStu)):                        # flush all the students' datas
             usr = allStu[j]['usr_name']
             pw = decrypt_string(allStu[j]['usr_password'])
-            #pw = allStu[j]['usr_password']
             curDataReq = DataReq(usr, pw)
             if j == 0:
                 success = 0
@@ -242,35 +247,56 @@ def insect():
                     #success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
                     #success = 1
                     i += 1
+            dealReqs()
             success = 0
             i = 0
             while success != 1 and i < 3:
                 success = reqSchedule(curDataReq)  
                 #success = 1           
                 i += 1
+            dealReqs()
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqGrades(curDataReq)    
+                #success = reqGrades(curDataReq)    
                 #success = 1       
-                i += 1
+                i += 1          
+            dealReqs()
+        while True:
+            afterProc = datetime.now()                      # get the cur time
+            deltatime = afterProc - now
+            seconds = deltatime.total_seconds()
+            limitTime = 60 * 60 * 24
+            limitTime = 0
+            if seconds >= limitTime:         # will not flush the datas until 2h later and no reqs exist
+                break
+            dealReqs()                                      # deal with the reqs in the waiting time
+            time.sleep(5)                                   # avoid the cpu from circling all the time
+
+def insect_ddl():
+    '''
+    the main func
+    circle and circle again to get all the datas
+    '''
+    print('爬虫部署成功！')
+    print('将进行ddl的获取，刷新间隔极少，为60s')
+    while True:
+        print('开始新一轮循环')
+        allStu = getAllStu()
+        if allStu == -1:
+            continue
+        for j in range(len(allStu)):                        # flush all the students' datas
+            usr = allStu[j]['usr_name']
+            pw = decrypt_string(allStu[j]['usr_password'])
+            curDataReq = DataReq(usr, pw)
             success = 0
             i = 0
             while success != 1 and i < 3:
                 success = reqDdl(curDataReq)    
                 #success = 1         
-                i += 1            
-            dealReqs()
-
-        while True:
-            afterProc = datetime.now()                      # get the cur time
-            deltatime = afterProc - now
-            seconds = deltatime.total_seconds()
-            limitTime = len(allStu) * 3.5 + 20
-            if seconds >= 0 and dealReqs() == 0:         # will not flush the datas until 2h later and no reqs exist
-                break
-            dealReqs()                                      # deal with the reqs in the waiting time
-            time.sleep(5)                                   # avoid the cpu from circling all the time
+                i += 1  
+            time.sleep(1)    
+        time.sleep(60)         
 
 def testTime():
     '''
@@ -310,8 +336,15 @@ def testTime():
 # start the program                
 if __name__ == '__main__':
     #testTime()
-    try:
-        insect()
-    except Exception as e:
-        print(traceback.format_exc())
-        insect()
+    if sys.argv[1] == '-d':
+        try:
+            insect_ddl()
+        except Exception as e:
+            print(traceback.format_exc())
+            insect_ddl()
+    elif sys.argv[1] == '-o':
+        try:
+            insect_other()
+        except Exception as e:
+            print(traceback.format_exc())
+            insect_other()

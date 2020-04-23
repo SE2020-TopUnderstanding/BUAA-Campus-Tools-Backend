@@ -244,7 +244,7 @@ def insect_other():
                 success = 0
                 i = 0
                 while success != 1 and i < 3:
-                    #success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
+                    success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
                     #success = 1
                     i += 1
             dealReqs()
@@ -258,7 +258,7 @@ def insect_other():
             success = 0
             i = 0
             while success != 1 and i < 3:
-                #success = reqGrades(curDataReq)    
+                success = reqGrades(curDataReq)    
                 #success = 1       
                 i += 1          
             dealReqs()

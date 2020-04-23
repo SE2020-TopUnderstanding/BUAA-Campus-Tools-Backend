@@ -1,9 +1,8 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from .serializers import *
 from .models import *
-from django.http import HttpResponseBadRequest
 from datetime import datetime
 
 

@@ -207,7 +207,8 @@ class DataReq():
                         tmp = str(section.copy())
                         tmp = tmp[:-1] + ',]'
                         dictCur['section'] = tmp
-                        curWeek[j // 6].append(dictCur)
+                        if len(section) > 0:
+                            curWeek[j // 6].append(dictCur)
                         section.clear()
                     else:                                               # it is still in a single day
                         if isEmpty[j] == 1:
@@ -237,10 +238,10 @@ class DataReq():
                 curDate['date'] = date
                 curDate['classroom'] = curWeek[m].copy()
                 returnJson = json.dumps(curDate, ensure_ascii=False)            # get the json package
-                f = open('empty.txt', 'a', encoding='utf-8')
-                f.write(returnJson)
-                f.close()
-                print(returnJson)
+                #f = open('empty.txt', 'a', encoding='utf-8')
+                #f.write(returnJson)
+                #f.close()
+                #print(returnJson)
                 aimJsons.append(curDate)
         
         #print(returnJson)
@@ -332,7 +333,7 @@ class DataReq():
         scheduleChart['student_id'] = studentId
         scheduleChart['info'] = aimLessons
         returnJson = json.dumps(scheduleChart, ensure_ascii=False)      # get the json package
-        print(returnJson)
+        #print(returnJson)
         return returnJson
 
 # for test

@@ -65,6 +65,7 @@ def reqSchedule(dataReq):
         requests.post(url=scheduleUrl, headers=headers, data=schedule.encode('utf-8'))
     except Exception:
         print('req fail')
+        print(traceback.format_exc())
         return -5
     return 1
 
@@ -125,6 +126,7 @@ def reqDdl(dataReq):
         requests.post(url=ddlUrl, headers=headers, data=ddl.encode('utf-8'))
     except Exception:
         print('req fail')
+        print(traceback.format_exc())
         return -5
     return 1
 
@@ -151,9 +153,11 @@ def reqEmptyClassroom(dataReq):
         return 0
     emptyClassroomUrl = host + 'classroom/'
     for each in emptyClassroom:
+        returnJson = json.dumps(each, ensure_ascii=False)
         try:
-            requests.post(url=emptyClassroomUrl, headers=headers, data=each.encode('utf-8'))
+            requests.post(url=emptyClassroomUrl, headers=headers, data=returnJson.encode('utf-8'))
         except Exception:
+            print(traceback.format_exc())
             print('req fail')
             return -5
     return 1

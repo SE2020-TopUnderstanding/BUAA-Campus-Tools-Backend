@@ -21,7 +21,7 @@ class Course(models.Model):
 class Student(models.Model):
     objects = models.Manager()
     # student's id, e.g. 17373000
-    id = models.CharField(max_length=10, primary_key=True)
+    id = models.CharField(max_length=20, primary_key=True)
     # 统一身份认证账号
     usr_name = models.CharField(max_length=30, unique=True)
     # 统一身份认证密码（密文）
@@ -38,7 +38,7 @@ class StudentCourse(models.Model):
     # the course's time, e.g Tuesday 8, 9
     time = models.CharField(max_length=40)
     # the course's place, e.g. New Teaching Building F201
-    place = models.CharField(max_length=30)
+    place = models.CharField(max_length=100)
     # the course's start week ,e.g. 1-7,9-16
     week = models.CharField(max_length=80)
     # the course's semester, e.g 2019 Spring

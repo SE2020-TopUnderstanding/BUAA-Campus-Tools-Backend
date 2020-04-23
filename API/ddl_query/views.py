@@ -83,7 +83,7 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
 
         
         for i in course_re:
-            cr_re = re.filter(course=i["course"]).values("homework", "ddl", "state").distinct().order_by("-state")
+            cr_re = re.filter(course=i["course"]).values("homework", "ddl", "state").distinct().order_by("state")
             content.append({"name":i["course"],"content":cr_re})
         return Response(content)
       
@@ -136,7 +136,13 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
                 content = key["content"]
                 name = key["name"]
                 for i in content:
-                    t = standard_time(i["ddl"])
+                    if i["ddl"] == "":
+                        t = ""
+                    else:
+                        try:
+                            t = standard_time(i["ddl"])
+                        except IndexError:
+                            return HttpResponse(status=500)
                     DDL_t(student_id=student, ddl=t, homework=i["homework"],
                      state=i["state"], course=name).save()
             else:

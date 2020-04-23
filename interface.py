@@ -340,6 +340,8 @@ def testTime():
 # start the program                
 if __name__ == '__main__':
     #testTime()
+    if len(sys.argv) < 2:
+        print('请输入参数，-d：启动ddl爬虫，-o：启动其他爬虫')
     if sys.argv[1] == '-d':
         try:
             insect_ddl()
@@ -352,3 +354,5 @@ if __name__ == '__main__':
         except Exception as e:
             print(traceback.format_exc())
             insect_other()
+    else:
+        print('请输入正确参数，-d：启动ddl爬虫，-o：启动其他爬虫')

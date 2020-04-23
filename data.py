@@ -251,9 +251,9 @@ class DataReq():
                 '''
                 # for test
                 f = open('empty.txt', 'a', encoding='utf-8')
-                f.write(returnJson)
+                f.write(curDate)
                 f.close()
-                print(returnJson)
+                print(curDate)
                 '''
                 aimJsons.append(curDate)                                # push this day to the list
         return aimJsons

@@ -7,5 +7,6 @@ class TimeInfo(models.Model):
 
 
 class RequestRecord(models.Model):
-    name = models.CharField(max_length=50, primary_key=True)
+    objects = models.Manager()
+    name = models.CharField(max_length=50,primary_key=True)
     count = models.IntegerField(default=0)

@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from .models import *
+from request_queue.models import RequestRecord
 
 
 def add_0(s):
@@ -58,6 +59,13 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
         没有提供参数，参数数量错误，返回400错误;
         参数错误，返回404错误;
         """
+        try:#保存前端请求数据
+            record = RequestRecord.objects.get(name="ddl")
+            record.count = record.count+1
+            record.save()
+        except RequestRecord.DoesNotExist:
+            RequestRecord(name="ddl", count=1).save()
+
         req = request.query_params.dict()
 
         if len(req) != 1:
@@ -66,7 +74,6 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
             return HttpResponse(status=404)
 
         student_id = req["student_id"]
-        print(student_id)
         content = []
 
 
@@ -82,6 +89,7 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
       
     def post(self, request, format=None):#
         '''
+        访问方法 POST http://127.0.0.1:8000/ddl/
         {
             "student_id":"17373349",
             "ddl":[
@@ -112,14 +120,17 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
                     }
                 ]
         }
+        错误：500
         '''
         req = request.data
         try:
             student = Student.objects.get(id=req['student_id'])
             DDL_t.objects.filter(student_id=req['student_id']).delete()
         except Student.DoesNotExist:
-            raise Http404
+            return HttpResponse(status=500)
         
+        if "ddl" not in req:
+            return HttpResponse(status=500)
         for key in req['ddl']:
             if len(key) == 2:
                 content = key["content"]

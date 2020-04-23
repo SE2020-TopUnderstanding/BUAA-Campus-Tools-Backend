@@ -34,7 +34,6 @@ class StudentCourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentCourse
         exclude = ('student_id', 'course_id', 'id', 'course_teacher',)
-        depth = 1
 
 
 class TeacherCourseSerializer(serializers.ModelSerializer):

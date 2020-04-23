@@ -185,7 +185,7 @@ def dealReqs():
     jsons = req.json()
     data = jsons
     user = data['usr_name']
-    password = data['password']
+    password = decrypt_string(data['password'])
     reqType = data['req_type']
     dataReq = DataReq(user, password)
     success = 0

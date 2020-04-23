@@ -263,7 +263,7 @@ class DataReq():
         data sort for schedules
         '''
         aimLessons = []
-        sectionDict = {0:'1，2', 1:'3，4，5', 2:'6，7', 3:'8，9，10', 4:'11，12', 5:'13，14'}
+        sectionDict = {0:'1，2', 1:'3，4', 2:'6，7', 3:'8，9', 4:'11，12', 5:'13，14'}
         for i in range(len(schedules) - 1):
             for j in range(len(schedules[i])):
                 try:

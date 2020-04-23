@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from .serializers import *
 from .models import *
 from course_query.models import Student
+from request_queue.models import RequestRecord
 
 
 class ScoreList(APIView):
@@ -17,6 +18,14 @@ class ScoreList(APIView):
         例:127.0.0.1/score?student_id=11111111&semester=2020_Spring
         获得学号为11111111，2020春季学期的成绩
         """
+        # 记录次数
+        try:
+            count = RequestRecord.objects.get(name='score')
+        except RequestRecord.DoesNotExist:
+            count = RequestRecord(name='score', count=0)
+        count.count += 1
+        count.save()
+        # 查询
         req = request.query_params.dict()
         result = Score.objects.all()
         if len(req) == 2:
@@ -45,8 +54,8 @@ class ScoreList(APIView):
         try:
             student = Student.objects.get(id=req['student_id'])
         except Student.DoesNotExist:
-            message = '数据库中没有这个学生，请检查是否有严重错误'
-            return HttpResponse(message, status=404)
+            message = '数据库中没有这个学生，服务器数据库可能有错误'
+            return HttpResponse(message, status=500)
         # 爬虫的数据库插入请求
         if len(req) == 3:
             semester = req['semester']

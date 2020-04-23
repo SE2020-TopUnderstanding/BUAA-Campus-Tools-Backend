@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from django.http import HttpResponse
 from .serializers import *
 from .models import *
+from request_queue.models import RequestRecord
 from datetime import datetime
 
 
@@ -63,6 +64,13 @@ class CourseList(APIView):
         start_day = '2020-2-24'
         req = request.query_params.dict()
         result = StudentCourse.objects.all()
+        # 记录查询次数
+        try:
+            count = RequestRecord.objects.get(name='timetable')
+        except RequestRecord.DoesNotExist:
+            count = RequestRecord(name='timetable', count=0)
+        count.count += 1
+        count.save()
         # 课表查询请求
         if len(req) == 2:
             for key, value in req.items():
@@ -107,8 +115,8 @@ class CourseList(APIView):
         try:
             student = Student.objects.get(id=student_id)
         except Student.DoesNotExist:
-            message = '数据库中没有这个学生，请检查是否有严重错误'
-            return HttpResponse(message, status=404)
+            message = '数据库中没有这个学生，数据库可能出现了问题'
+            return HttpResponse(message, status=500)
         # 爬虫的数据库插入请求
         if len(req) == 2:
             semester = '2020_Spring'

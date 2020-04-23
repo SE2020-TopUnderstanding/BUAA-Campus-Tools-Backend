@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from course_query.models import Student
 from request_queue.models import RequestRecord
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
+from request_queue.views import add_request
 
 class login(APIView):
     def get(self, request, format=None):
@@ -48,9 +49,9 @@ class login(APIView):
 
         
         if len(req) != 2:
-            return HttpResponse(status=500,content={"state":"-2", "student_id":"", "name":""})
+            return Response(status=500,data={"state":"-2", "student_id":"", "name":""})
         if ("usr_name" not in req) | ("usr_password" not in req):
-            return HttpResponse(status=500,content={"state":"-2", "student_id":"", "name":""})
+            return Response(status=500,data={"state":"-2", "student_id":"", "name":""})
 
         usr_name = request.data["usr_name"]
         usr_password = request.data["usr_password"]
@@ -74,6 +75,9 @@ class login(APIView):
             name = ans[2]
             grade = ans[3]
             Student(usr_name=usr_name,usr_password=usr_password,id=student_id, name=name,grade=grade).save()
+            add_request('s', student_id)
+            add_request('g', student_id)
+            add_request('d', student_id)
         
         #print(Student.objects.filter(usr_name=usr_name).values("name","grade"))
 

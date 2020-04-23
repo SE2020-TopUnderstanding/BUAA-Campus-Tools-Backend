@@ -62,7 +62,7 @@ class ScoreList(APIView):
             for key in req['info']:
                 if len(key) == 4:
                     bid = key[0].replace(' ', '')
-                    course_name = key[1].replace(' ', '')
+                    course_name = key[1]
                     credit = key[2].replace(' ', '')
                     score = key[3].replace(' ', '')
                     try:

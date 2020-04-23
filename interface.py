@@ -4,8 +4,7 @@ import requests
 import traceback
 import sys
 
-#host = '127.0.0.1:8000/'
-host = 'http://114.115.208.32:8000/'                  # for local test
+host = 'http://114.115.208.32:8000/'                  
 headers = {'Content-Type': 'application/json'}
 
 def decrypt_string(message):
@@ -36,7 +35,6 @@ def getAllStu():
         print('req fail')
         return -1
     jsons = req.json()
-    #data = json.loads(jsons)
     return jsons
 
 def reqSchedule(dataReq):
@@ -186,7 +184,6 @@ def dealReqs():
     # due with the reqs
     jsons = req.json()
     data = jsons
-    #data = json.loads(jsons)
     user = data['usr_name']
     password = data['password']
     reqType = data['req_type']
@@ -224,12 +221,19 @@ def dealReqs():
     return 1
 
 def insect_other():
+    '''
+    the main func
+    circle and circle again to get the other datas
+    '''
     print('爬虫部署成功！')
     print('将进行课表、成绩、空教室的查询')
     while True:
         print('开始新一轮循环')
         now = datetime.now()                                # get the cur time
         '''
+        this part will start to get the data at 3:00 am, but it cannot start at this time,
+        because more situations need to be discussed and considered
+
         time_begin = datetime.strptime(str(datetime.now().date()) + '3:00',"%Y-%m-%d%H:%M")
         time_end = datetime.strptime(str(datetime.now().date()) + '3:30',"%Y-%m-%d%H:%M")
         while now > time_end or now < time_begin:
@@ -248,39 +252,36 @@ def insect_other():
                 success = 0
                 i = 0
                 while success != 1 and i < 3:
-                    success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
-                    #success = 1
+                    #success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
                     i += 1
-            dealReqs()
+            #dealReqs()
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqSchedule(curDataReq)  
-                #success = 1           
+                success = reqSchedule(curDataReq)          
                 i += 1
-            dealReqs()
+            #dealReqs()
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqGrades(curDataReq)    
-                #success = 1       
+                success = reqGrades(curDataReq)          
                 i += 1          
-            dealReqs()
+            #dealReqs()
+        print('本轮循环完成，进入待机状态')
         while True:
             afterProc = datetime.now()                      # get the cur time
             deltatime = afterProc - now
             seconds = deltatime.total_seconds()
             limitTime = 60 * 60 * 24
-            limitTime = 0
-            if seconds >= limitTime:         # will not flush the datas until 2h later and no reqs exist
+            if seconds >= limitTime:                        # will not flush the datas until 24h later
                 break
-            dealReqs()                                      # deal with the reqs in the waiting time
-            time.sleep(5)                                   # avoid the cpu from circling all the time
+            #dealReqs()                                     # deal with the reqs in the waiting time
+            time.sleep(10)                                  # avoid the cpu from circling all the time
 
 def insect_ddl():
     '''
     the main func
-    circle and circle again to get all the datas
+    circle and circle again to get the ddl datas
     '''
     print('爬虫部署成功！')
     print('将进行ddl的获取，刷新间隔极少，为60s')
@@ -296,10 +297,10 @@ def insect_ddl():
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqDdl(curDataReq)    
-                #success = 1         
+                success = reqDdl(curDataReq)           
                 i += 1  
             time.sleep(1)    
+        print('本轮循环结束，将进行60s待机')
         time.sleep(60)         
 
 def testTime():
@@ -339,16 +340,16 @@ def testTime():
 
 # start the program                
 if __name__ == '__main__':
-    #testTime()
+    #testTime()                                 # test the average cost time
     if len(sys.argv) < 2:
         print('请输入参数，-d：启动ddl爬虫，-o：启动其他爬虫')
-    if sys.argv[1] == '-d':
+    if sys.argv[1] == '-d':                     # get the ddl data
         try:
             insect_ddl()
         except Exception as e:
             print(traceback.format_exc())
             insect_ddl()
-    elif sys.argv[1] == '-o':
+    elif sys.argv[1] == '-o':                   # get the schedule, grade and emptyclassroom(current can not do that) data
         try:
             insect_other()
         except Exception as e:

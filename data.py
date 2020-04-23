@@ -95,7 +95,13 @@ class DataReq():
             ddl.append(curLessonDdl)
         aimJson['ddl'] = ddl
         returnJson = json.dumps(aimJson, ensure_ascii=False)            # get the json package
-        #print(returnJson)
+        '''
+        # for test
+        f = open('ddl.txt', 'a', encoding='utf-8')                     
+        f.write(returnJson)
+        f.close()
+        print(returnJson)
+        '''
         return returnJson
     
     def dealWithGrades(self, oriGrades, studentId):
@@ -125,9 +131,14 @@ class DataReq():
             scheduleChart['semester'] = semember
             scheduleChart['info'] = aimGrades
             returnJson = json.dumps(scheduleChart, ensure_ascii=False)  # get the json package
-            #print(returnJson)
+            '''
+            # for test
+            f = open('grade.txt', 'a', encoding='utf-8')
+            f.write(returnJson)
+            f.close()
+            print(returnJson)
+            '''
             jsons.append(returnJson)
-        #returnJson = json.dumps(jsons, ensure_ascii=False)            # get the json package
         return jsons
 
     def dealWithEmptyClassroom(self, emptyClassroom):
@@ -203,7 +214,6 @@ class DataReq():
                         dictCur['campus'] = campus
                         dictCur['teaching_building'] = teaching_building
                         dictCur['classroom'] = classroom
-                        #dictCur['date'] = date
                         tmp = str(section.copy())
                         tmp = tmp[:-1] + ',]'
                         dictCur['section'] = tmp
@@ -229,22 +239,22 @@ class DataReq():
                             if j % 6 == 4:
                                 section.append(11)
                                 section.append(12)
-            for m in range(7):
+            for m in range(7):                                          # sort all the datas in a day
                 curDate = {}
-                days = i * 7 + m // 6
+                days = i * 7 + m
                 originDay = datetime.strptime('2020-02-24',"%Y-%m-%d")
                 date = originDay + timedelta(days = days)
                 date = date.strftime("%Y-%m-%d")
                 curDate['date'] = date
                 curDate['classroom'] = curWeek[m].copy()
-                returnJson = json.dumps(curDate, ensure_ascii=False)            # get the json package
-                #f = open('empty.txt', 'a', encoding='utf-8')
-                #f.write(returnJson)
-                #f.close()
-                #print(returnJson)
-                aimJsons.append(curDate)
-        
-        #print(returnJson)
+                '''
+                # for test
+                f = open('empty.txt', 'a', encoding='utf-8')
+                f.write(returnJson)
+                f.close()
+                print(returnJson)
+                '''
+                aimJsons.append(curDate)                                # push this day to the list
         return aimJsons
 
     def dealWithSchedules(self, schedules, studentId):
@@ -258,10 +268,10 @@ class DataReq():
                 if curStr == ' ':
                     continue
 
-                curStrs = curStr.split('节')
+                curStrs = curStr.split('节')                            # divide different lessons by '节'
                 lessons = []
                 curLesson = ''
-                for k in range(len(curStrs)):
+                for k in range(len(curStrs)):                           # get all the lessons
                     if curStrs[k] == '':
                         continue
                     if curLesson == '':
@@ -290,18 +300,19 @@ class DataReq():
                         lessons.append(curLesson + '节')
 
                 curInfos = []
-                for curStr in lessons:
+                for curStr in lessons:                                  # get the datas in a lesson
                     curStrs = curStr.split('\n')
                     lesson = curStrs[0]
                     if curStrs[0] == '':
                         lesson = curStrs[1]
+                        curStrs = curStrs[1:]
                     info = ''
                     for k in range(len(curStrs) - 1):
                         info = info + curStrs[k + 1]
                     infos = info.split('，')
                     types = []
                     tmpStr = ''
-                    for each in infos:
+                    for each in infos:                                  # deal with the multi classes problem
                         tmpStr = tmpStr + each
                         if each[-1] == '节':
                             types.append(tmpStr)
@@ -311,9 +322,10 @@ class DataReq():
 
                     for each in types:
                         info = each
-                        teachers, info = info.split('[')                        # some special conditions cannot be unpacked easily
-                        week, info = info.split(']')
-                        place, time = info.split(' ')
+                        teachers, info = info.split('[')                # get the teacher
+                        week, info = info.split(']')                    # get the week
+                        place, time = info.split(' ')                   # get the place and time
+                        # deal with some certain problems
                         if week == '' or week == '周':
                             week = '1-16'
                         if place[0] == '单' or place[0] == '双':
@@ -333,7 +345,13 @@ class DataReq():
         scheduleChart['student_id'] = studentId
         scheduleChart['info'] = aimLessons
         returnJson = json.dumps(scheduleChart, ensure_ascii=False)      # get the json package
-        #print(returnJson)
+        '''
+        # for test
+        f = open('schedule.txt', 'a', encoding='utf-8')
+        f.write(returnJson)
+        f.close()
+        print(returnJson)
+        '''
         return returnJson
 
 # for test

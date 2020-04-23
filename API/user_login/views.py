@@ -2,17 +2,24 @@ from .LoginRequest.loginJudge import *
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from course_query.models import Student
+from request_queue.models import RequestRecord
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 
 class login(APIView):
     def get(self, request, format=None):
         '''
+        输入：密码
         http://127.0.0.1:8000/login/?password="123"
+        返回：所有用户姓名和密码
+        错误：500
         '''
+
         req = request.query_params.dict()
         content = {}
         if req["password"] == "123":
             content = Student.objects.all().values("usr_name","usr_password")
+        else:
+            return HttpResponse(status=500)
         return Response(content)
 
 
@@ -26,14 +33,24 @@ class login(APIView):
         -1 -> failed, request timeout
         -2 -> failed, unknown exception
         没有提供参数，参数数量错误，返回400错误;
-        参数错误，返回404错误;
+        参数错误，返回400错误;
         """
         
+        try:#保存前端请求数据
+            record = RequestRecord.objects.get(name="login")
+            record.count = record.count+1
+            record.save()
+        except RequestRecord.DoesNotExist:
+            RequestRecord(name="login", count=1).save()
+
+
         req = request.data
+
+        
         if len(req) != 2:
-            return HttpResponseBadRequest()
+            return HttpResponse(status=500,content={"state":"-2", "student_id":"", "name":""})
         if ("usr_name" not in req) | ("usr_password" not in req):
-            return HttpResponse(status=404)
+            return HttpResponse(status=500,content={"state":"-2", "student_id":"", "name":""})
 
         usr_name = request.data["usr_name"]
         usr_password = request.data["usr_password"]
@@ -45,16 +62,20 @@ class login(APIView):
         student_id = ""
         if ans == 0:
             state = 0
+            return HttpResponse(status=400,content={"state":state, "student_id":"", "name":""})
         elif ans == -1:
             state = -1
+            return HttpResponse(status=400,content={"state":state, "student_id":"", "name":""})
         elif ans == -2:
             state = -2
+            return HttpResponse(status=400,content={"state":state, "student_id":"", "name":""})
         else:
             student_id = str(ans[0])
             name = ans[2]
             grade = ans[3]
             Student(usr_name=usr_name,usr_password=usr_password,id=student_id, name=name,grade=grade).save()
         
-        print(Student.objects.filter(usr_name=usr_name).values("name","grade"))
+        #print(Student.objects.filter(usr_name=usr_name).values("name","grade"))
+
         content = {"state":state, "student_id":student_id, "name":name}
         return Response(content)

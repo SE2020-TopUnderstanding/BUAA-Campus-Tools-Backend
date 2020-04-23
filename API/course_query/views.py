@@ -131,13 +131,18 @@ class CourseList(APIView):
                         place = info[1].replace(' ', '')
                         teacher = info[2].replace(' ', '')
                         week = info[3].replace(' ', '')
-                        time = info[4].replace(' ', '')
+                        time = info[4]
                         # 增加课程信息
                         try:
                             course = Course.objects.get(name=name)
                         except Course.DoesNotExist:
                             course = Course(name=name)
                             course.save()
+                        # 保存信息
+                        new_student_course = StudentCourse(student_id=student, course_id=course
+                                                           , week=split_week(week), time=split_time(time), place=place,
+                                                           semester=semester)
+                        new_student_course.save()
                         # 增加教师信息
                         teachers = teacher.split('，')
                         # 一门课程可能有多个教师
@@ -147,17 +152,16 @@ class CourseList(APIView):
                             except Teacher.DoesNotExist:
                                 teacher = Teacher(name=key)
                                 teacher.save()
-                            # 增加关联关系
+                            # 增加总课的关联关系
                             try:
                                 course = Course.objects.get(name=name, teachercourse__teacher_id__name=teacher.name)
                             except Course.DoesNotExist:
                                 new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
                                 new_teacher_course.save()
-                        # 保存信息
-                        new_student_course = StudentCourse(student_id=student, course_id=course
-                                                           , week=split_week(week), time=split_time(time), place=place,
-                                                           semester=semester)
-                        new_student_course.save()
+                            # 增加这节课的关联关系
+                            relation = TeacherCourseSpecific(student_course_id=new_student_course,
+                                                             teacher_id=teacher)
+                            relation.save()
                     # 不是5项表示数据有缺失
                     else:
                         message = 'info里的元素一定要为5项，请检查'

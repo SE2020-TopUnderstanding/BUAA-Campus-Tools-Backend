@@ -45,6 +45,12 @@ class StudentCourse(models.Model):
     semester = models.CharField(max_length=30)
     student_id = models.ForeignKey(Student, on_delete=models.CASCADE)
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course_teacher = models.ManyToManyField(Teacher, through='TeacherCourseSpecific')
+
+
+class TeacherCourseSpecific(models.Model):
+    student_course_id = models.ForeignKey(StudentCourse, on_delete=models.CASCADE)
+    teacher_id = models.ForeignKey(Teacher, on_delete=models.CASCADE)
 
 
 class TeacherCourse(models.Model):

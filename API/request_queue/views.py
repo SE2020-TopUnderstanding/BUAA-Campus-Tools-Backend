@@ -29,12 +29,10 @@ class Queue(APIView):
         req = request.query_params.dict()
         # 爬虫在这里取得request
         if len(req) == 0:
-            content = []
             if req_queue.empty():
                 return HttpResponse(status=204)
             cur_queue = req_queue.get()
-            content.append(cur_queue)
-            return Response(content)
+            return Response(cur_queue)
 
         # 前端在这里取得对应任务是否完成的信息, true为已完成
         elif len(req) == 1 and 'id' in req:

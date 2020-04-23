@@ -121,10 +121,10 @@ class CourseList(APIView):
                     # info必须有5项
                     if len(info) == 5:
                         name = info[0].replace(' ', '')
-                        place = info[1]
+                        place = info[1].replace(' ', '')
                         teacher = info[2].replace(' ', '')
-                        week = info[3]
-                        time = info[4]
+                        week = info[3].replace(' ', '')
+                        time = info[4].replace(' ', '')
                         # 增加课程信息
                         try:
                             course = Course.objects.get(name=name)

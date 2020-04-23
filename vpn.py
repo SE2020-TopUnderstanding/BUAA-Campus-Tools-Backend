@@ -37,12 +37,17 @@ class VpnLogin:
         #self.browser.maximize_window()                  # Used for debugging
         
         #find and fill the username and password text box and commit
-        inputUserName = self.browser.find_element_by_xpath('//*[@id="user_login"]')         
-        inputPassword = self.browser.find_element_by_xpath('//*[@id="user_password"]')      
-        commit = self.browser.find_element_by_xpath('//*[@id="login-form"]/div[3]/input')   
-        inputUserName.send_keys(userName)               
-        inputPassword.send_keys(password)               
-        commit.click()                                  
+        try:
+            inputUserName = self.browser.find_element_by_xpath('//*[@id="user_login"]')         
+            inputPassword = self.browser.find_element_by_xpath('//*[@id="user_password"]')      
+            commit = self.browser.find_element_by_xpath('//*[@id="login-form"]/div[3]/input')   
+            inputUserName.send_keys(userName)               
+            inputPassword.send_keys(password)
+            commit.click()
+        except Exception:
+            print('network load exception')
+            return -2
+                                          
 
         locator = (By.XPATH, '/html/body/div[5]/div/ul')                                    
         try:

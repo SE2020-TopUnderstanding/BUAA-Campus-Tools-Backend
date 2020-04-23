@@ -7,6 +7,7 @@ class courseReq():
     '''
     def __init__(self, userName, password):
         self.status = 0
+        vpn = ''
         for i in range(3):
             vpn = VpnLogin(userName, password)  # login
             success = vpn.switchToCourse()      # switch
@@ -25,6 +26,8 @@ class courseReq():
                 break
             elif success == 0:
                 break
+        if vpn == '':
+            raise Exception('vpn not exists')
         self.browser = vpn.getBrowser()         # get the browser.
         #self.getDdl()                           # for debug
 

@@ -1,5 +1,6 @@
 from jiaowu import *
 from course import *
+import traceback
 
 class DataReq():
     '''
@@ -262,85 +263,101 @@ class DataReq():
         data sort for schedules
         '''
         aimLessons = []
+        sectionDict = {0:'1，2', 1:'3，4，5', 2:'6，7', 3:'8，9，10', 4:'11，12', 5:'13，14'}
         for i in range(len(schedules) - 1):
             for j in range(len(schedules[i])):
-                curStr = schedules[i][j]
-                if curStr == ' ':
-                    continue
+                try:
+                    curStr = schedules[i][j]
+                    if curStr == ' ':
+                        continue
 
-                curStrs = curStr.split('节')                            # divide different lessons by '节'
-                lessons = []
-                curLesson = ''
-                for k in range(len(curStrs)):                           # get all the lessons
-                    if curStrs[k] == '':
-                        continue
-                    if curLesson == '':
-                        curLesson = curLesson + curStrs[k]
-                        continue
-                    if curStrs[k][0] == '，':
-                        curLesson = curLesson + '节' + curStrs[k]
-                        if k == len(curStrs) - 2:
+                    curStrs = curStr.split('节')                            # divide different lessons by '节'
+                    lessons = []
+                    curLesson = ''
+                    for k in range(len(curStrs)):                           # get all the lessons
+                        if curStrs[k] == '':
+                            continue
+                        if curLesson == '':
+                            curLesson = curLesson + curStrs[k]
+                            continue
+                        if curStrs[k][0] == '，':
+                            curLesson = curLesson + '节' + curStrs[k]
+                            if k == len(curStrs) - 2:
+                                curLesson = curLesson + '节'
+                                lessons.append(curLesson)
+                                curLesson = ''
+                                break
+                        if curStrs[k][0] != '，':
                             curLesson = curLesson + '节'
                             lessons.append(curLesson)
-                            curLesson = ''
-                            break
-                    if curStrs[k][0] != '，':
-                        curLesson = curLesson + '节'
-                        lessons.append(curLesson)
-                        curLesson = curStrs[k]
-                        if k == len(curStrs) - 2:
-                            curLesson = curLesson + '节'
+                            curLesson = curStrs[k]
+                            if k == len(curStrs) - 2:
+                                curLesson = curLesson + '节'
+                                lessons.append(curLesson)
+                                curLesson = ''
+                                break
+                    if curLesson != '':
+                        if curLesson[-1] == '：':
                             lessons.append(curLesson)
-                            curLesson = ''
-                            break
-                if curLesson != '':
-                    if curLesson[-1] == '：':
-                        lessons.append(curLesson)
-                    else:
-                        lessons.append(curLesson + '节')
-
-                curInfos = []
-                for curStr in lessons:                                  # get the datas in a lesson
-                    curStrs = curStr.split('\n')
-                    lesson = curStrs[0]
-                    if curStrs[0] == '':
-                        lesson = curStrs[1]
-                        curStrs = curStrs[1:]
-                    info = ''
-                    for k in range(len(curStrs) - 1):
-                        info = info + curStrs[k + 1]
-                    infos = info.split('，')
-                    types = []
-                    tmpStr = ''
-                    for each in infos:                                  # deal with the multi classes problem
-                        tmpStr = tmpStr + each
-                        if each[-1] == '节':
-                            types.append(tmpStr)
-                            tmpStr = ''
                         else:
-                            tmpStr = tmpStr + '，'
+                            lessons.append(curLesson + '节')
 
-                    for each in types:
-                        info = each
-                        teachers, info = info.split('[')                # get the teacher
-                        week, info = info.split(']')                    # get the week
-                        place, time = info.split(' ')                   # get the place and time
-                        # deal with some certain problems
-                        if week == '' or week == '周':
-                            week = '1-16'
-                        if place[0] == '单' or place[0] == '双':
-                            week = week + place[0]
-                            place = place[1:]
-                        if time[0] == time[1]:
-                            time = time[1:]
-                        curInfo = []
-                        curInfo.append(lesson)
-                        curInfo.append(place[1:])
-                        curInfo.append(teachers)
-                        curInfo.append(week)
-                        curInfo.append('周' + str(j + 1) + ' ' + time)
-                        curInfos.append(curInfo)
-                aimLessons.append(curInfos)
+                    curInfos = []
+                    for curStr in lessons:                                  # get the datas in a lesson
+                        curStrs = curStr.split('\n')
+                        lesson = curStrs[0]
+                        if curStrs[0] == '':
+                            lesson = curStrs[1]
+                            curStrs = curStrs[1:]
+                        info = ''
+                        for k in range(len(curStrs) - 1):
+                            info = info + curStrs[k + 1]
+                        infos = info.split('，')
+                        types = []
+                        tmpStr = ''
+                        for each in infos:                                  # deal with the multi classes problem
+                            tmpStr = tmpStr + each
+                            if each[-1] == '节':
+                                types.append(tmpStr)
+                                tmpStr = ''
+                            else:
+                                tmpStr = tmpStr + '，'
+
+                        for each in types:
+                            info = each
+                            teachers, info = info.split('[')                # get the teacher
+                            week, info = info.split(']')                    # get the week
+                            place, time = info.split(' ')                   # get the place and time
+                            # deal with some certain problems
+                            if week == '' or week == '周':
+                                week = '1-16'
+                            if place[0] == '单' or place[0] == '双':
+                                week = week + place[0]
+                                place = place[1:]
+                            if time[0] == time[1]:
+                                time = time[1:]
+                            curInfo = []
+                            curInfo.append(lesson)
+                            curInfo.append(place[1:])
+                            curInfo.append(teachers)
+                            curInfo.append(week)
+                            curInfo.append('周' + str(j + 1) + ' ' + time)
+                            curInfos.append(curInfo)
+                    aimLessons.append(curInfos)
+                except Exception:
+                    print(traceback.format_exc())
+                    print('解析课表信息出错')
+                    curStr = schedules[i][j]
+                    curInfos = []
+                    curInfo = []
+                    curInfo.append(curStr.split('\n')[0])
+                    curInfo.append('未知')
+                    curInfo.append('未知')
+                    curInfo.append('1-16')
+                    section = sectionDict[i]
+                    curInfo.append('周' + str(j + 1) + ' 第' + section + '节')
+                    curInfos.append(curInfo)
+                    aimLessons.append(curInfos)
         scheduleChart = {}
         scheduleChart['student_id'] = studentId
         scheduleChart['info'] = aimLessons

@@ -301,7 +301,26 @@ def insect_ddl():
                 i += 1  
             time.sleep(1)    
         print('本轮循环结束，将进行60s待机')
-        time.sleep(60)         
+        time.sleep(60)        
+
+def insect_req():
+    '''
+    the main func
+    circle and circle again to get the req datas
+    '''
+    print('爬虫部署成功！')
+    print('将进行消息队列的获取与处理')
+    while True:
+        print('开始新一轮循环')
+        success = dealReqs()
+        if success == 1:
+            print('处理成功')
+        elif success == 0:
+            print('暂时没有req存在')
+        else:
+            print('处理出现问题，错误码为：' + str(success))
+        print('本轮循环结束，将进行5s待机')
+        time.sleep(5)  
 
 def testTime():
     '''
@@ -342,8 +361,10 @@ def testTime():
 if __name__ == '__main__':
     #testTime()                                 # test the average cost time
     if len(sys.argv) < 2:
-        print('请输入参数，-d：启动ddl爬虫，-o：启动其他爬虫')
-    if sys.argv[1] == '-d':                     # get the ddl data
+        print('请输入参数，-d：启动ddl爬虫，-o：启动其他爬虫, -r：启动消息队列')
+    elif len(sys.argv) > 2:
+        print('输入参数过多')
+    elif sys.argv[1] == '-d':                     # get the ddl data
         try:
             insect_ddl()
         except Exception as e:
@@ -355,5 +376,11 @@ if __name__ == '__main__':
         except Exception as e:
             print(traceback.format_exc())
             insect_other()
+    elif sys.argv[1] == '-r':                   # get the schedule, grade and emptyclassroom(current can not do that) data
+        try:
+            insect_req()
+        except Exception as e:
+            print(traceback.format_exc())
+            insect_req()
     else:
-        print('请输入正确参数，-d：启动ddl爬虫，-o：启动其他爬虫')
+        print('请输入正确参数，-d：启动ddl爬虫，-o：启动其他爬虫, -r：启动消息队列')

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'user_login',
     'ping',
     'request_queue',
+    'version_information',
 ]
 
 MIDDLEWARE = [

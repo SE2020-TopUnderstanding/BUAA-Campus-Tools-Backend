@@ -26,4 +26,5 @@ urlpatterns = [
     path('login/', include('user_login.urls')),
     path('ping/', include('ping.urls')),
     path('request/', include('request_queue.urls')),
+    path('version/', include('version_information.urls')),
 ]

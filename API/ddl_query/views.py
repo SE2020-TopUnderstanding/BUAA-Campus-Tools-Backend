@@ -4,7 +4,10 @@ from rest_framework.response import Response
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from .models import *
 from request_queue.models import RequestRecord
-
+import logging
+from django.db.models import Q
+from django.forms.models import model_to_dict
+from itertools import chain
 
 def add_0(s):
     if (int(s)<10) & (s != "00"):
@@ -83,7 +86,11 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
 
         
         for i in course_re:
-            cr_re = re.filter(course=i["course"]).values("homework", "ddl", "state").distinct().order_by("state")
+            cr_re_1 = re.filter(Q(course=i["course"])
+                    &(Q(state="尚未提交")|Q(state="草稿 - 进行中"))).values("homework", "ddl", "state").distinct()
+            cr_re_2 = re.filter(Q(course=i["course"])
+                    &(~Q(state="尚未提交")&~Q(state="草稿 - 进行中"))).values("homework", "ddl", "state").distinct()
+            cr_re = chain(cr_re_1,cr_re_2)
             content.append({"name":i["course"],"content":cr_re})
         return Response(content)
       
@@ -142,6 +149,7 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
                         try:
                             t = standard_time(i["ddl"])
                         except IndexError:
+                            logging.warning("ddl时间格式错误 "+t)
                             return HttpResponse(status=500)
                     DDL_t(student_id=student, ddl=t, homework=i["homework"],
                      state=i["state"], course=name).save()

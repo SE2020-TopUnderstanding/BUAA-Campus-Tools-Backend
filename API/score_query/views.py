@@ -80,3 +80,37 @@ class ScoreList(APIView):
         else:
             message = '参数个数有错误，只能为3个'
             return HttpResponse(message, status=400)
+
+
+class GPACalculate(APIView):
+    @staticmethod
+    def get(request):
+        req = request.query_params.dict()
+        gpa_sum = 0.0
+        credit_sum = 0.0
+        if len(req) == 1 and 'student_id' in req.keys():
+            scores = Score.objects.filter(student_id=req['student_id'])
+            for score in scores:
+                gpa_sum += max(0, score.credit * (4.0 - 3 * (100 - score.score) ** 2 / 1600.0))
+                credit_sum += score.credit
+            return Response({'gpa': gpa_sum / credit_sum})
+        else:
+            message = '您附加的参数名称有错误，只允许\'student_id\''
+            return HttpResponse(message, status=400)
+
+
+class AvgScoreCalculate(APIView):
+    @staticmethod
+    def get(request):
+        req = request.query_params.dict()
+        score_sum = 0.0
+        credit_sum = 0.0
+        if len(req) == 1 and 'student_id' in req.keys():
+            scores = Score.objects.filter(student_id=req['student_id'])
+            for score in scores:
+                score_sum += score.score * score.credit
+                credit_sum += score.credit
+            return Response({'score': score_sum / credit_sum})
+        else:
+            message = '您附加的参数名称有错误，只允许\'student_id\''
+            return HttpResponse(message, status=400)

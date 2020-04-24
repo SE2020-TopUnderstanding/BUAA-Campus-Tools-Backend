@@ -41,6 +41,7 @@ def getStudentInfo(username, password):
             0 -> failed, username or password is wrong
            -1 -> failed, request timeout
            -2 -> failed, unknown exception
+           -4 -> failed, others
     password and major cannot be returned
     '''
     password = decrypt_string(password)

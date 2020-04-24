@@ -235,7 +235,7 @@ class jiaoWuReq():
         studentId = studentId.split(')')[0]
 
         table = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[8]/div[2]/table')     
-        tableRows = table.find_elements_by_tag_name('tr')[1:-2]   
+        tableRows = table.find_elements_by_tag_name('tr')[1:-1]   
         schedules = []
         for row in tableRows:                                                                       # view the chart
             schedule = []     

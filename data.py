@@ -290,7 +290,7 @@ class DataReq():
                     curStr = schedules[i][j]
                     if curStr == ' ':
                         continue
-
+                    
                     curStrs = curStr.split('节')                            # divide different lessons by '节'
                     lessons = []
                     curLesson = ''
@@ -347,8 +347,8 @@ class DataReq():
                             info = each
                             if len(info.split('[')) > 2:
                                 divideWeeks = info.split('周')
-                                for i in range(len(divideWeeks) - 1):
-                                    strs = divideWeeks[i] + '周' + divideWeeks[-1]
+                                for k in range(len(divideWeeks) - 1):
+                                    strs = divideWeeks[k] + '周' + divideWeeks[-1]
                                     if strs[0] == '，':
                                         strs = strs[1:]
                                     anotherTypes.append(strs)
@@ -359,7 +359,11 @@ class DataReq():
                             info = each
                             teachers, info = info.split('[')                # get the teacher
                             week, info = info.split(']')                    # get the week
-                            place, time = info.split(' ')                   # get the place and time
+                            if info.find(' ') != -1:
+                                place, time = info.split(' ')               # get the place and time
+                            else:
+                                place, time = info.split('第')
+                                time = '第' + time
                             # deal with some certain problems
                             if week == '' or week == '周':
                                 week = '1-16'

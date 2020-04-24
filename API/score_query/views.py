@@ -86,13 +86,21 @@ class GPACalculate(APIView):
     @staticmethod
     def get(request):
         req = request.query_params.dict()
+        student_id = req['student_id']
         gpa_sum = 0.0
         credit_sum = 0.0
+        try:
+            Student.objects.get(id=student_id)
+        except Student.DoesNotExist:
+            message = '没有这个学生'
+            return HttpResponse(message, status=404)
         if len(req) == 1 and 'student_id' in req.keys():
-            scores = Score.objects.filter(student_id=req['student_id'])
+            scores = Score.objects.filter(student_id=student_id)
             for score in scores:
                 gpa_sum += max(0, score.credit * (4.0 - 3 * (100 - score.score) ** 2 / 1600.0))
                 credit_sum += score.credit
+            if credit_sum == 0:
+                return Response({'gpa': 0.0000})
             return Response({'gpa': gpa_sum / credit_sum})
         else:
             message = '您附加的参数名称有错误，只允许\'student_id\''
@@ -103,13 +111,21 @@ class AvgScoreCalculate(APIView):
     @staticmethod
     def get(request):
         req = request.query_params.dict()
+        student_id = req['student_id']
         score_sum = 0.0
         credit_sum = 0.0
+        try:
+            Student.objects.get(id=student_id)
+        except Student.DoesNotExist:
+            message = '没有这个学生'
+            return HttpResponse(message, status=404)
         if len(req) == 1 and 'student_id' in req.keys():
-            scores = Score.objects.filter(student_id=req['student_id'])
+            scores = Score.objects.filter(student_id=student_id)
             for score in scores:
                 score_sum += score.score * score.credit
                 credit_sum += score.credit
+            if credit_sum == 0:
+                return Response({'score': 0.00000})
             return Response({'score': score_sum / credit_sum})
         else:
             message = '您附加的参数名称有错误，只允许\'student_id\''

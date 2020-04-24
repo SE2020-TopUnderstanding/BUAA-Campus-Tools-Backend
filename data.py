@@ -22,6 +22,10 @@ class DataReq():
         stuId = getStuId.getId()
         print('studentId: ' + str(stuId))
         getStuId.quit()
+        if stuId == -5:
+            print('something wrong')
+            print('IP is banned')
+            return stuId
         if stuId == -1 or stuId == -2 or stuId == -3 or stuId == -4:    # if there is something wrong
             print('something wrong')
             print('usr_name: ' + self.userName)
@@ -36,6 +40,10 @@ class DataReq():
                 print('usr_name: ' + self.userName)
                 print('requestType: ddl')
                 return ddls
+            elif ddls == -5:
+                print('something wrong')
+                print('IP is banned')
+                return ddls
             else:
                 return self.dealWithDdl(ddls, stuId) 
         elif requestType == 'g':                                        # get grades
@@ -46,6 +54,10 @@ class DataReq():
                 print('something wrong')
                 print('usr_name: ' + self.userName)
                 print('requestType: grades')
+                return grades
+            elif grades == -5:
+                print('something wrong')
+                print('IP is banned')
                 return grades
             else:
                 return self.dealWithGrades(grades, stuId) 
@@ -58,6 +70,10 @@ class DataReq():
                 print('usr_name: ' + self.userName)
                 print('requestType: empty calssroom')
                 return emptyClassroom
+            elif emptyClassroom == -5:
+                print('something wrong')
+                print('IP is banned')
+                return emptyClassroom
             else:
                 return self.dealWithEmptyClassroom(emptyClassroom) 
         elif requestType == 's':                                        # get schedules
@@ -68,6 +84,10 @@ class DataReq():
                 print('something wrong')
                 print('usr_name: ' + self.userName)
                 print('requestType: schedule')
+                return schedules
+            elif schedules == -5:
+                print('something wrong')
+                print('IP is banned')
                 return schedules
             else:
                 return self.dealWithSchedules(schedules, stuId) 
@@ -251,7 +271,7 @@ class DataReq():
                 '''
                 # for test
                 f = open('empty.txt', 'a', encoding='utf-8')
-                f.write(curDate)
+                f.write(str(curDate))
                 f.close()
                 print(curDate)
                 '''
@@ -322,7 +342,19 @@ class DataReq():
                                 tmpStr = ''
                             else:
                                 tmpStr = tmpStr + '，'
-
+                        anotherTypes = []
+                        for each in types:
+                            info = each
+                            if len(info.split('[')) > 2:
+                                divideWeeks = info.split('周')
+                                for i in range(len(divideWeeks) - 1):
+                                    strs = divideWeeks[i] + '周' + divideWeeks[-1]
+                                    if strs[0] == '，':
+                                        strs = strs[1:]
+                                    anotherTypes.append(strs)
+                            else:
+                                anotherTypes = types
+                        types = anotherTypes
                         for each in types:
                             info = each
                             teachers, info = info.split('[')                # get the teacher

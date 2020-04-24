@@ -24,6 +24,9 @@ class jiaoWuReq():
             elif success == -3 or success == -4:
                 self.status = -3
                 break
+            elif success == -6:
+                self.status = -5
+                break
             elif success == 0:
                 break
         if vpn == '':
@@ -42,6 +45,7 @@ class jiaoWuReq():
         status = -1 : error occur on the network, usually due to username and password
         status = -2 : timeout for 3 times
         status = -3 : unknown error
+        status = -5 : IP is banned
         '''
         return self.status
 

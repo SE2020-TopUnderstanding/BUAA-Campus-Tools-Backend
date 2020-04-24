@@ -33,6 +33,14 @@ class VpnLogin:
         self.pw = password
 
     def login(self, userName, password):
+        '''
+        login request
+        return 0 -> success
+        return -1 -> login in error, pw or usrname
+        return -2 -> timeout or netword load error
+        return -3 -> unknown error
+        return -6 -> IP is banned from the buaa
+        '''
         self.browser.get(vpnUrl)                        
         #self.browser.maximize_window()                  # Used for debugging
         
@@ -56,7 +64,9 @@ class VpnLogin:
             try:
                 # check whether we get the error message on the login page or not
                 error_text = self.browser.find_element_by_xpath('//*[@id="canvas"]/div[2]/div[2]/div[1]').text 
-                print(error_text)                       
+                print(error_text)   
+                if (error_text.find('此IP') != -1):
+                    return -6                    
                 return -1
             except Exception:
                 if self.browser.current_url == vpnUrl:  # if we are still on the login page

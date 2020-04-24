@@ -43,6 +43,7 @@ def reqSchedule(dataReq):
     return 1 -> success
     return 0 -> web fail
     return -5 -> req fail
+    return -6 -> ip is banned
     '''
     schedule = dataReq.request('s')
     # due with the errors
@@ -58,6 +59,8 @@ def reqSchedule(dataReq):
     elif schedule == -4:
         print('error on the jiaowu web\n')  
         return 0
+    elif schedule == -5:
+        return -6
     scheduleUrl = host + 'timetable/'
     try:
         requests.post(url=scheduleUrl, headers=headers, data=schedule.encode('utf-8'))
@@ -73,6 +76,7 @@ def reqGrades(dataReq):
     return 1 -> success
     return 0 -> web fail
     return -5 -> req fail
+    return -6 -> ip is banned
     '''
     grades = dataReq.request('g')
     # due with the errors
@@ -88,6 +92,8 @@ def reqGrades(dataReq):
     elif grades == -4:
         print('error on the jiaowu web\n')  
         return 0
+    elif grades == -5:
+        return -6
     gradesUrl = host + 'score/'
     for each in grades:
         try:
@@ -104,6 +110,7 @@ def reqDdl(dataReq):
     return 1 -> success
     return 0 -> web fail
     return -5 -> req fail
+    return -6 -> ip is banned
     '''
     ddl = dataReq.request('d')
     # due with the errors
@@ -119,6 +126,8 @@ def reqDdl(dataReq):
     elif ddl == -4:
         print('error on the course web\n')  
         return 0
+    elif ddl == -5:
+        return -6
     ddlUrl = host + 'ddl/'
     try:
         requests.post(url=ddlUrl, headers=headers, data=ddl.encode('utf-8'))
@@ -134,6 +143,7 @@ def reqEmptyClassroom(dataReq):
     return 1 -> success
     return 0 -> web fail
     return -5 -> req fail
+    return -6 -> ip is banned
     '''
     emptyClassroom = dataReq.request('e')
     # due with the errors
@@ -149,6 +159,8 @@ def reqEmptyClassroom(dataReq):
     elif emptyClassroom == -4:
         print('error on the jiaowu web\n')  
         return 0
+    elif emptyClassroom == -5:
+        return -6
     emptyClassroomUrl = host + 'classroom/'
     for each in emptyClassroom:
         returnJson = json.dumps(each, ensure_ascii=False)
@@ -169,6 +181,7 @@ def dealReqs():
     return -2 -> empty classroom req
     return -5 -> req get fail
     return -6 -> req post fail
+    return -7 -> IP is banned
     '''
     askUrl = host + 'request/'
     try:
@@ -193,16 +206,22 @@ def dealReqs():
         i = 0
         while success != 1 and i < 3:
             success = reqSchedule(dataReq)
+            if success == -6:
+                return -7
             i += 1
     if reqType == 'g':
         i = 0
         while success != 1 and i < 3:
             success = reqGrades(dataReq)
+            if success == -6:
+                return -7
             i += 1
     if reqType == 'd':
         i = 0
         while success != 1 and i < 3:
             success = reqDdl(dataReq)
+            if success == -6:
+                return -7
             i += 1
     '''
     it cost too much time
@@ -254,19 +273,25 @@ def insect_other():
                 success = 0
                 i = 0
                 while success != 1 and i < 3:
-                    #success = reqEmptyClassroom(curDataReq)           # empty classroom checked once
+                    #success = reqEmptyClassroom(curDataReq) # empty classroom checked once
+                    if success == -6:
+                        time.sleep(630)                     # ip is banned, wait for 10 mins
                     i += 1
             #dealReqs()
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqSchedule(curDataReq)          
+                success = reqSchedule(curDataReq)   
+                if success == -6:
+                     time.sleep(630)                        # ip is banned, wait for 10 mins       
                 i += 1
             #dealReqs()
             success = 0
             i = 0
             while success != 1 and i < 3:
                 success = reqGrades(curDataReq)          
+                if success == -6:
+                     time.sleep(630)                        # ip is banned, wait for 10 mins
                 i += 1          
             #dealReqs()
         print('本轮循环完成，进入待机状态')
@@ -299,7 +324,9 @@ def insect_ddl():
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqDdl(curDataReq)           
+                success = reqDdl(curDataReq)  
+                if success == -6:
+                     time.sleep(630)                        # ip is banned, wait for 10 mins   
                 i += 1  
             time.sleep(1)    
         print('本轮循环结束，将进行60s待机')
@@ -315,6 +342,8 @@ def insect_req():
     while True:
         print('开始新一轮循环')
         success = dealReqs()
+        if success == -7:
+            time.sleep(630)                     # ip is banned, wait for 10 mins
         if success == 1:
             print('处理成功')
         elif success == 0:

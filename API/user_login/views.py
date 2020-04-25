@@ -2,6 +2,9 @@ from .LoginRequest.loginJudge import *
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from course_query.models import Student
+from course_query.models import StudentCourse
+from score_query.models import Score
+from ddl_query.models import DDL_t
 from request_queue.models import RequestRecord
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from request_queue.views import add_request
@@ -78,9 +81,12 @@ class login(APIView):
             name = ans[2]
             grade = ans[3]
             Student(usr_name=usr_name,usr_password=usr_password,id=student_id, name=name,grade=grade).save()
-            add_request('s', student_id)
-            add_request('g', student_id)
-            add_request('d', student_id)
+            if len(StudentCourse.objects.filter(student_id_id=student_id)) == 0:
+                add_request('s', student_id)
+            if len(Score.objects.filter(student_id_id=student_id)) == 0:
+                add_request('g', student_id)
+            if len(DDL_t.objects.filter(student_id_id=student_id)) == 0:
+                add_request('d', student_id)
         
         #print(Student.objects.filter(usr_name=usr_name).values("name","grade"))
 

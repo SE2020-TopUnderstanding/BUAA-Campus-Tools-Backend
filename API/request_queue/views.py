@@ -5,22 +5,32 @@ from course_query.models import Student
 import queue
 
 req_id = 0
-req_queue = queue.Queue()
+req_queue = []
 pending_work = []
 
 
 def add_request(req_type, student_id):
     global req_id, req_queue, pending_work
+    exist = 0
     try:
         student = Student.objects.get(id=student_id)
     except Student.DoesNotExist:
         raise Http404
-    req_id += 1
-    req_queue.put(
-        {'req_id': req_id, 'usr_name': student.usr_name, 'password': student.usr_password,
-         'req_type': req_type})
-    pending_work.append(req_id)
-    return req_id
+    for item in req_queue:
+        if item['usr_name'] == student.usr_name \
+                and item['password'] == student.usr_password \
+                and item['req_type'] == req_type:
+            exist = 1
+            break
+    if not exist:
+        req_id += 1
+        req_queue.append(
+            {'req_id': req_id, 'usr_name': student.usr_name, 'password': student.usr_password,
+             'req_type': req_type})
+        pending_work.append(req_id)
+        return req_id
+    else:
+        return -1
 
 
 class Queue(APIView):
@@ -29,9 +39,9 @@ class Queue(APIView):
         req = request.query_params.dict()
         # 爬虫在这里取得request
         if len(req) == 0:
-            if req_queue.empty():
+            if len(req_queue) == 0:
                 return HttpResponse(status=204)
-            cur_queue = req_queue.get()
+            cur_queue = req_queue.pop(0)
             return Response(cur_queue)
 
         # 前端在这里取得对应任务是否完成的信息, true为已完成

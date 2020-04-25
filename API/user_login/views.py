@@ -15,8 +15,10 @@ class login(APIView):
     def get(self, request, format=None):
         '''
         输入：密码
-        http://127.0.0.1:8000/login/?password=123&number=1
+        http://127.0.0.1:8000/login/?password=123
         返回：所有用户姓名和密码
+        http://127.0.0.1:8000/login/?password=123&number=1
+        返回：第几台服务器所拥有的用户
         错误：500
         '''
         

@@ -27,7 +27,7 @@ class Student(models.Model):
     # 统一身份认证密码（密文）
     usr_password = models.CharField(max_length=30)
     # student's name, e.g kkk
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=60)
     # student's grade e.g 4
     grade = models.IntegerField(default=-1)
     # manytomany

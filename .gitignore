@@ -142,3 +142,4 @@ cython_debug/
 .idea
 .sqlite3
 migrations
+log.txt

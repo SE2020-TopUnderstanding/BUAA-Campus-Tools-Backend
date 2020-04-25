@@ -9,22 +9,32 @@ from request_queue.models import RequestRecord
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from request_queue.views import add_request
 
+n_server = 4#爬虫服务器数量
+
 class login(APIView):
     def get(self, request, format=None):
         '''
         输入：密码
-        http://127.0.0.1:8000/login/?password="123"
+        http://127.0.0.1:8000/login/?password=123&number=1
         返回：所有用户姓名和密码
         错误：500
         '''
-
+        
         req = request.query_params.dict()
         content = {}
         if req["password"] == "123":
             content = Student.objects.all().values("usr_name","usr_password")
-        else:
+            if "number" in req:
+                number = int(req["number"])
+                length = content.count()#例 11个学生
+                remainder = length % n_server #余数 3  
+                quotient = int(int(length) / int(n_server)) #商  2      1-3 4-6 7-9 10-11   
+                start = quotient * (number-1) + min(remainder, number-1)  
+                end = quotient * number + min(remainder,number)
+                return Response(content[start:end])
+            return Response(content)
+        else: 
             return HttpResponse(status=500)
-        return Response(content)
 
 
     def post(self, request, format=None):

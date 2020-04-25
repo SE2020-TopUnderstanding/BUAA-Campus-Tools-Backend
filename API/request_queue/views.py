@@ -56,17 +56,21 @@ class Queue(APIView):
     @staticmethod
     def post(request):
         # 爬虫执行完成时返回完成的request id
-        if 'req_id' in request.data.keys():
-            cur_id = int(request.data['req_id'])
+        req = request.data
+        if len(req) == 1 and 'req_id' in req.keys():
+            cur_id = int(req['req_id'])
             try:
                 pending_work.remove(cur_id)
             except ValueError:
                 message = '没有这个任务号'
                 return HttpResponse(message, status=404)
-
             return HttpResponse(status=200)
+        elif len(req) == 4:
+            req_queue.append(req)
+            pending_work.append(req['req_id'])
+            return HttpResponse(status=201)
         else:
-            message = '没有\'req_id\'参数'
+            message = '参数数量不正确，需要为4个或1个且只有\'req_id\'参数'
             return HttpResponse(message, status=400)
 
 

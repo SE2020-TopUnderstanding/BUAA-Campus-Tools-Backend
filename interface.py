@@ -21,14 +21,14 @@ def decrypt_string(message):
             decode_result += char
     return decode_result
 
-def getAllStu():
+def getAllStu(insectId):
     '''
     get all the students' usr_name and password
     return jsons -> success
     return -1 -> req fail
     '''
     url = host + 'login/'
-    params = {'password' : '123'}
+    params = {'password' : '123', 'number' : insectId}
     try:
         req = requests.get(url, verify=False, params=params)
     except Exception:
@@ -202,26 +202,27 @@ def dealReqs():
     reqType = data['req_type']
     dataReq = DataReq(user, password)
     success = 0
+    returnId = 1
     if reqType == 's':
         i = 0
         while success != 1 and i < 3:
             success = reqSchedule(dataReq)
             if success == -6:
-                return -7
+                returnId = -7
             i += 1
     if reqType == 'g':
         i = 0
         while success != 1 and i < 3:
             success = reqGrades(dataReq)
             if success == -6:
-                return -7
+                returnId = -7
             i += 1
     if reqType == 'd':
         i = 0
         while success != 1 and i < 3:
             success = reqDdl(dataReq)
             if success == -6:
-                return -7
+                returnId = -7
             i += 1
     '''
     it cost too much time
@@ -231,17 +232,23 @@ def dealReqs():
         #reqEmptyClassroom(dataReq)
         return -2
     if success == 0:
-        return -1
+        returnId = -1
     try:
-        jsons = json.dumps(jsons, ensure_ascii=False)
-        requests.post(url=askUrl, headers=headers, data=jsons.encode('utf-8'))
+        if returnId < 0:
+            jsons = json.dumps(jsons, ensure_ascii=False)
+            requests.post(url=askUrl, headers=headers, data=jsons.encode('utf-8'))
+        else:
+            newJson = {}
+            newJson['req_id'] = jsons['req_id']
+            jsons = json.dumps(newJson, ensure_ascii=False)
+            requests.post(url=askUrl, headers=headers, data=jsons.encode('utf-8'))
     except Exception:
         print('req post fail')
         print(traceback.format_exc())
         return -6
-    return 1
+    return returnId
 
-def insect_other():
+def insect_other(insect_id):
     '''
     the main func
     circle and circle again to get the other datas
@@ -262,7 +269,7 @@ def insect_other():
             time.sleep(5)                                   # avoid the cpu from circling all the time
             now = datetime.now()
         '''
-        allStu = getAllStu()
+        allStu = getAllStu(insect_id)
         if allStu == -1:
             continue
         for j in range(len(allStu)):                        # flush all the students' datas
@@ -305,7 +312,7 @@ def insect_other():
             #dealReqs()                                     # deal with the reqs in the waiting time
             time.sleep(10)                                  # avoid the cpu from circling all the time
 
-def insect_ddl():
+def insect_ddl(insect_id):
     '''
     the main func
     circle and circle again to get the ddl datas
@@ -314,10 +321,12 @@ def insect_ddl():
     print('将进行ddl的获取，刷新间隔极少，为60s')
     while True:
         print('开始新一轮循环')
-        allStu = getAllStu()
+        allStu = getAllStu(insect_id)
         if allStu == -1:
             continue
         for j in range(len(allStu)):                        # flush all the students' datas
+            print('当前总人数：' + str(len(allStu)))
+            print('当前爬取学生序号：' + str(j + 1))
             usr = allStu[j]['usr_name']
             pw = decrypt_string(allStu[j]['usr_password'])
             curDataReq = DataReq(usr, pw)
@@ -332,7 +341,7 @@ def insect_ddl():
         print('本轮循环结束，将进行60s待机')
         time.sleep(60)        
 
-def insect_req():
+def insect_req(insect_id):
     '''
     the main func
     circle and circle again to get the req datas
@@ -391,27 +400,25 @@ def testTime():
 # start the program                
 if __name__ == '__main__':
     #testTime()                                 # test the average cost time
-    if len(sys.argv) < 2:
-        print('请输入参数，-d：启动ddl爬虫，-o：启动其他爬虫, -r：启动消息队列')
-    elif len(sys.argv) > 2:
-        print('输入参数过多')
+    if len(sys.argv) != 3:
+        print('请输入正确参数，-d 整数：启动ddl爬虫，-o 整数：启动其他爬虫, -r 整数：启动消息队列')
     elif sys.argv[1] == '-d':                     # get the ddl data
         try:
-            insect_ddl()
+            insect_ddl(int(sys.argv[2]))
         except Exception as e:
             print(traceback.format_exc())
-            insect_ddl()
+            insect_ddl(int(sys.argv[2]))
     elif sys.argv[1] == '-o':                   # get the schedule, grade and emptyclassroom(current can not do that) data
         try:
-            insect_other()
+            insect_other(int(sys.argv[2]))
         except Exception as e:
             print(traceback.format_exc())
-            insect_other()
+            insect_other(int(sys.argv[2]))
     elif sys.argv[1] == '-r':                   # get the schedule, grade and emptyclassroom(current can not do that) data
         try:
-            insect_req()
+            insect_req(int(sys.argv[2]))
         except Exception as e:
             print(traceback.format_exc())
-            insect_req()
+            insect_req(int(sys.argv[2]))
     else:
-        print('请输入正确参数，-d：启动ddl爬虫，-o：启动其他爬虫, -r：启动消息队列')
+        print('请输入正确参数，-d：启动ddl爬虫，-o：启动其他爬虫, -r 整数：启动消息队列')

@@ -58,7 +58,16 @@ class courseReq():
         '''
         if self.status != 0:
             return self.status
-        curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
+        try:
+            curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
+        except Exception:
+            print('timeout or this guy redefined the network')
+            time.sleep(5)
+            try:
+                curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
+            except Exception:
+                print('this guy redefined the network')
+                return -6
         lessons = curLessons.find_elements_by_xpath('li')                                       # get all the lessons
         ddls = {}
         for i in range(len(lessons)):
@@ -77,6 +86,9 @@ class courseReq():
                     workButton = each
                     break
             if workButton == 0:
+                self.browser.switch_to.default_content()                                            # reget the lessons
+                curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
+                lessons = curLessons.find_elements_by_xpath('li')
                 continue
 
             workButton.click()

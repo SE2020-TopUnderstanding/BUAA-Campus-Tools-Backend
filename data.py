@@ -44,6 +44,23 @@ class DataReq():
                 print('something wrong')
                 print('IP is banned')
                 return ddls
+            elif ddls == -6:
+                ddls = {}
+                ddls['student_id'] = stuId
+                wrongList = []
+                wrongDict = {}
+                content = []
+                contentDict = {}
+                contentDict['ddl'] = ''
+                contentDict['homework'] = '抱歉，我们暂时无法获取您的ddl信息。\n为解决此问题，请在课程中心的用户偏好标签页面保证您所需爬取的课程都属于收藏站点或活跃站点，并且活跃站点不要为空'
+                contentDict['state'] = '错误'
+                content.append(contentDict)
+                wrongDict['name'] = '错误'
+                wrongDict['content'] = content
+                wrongList.append(wrongDict)
+                ddls['ddl'] = wrongList
+                ddls = json.dumps(ddls, ensure_ascii=False)            # get the json package
+                return ddls
             else:
                 return self.dealWithDdl(ddls, stuId) 
         elif requestType == 'g':                                        # get grades
@@ -290,7 +307,7 @@ class DataReq():
                     curStr = schedules[i][j]
                     if curStr == ' ':
                         continue
-                    
+
                     curStrs = curStr.split('节')                            # divide different lessons by '节'
                     lessons = []
                     curLesson = ''

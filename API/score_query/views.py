@@ -7,6 +7,21 @@ from course_query.models import Student
 from request_queue.models import RequestRecord
 
 
+def get_gpa(origin_score, credit):
+    if origin_score == "不及格":
+        return 0.0 * credit
+    elif origin_score == "及格":
+        return 1.7 * credit
+    elif origin_score == "中等":
+        return 2.8 * credit
+    elif origin_score == "良好":
+        return 3.5 * credit
+    elif origin_score == "优秀":
+        return 4.0 * credit
+    else:
+        return max(0, credit * (4.0 - 3 * (100 - int(origin_score)) ** 2 / 1600.0))
+
+
 class ScoreList(APIView):
     @staticmethod
     def get(request):
@@ -33,6 +48,12 @@ class ScoreList(APIView):
                 if key == 'semester':
                     result = result.filter(semester=value)
                 elif key == 'student_id':
+                    # 检查学生是否存在
+                    try:
+                        Student.objects.get(id=req['student_id'])
+                    except Student.DoesNotExist:
+                        message = "没有这个学生的信息"
+                        return HttpResponse(message, status=401)
                     result = result.filter(student_id=value)
                 else:
                     message = '您附加的参数名称有错误，只允许\'semester\',\'student_id\''
@@ -55,7 +76,7 @@ class ScoreList(APIView):
             student = Student.objects.get(id=req['student_id'])
         except Student.DoesNotExist:
             message = '数据库中没有这个学生，服务器数据库可能有错误'
-            return HttpResponse(message, status=500)
+            return HttpResponse(message, status=401)
         # 爬虫的数据库插入请求
         if len(req) == 3:
             semester = req['semester']
@@ -97,7 +118,7 @@ class GPACalculate(APIView):
         if len(req) == 1 and 'student_id' in req.keys():
             scores = Score.objects.filter(student_id=student_id)
             for score in scores:
-                gpa_sum += max(0, score.credit * (4.0 - 3 * (100 - score.score) ** 2 / 1600.0))
+                gpa_sum += get_gpa(score.origin_score, score.credit)
                 credit_sum += score.credit
             if credit_sum == 0:
                 return Response({'gpa': 0.0000})

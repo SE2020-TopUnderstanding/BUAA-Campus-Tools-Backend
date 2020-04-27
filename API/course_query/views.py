@@ -75,6 +75,11 @@ class CourseList(APIView):
         if len(req) == 2:
             for key, value in req.items():
                 if key == 'student_id':
+                    try:
+                        Student.objects.get(id=req['student_id'])
+                    except Student.DoesNotExist:
+                        message = "没有这个学生的信息"
+                        return HttpResponse(message, status=401)
                     result = result.filter(student_id__id=value)
                 elif key == 'week':
                     if value != 'all':
@@ -116,7 +121,7 @@ class CourseList(APIView):
             student = Student.objects.get(id=student_id)
         except Student.DoesNotExist:
             message = '数据库中没有这个学生，数据库可能出现了问题'
-            return HttpResponse(message, status=500)
+            return HttpResponse(message, status=401)
         # 爬虫的数据库插入请求
         if len(req) == 2:
             semester = '2020_Spring'

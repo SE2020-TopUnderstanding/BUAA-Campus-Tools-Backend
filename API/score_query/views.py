@@ -48,6 +48,12 @@ class ScoreList(APIView):
                 if key == 'semester':
                     result = result.filter(semester=value)
                 elif key == 'student_id':
+                    # 检查学生是否存在
+                    try:
+                        Student.objects.get(id=req['student_id'])
+                    except Student.DoesNotExist:
+                        message = "没有这个学生的信息"
+                        return HttpResponse(message, status=401)
                     result = result.filter(student_id=value)
                 else:
                     message = '您附加的参数名称有错误，只允许\'semester\',\'student_id\''
@@ -70,7 +76,7 @@ class ScoreList(APIView):
             student = Student.objects.get(id=req['student_id'])
         except Student.DoesNotExist:
             message = '数据库中没有这个学生，服务器数据库可能有错误'
-            return HttpResponse(message, status=500)
+            return HttpResponse(message, status=401)
         # 爬虫的数据库插入请求
         if len(req) == 3:
             semester = req['semester']

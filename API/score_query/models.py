@@ -13,5 +13,7 @@ class Score(models.Model):
     bid = models.CharField(max_length=15)
     # credit
     credit = models.FloatField(default=0)
+    # origin_score
+    origin_score = models.CharField(max_length=20)
     # score
     score = models.IntegerField(default=-1)

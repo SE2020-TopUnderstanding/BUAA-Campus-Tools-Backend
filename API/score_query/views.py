@@ -7,6 +7,21 @@ from course_query.models import Student
 from request_queue.models import RequestRecord
 
 
+def get_gpa(origin_score, credit):
+    if origin_score == "不及格":
+        return 0.0 * credit
+    elif origin_score == "及格":
+        return 1.7 * credit
+    elif origin_score == "中等":
+        return 2.8 * credit
+    elif origin_score == "良好":
+        return 3.5 * credit
+    elif origin_score == "优秀":
+        return 4.0 * credit
+    else:
+        return max(0, credit * (4.0 - 3 * (100 - int(origin_score)) ** 2 / 1600.0))
+
+
 class ScoreList(APIView):
     @staticmethod
     def get(request):
@@ -97,7 +112,7 @@ class GPACalculate(APIView):
         if len(req) == 1 and 'student_id' in req.keys():
             scores = Score.objects.filter(student_id=student_id)
             for score in scores:
-                gpa_sum += max(0, score.credit * (4.0 - 3 * (100 - score.score) ** 2 / 1600.0))
+                gpa_sum += get_gpa(score.origin_score, score.credit)
                 credit_sum += score.credit
             if credit_sum == 0:
                 return Response({'gpa': 0.0000})

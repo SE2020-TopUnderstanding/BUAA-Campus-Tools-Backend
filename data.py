@@ -18,15 +18,20 @@ class DataReq():
         '''
         print('start to get the data, usr_name: ' + self.userName)
         print('requestType: ' + requestType)
-        getStuId = jiaoWuReq(self.userName, self.password)              # get the student's id
-        stuId = getStuId.getId()
+        stuId = ''
+        if requestType == 'd':
+            getStuId = courseReq(self.userName, self.password)
+            stuId = getStuId.getId()
+        else:
+            getStuId = jiaoWuReq(self.userName, self.password)          # get the student's id
+            stuId = getStuId.getId()
         print('studentId: ' + str(stuId))
         getStuId.quit()
         if stuId == -5:
             print('something wrong')
             print('IP is banned')
             return stuId
-        if stuId == -1 or stuId == -2 or stuId == -3 or stuId == -4:    # if there is something wrong
+        if stuId == -1 or stuId == -2 or stuId == -3 or stuId == -4 or stuId == '':    # if there is something wrong
             print('something wrong')
             print('usr_name: ' + self.userName)
             print('requestType: ' + 'getStuId')
@@ -155,12 +160,14 @@ class DataReq():
                 lessonCode = curData[3]                                 # get all the needed datas
                 lessonName = curData[4]
                 credit = curData[7]
+                origin_grade = curData[10]
                 grades = curData[11]
                 semember = curData[1]
                 curInfo = []
                 curInfo.append(lessonCode)
                 curInfo.append(lessonName)
                 curInfo.append(credit)
+                curInfo.append(origin_grade)
                 curInfo.append(grades)
                 aimGrades.append(curInfo)
             

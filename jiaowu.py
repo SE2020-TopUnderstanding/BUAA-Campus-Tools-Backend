@@ -271,6 +271,7 @@ class jiaoWuReq():
         studentId = idPlace.text
         studentId = studentId.split('(')[1]
         studentId = studentId.split(')')[0]
+        self.browser.switch_to.default_content()
         return studentId
 
     def quit(self):

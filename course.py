@@ -154,6 +154,23 @@ class courseReq():
             lessons = curLessons.find_elements_by_xpath('li')
         return ddls  
 
+    def getId(self):
+        if self.status != 0:
+            return self.status
+        try:
+            nameButton = self.browser.find_element_by_xpath('//*[@id="toolMenu"]/ul/li[9]/a')
+        except Exception:
+            print('timeout or switch to an unknown page')
+            return -4
+        nameButton.click()
+        frame = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[2]/div[3]/div/div/div[2]/iframe')
+        self.browser.switch_to.frame(frame)                                                 # switch to another frame to get datas
+        stuId = self.browser.find_element_by_xpath('//*[@id="userViewForm"]/fieldset/div[1]')
+        stuId = stuId.text
+        self.browser.switch_to.default_content()
+        return stuId.split(' ')[1]
+        
+
     def quit(self):
         self.browser.quit()         
 

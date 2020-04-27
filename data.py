@@ -50,6 +50,22 @@ class DataReq():
                 print('IP is banned')
                 return ddls
             elif ddls == -6:
+                print('something wrong')
+                print('usr_name is wrong or there is a CAPTCHA')
+                return ddls
+            elif ddls == -7:
+                print('something wrong')
+                print('password is wrong')
+                return ddls
+            elif ddls == -8:
+                print('something wrong')
+                print('usr_name or password is empty')
+                return ddls
+            elif ddls == -9:
+                print('something wrong')
+                print('account is locked')
+                return ddls
+            elif ddls == -10:
                 ddls = {}
                 ddls['student_id'] = stuId
                 wrongList = []
@@ -81,6 +97,22 @@ class DataReq():
                 print('something wrong')
                 print('IP is banned')
                 return grades
+            elif grades == -6:
+                print('something wrong')
+                print('usr_name is wrong or there is a CAPTCHA')
+                return grades
+            elif grades == -7:
+                print('something wrong')
+                print('password is wrong')
+                return grades
+            elif grades == -8:
+                print('something wrong')
+                print('usr_name or password is empty')
+                return grades
+            elif grades == -9:
+                print('something wrong')
+                print('account is locked')
+                return grades
             else:
                 return self.dealWithGrades(grades, stuId) 
         elif requestType == 'e':                                        # get empty classrooms
@@ -96,6 +128,22 @@ class DataReq():
                 print('something wrong')
                 print('IP is banned')
                 return emptyClassroom
+            elif emptyClassroom == -6:
+                print('something wrong')
+                print('usr_name is wrong or there is a CAPTCHA')
+                return emptyClassroom
+            elif emptyClassroom == -7:
+                print('something wrong')
+                print('password is wrong')
+                return emptyClassroom
+            elif emptyClassroom == -8:
+                print('something wrong')
+                print('usr_name or password is empty')
+                return emptyClassroom
+            elif emptyClassroom == -9:
+                print('something wrong')
+                print('account is locked')
+                return emptyClassroom
             else:
                 return self.dealWithEmptyClassroom(emptyClassroom) 
         elif requestType == 's':                                        # get schedules
@@ -110,6 +158,22 @@ class DataReq():
             elif schedules == -5:
                 print('something wrong')
                 print('IP is banned')
+                return schedules
+            elif schedules == -6:
+                print('something wrong')
+                print('usr_name is wrong or there is a CAPTCHA')
+                return schedules
+            elif schedules == -7:
+                print('something wrong')
+                print('password is wrong')
+                return schedules
+            elif schedules == -8:
+                print('something wrong')
+                print('usr_name or password is empty')
+                return schedules
+            elif schedules == -9:
+                print('something wrong')
+                print('account is locked')
                 return schedules
             else:
                 return self.dealWithSchedules(schedules, stuId) 

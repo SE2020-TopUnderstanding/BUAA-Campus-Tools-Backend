@@ -3,23 +3,35 @@ from multiprocessing import Queue
 import requests
 import traceback
 import sys
+from P import *
 
 host = 'http://114.115.208.32:8000/'                  
 headers = {'Content-Type': 'application/json'}
 
 def decrypt_string(message):
-    decode_result = ""
-    for char in message:
-        char_int = ord(char)                          # 返回ascall值
-        if  (char_int >= 97) & (char_int <= 122):     # 小写字母
-            decode_result += chr(122-(char_int-97))
-        elif (char_int >= 69) & (char_int <= 78):     # E-N
-            decode_result += chr(57-char_int+69)
-        elif (char_int >= 48) & (char_int <= 57):     # 0-9
-            decode_result += chr(69+char_int-48)
-        else:
-            decode_result += char
+    pr = aescrypt('12345','CBC','2','gbk')
+    decode_result = pr.aesdecrypt(message)
     return decode_result
+
+def encrypt_string(message):
+    pr = aescrypt('12345','CBC','2','gbk')
+    en_text = pr.aesencrypt(message)
+    return en_text
+
+def sendError(error_id, usr, pw):
+    encode_result = encrypt_string(pw)
+    url = host + 'delete/'
+    jsons = {}
+    jsons['usr_name'] = usr
+    jsons['password'] = encode_result
+    jsons = json.dumps(jsons, ensure_ascii=False)      # get the json package
+    try:
+        requests.post(url=url, headers=headers, data=jsons.encode('utf-8'))
+    except Exception:
+        print('send error req fail')
+        print(traceback.format_exc())
+        return 0
+    return 1
 
 def getAllStu(insectId):
     '''
@@ -61,6 +73,8 @@ def reqSchedule(dataReq):
         return 0
     elif schedule == -5:
         return -6
+    elif schedule == -6 or schedule == -7 or schedule == -8 or schedule == -9:
+       return schedule - 1
     scheduleUrl = host + 'timetable/'
     try:
         requests.post(url=scheduleUrl, headers=headers, data=schedule.encode('utf-8'))
@@ -94,6 +108,8 @@ def reqGrades(dataReq):
         return 0
     elif grades == -5:
         return -6
+    elif grades == -6 or grades == -7 or grades == -8 or grades == -9:
+       return grades - 1
     gradesUrl = host + 'score/'
     for each in grades:
         try:
@@ -128,6 +144,8 @@ def reqDdl(dataReq):
         return 0
     elif ddl == -5:
         return -6
+    elif ddl == -6 or ddl == -7 or ddl == -8 or ddl == -9:
+       return ddl - 1
     ddlUrl = host + 'ddl/'
     try:
         requests.post(url=ddlUrl, headers=headers, data=ddl.encode('utf-8'))
@@ -161,6 +179,8 @@ def reqEmptyClassroom(dataReq):
         return 0
     elif emptyClassroom == -5:
         return -6
+    elif emptyClassroom == -6 or emptyClassroom == -7 or emptyClassroom == -8 or emptyClassroom == -9:
+       return emptyClassroom - 1
     emptyClassroomUrl = host + 'classroom/'
     for each in emptyClassroom:
         returnJson = json.dumps(each, ensure_ascii=False)
@@ -182,6 +202,7 @@ def dealReqs():
     return -5 -> req get fail
     return -6 -> req post fail
     return -7 -> IP is banned
+    return -8, -9, -10, -11 -> login errors
     '''
     askUrl = host + 'request/'
     try:
@@ -209,6 +230,9 @@ def dealReqs():
             success = reqSchedule(dataReq)
             if success == -6:
                 returnId = -7
+            if success == -7 or success == -8 or success == -10:
+                sendError(success, user, password)
+                return success - 1
             i += 1
     if reqType == 'g':
         i = 0
@@ -216,6 +240,9 @@ def dealReqs():
             success = reqGrades(dataReq)
             if success == -6:
                 returnId = -7
+            if success == -7 or success == -8 or success == -10:
+                sendError(success, user, password)
+                return success - 1
             i += 1
     if reqType == 'd':
         i = 0
@@ -223,6 +250,9 @@ def dealReqs():
             success = reqDdl(dataReq)
             if success == -6:
                 returnId = -7
+            if success == -7 or success == -8 or success == -10:
+                sendError(success, user, password)
+                return success - 1
             i += 1
     '''
     it cost too much time
@@ -290,16 +320,26 @@ def insect_other(insect_id):
             while success != 1 and i < 3:
                 success = reqSchedule(curDataReq)   
                 if success == -6:
-                     time.sleep(630)                        # ip is banned, wait for 10 mins       
+                    time.sleep(630)                        # ip is banned, wait for 10 mins  
+                if success == -7 or success == -8 or success == -10:
+                    sendError(success, usr, pw)
+                    break
                 i += 1
+            if success == -7 or success == -8 or success == -10:
+                continue
             #dealReqs()
             success = 0
             i = 0
             while success != 1 and i < 3:
                 success = reqGrades(curDataReq)          
                 if success == -6:
-                     time.sleep(630)                        # ip is banned, wait for 10 mins
-                i += 1          
+                    time.sleep(630)                        # ip is banned, wait for 10 mins
+                if success == -7 or success == -8 or success == -10:
+                    sendError(success, usr, pw)
+                    break
+                i += 1  
+            if success == -7 or success == -8 or success == -10:
+                continue        
             #dealReqs()
         print('本轮循环完成，进入待机状态')
         while True:
@@ -335,7 +375,10 @@ def insect_ddl(insect_id):
             while success != 1 and i < 3:
                 success = reqDdl(curDataReq)  
                 if success == -6:
-                     time.sleep(630)                        # ip is banned, wait for 10 mins   
+                    time.sleep(630)                        # ip is banned, wait for 10 mins  
+                if success == -7 or success == -8 or success == -10:
+                    sendError(success, usr, pw)
+                    break 
                 i += 1  
             time.sleep(1)    
         print('本轮循环结束，将进行60s待机')

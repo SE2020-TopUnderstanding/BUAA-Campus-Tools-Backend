@@ -24,8 +24,8 @@ class courseReq():
             elif success == -3 or success == -4:
                 self.status = -3
                 break
-            elif success == -6:
-                self.status = -5
+            elif success <= -6 and success >= -10 :
+                self.status = success + 1
                 break
             elif success == 0:
                 break
@@ -42,6 +42,10 @@ class courseReq():
         status = -2 : timeout for 3 times
         status = -3 : unknown error
         status = -5 : IP is banned
+        status = -6 : usr_name is wrong or there is a CAPTCHA
+        status = -7 : password is wrong
+        status = -8 : usr_name or password is empty
+        status = -9 : account is locked
         '''
         return self.status
 
@@ -67,7 +71,7 @@ class courseReq():
                 curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
             except Exception:
                 print('this guy redefined the network')
-                return -6
+                return -10
         lessons = curLessons.find_elements_by_xpath('li')                                       # get all the lessons
         ddls = {}
         for i in range(len(lessons)):

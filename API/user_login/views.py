@@ -8,6 +8,7 @@ from ddl_query.models import DDL_t
 from request_queue.models import RequestRecord
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from request_queue.views import add_request
+from .LoginRequest.Password import *
 
 n_server = 4#爬虫服务器数量
 
@@ -21,7 +22,6 @@ class login(APIView):
         返回：第几台服务器所拥有的用户
         错误：500
         '''
-        
         req = request.query_params.dict()
         content = {}
         if req["password"] == "123":
@@ -48,6 +48,7 @@ class login(APIView):
         0 -> failed, username or password is wrong
         -1 -> failed, request timeout
         -2 -> failed, unknown exception
+        -5 -> 账号被锁10分钟
         没有提供参数，参数数量错误，返回400错误;
         参数错误，返回400错误;
         """
@@ -88,8 +89,13 @@ class login(APIView):
         elif ans == -4:
             state = -4
             return Response(status=500,data={"state":state, "student_id":"", "name":""})
+        elif ans == -5:
+            state = -5
+            return Response(status=500,data={"state":state, "student_id":"", "name":""})
         else:
             student_id = str(ans[0])
+            pr = aescrypt(key,model,iv,encode_)
+            student_id = pr.aesencrypt(student_id)
             name = ans[2]
             grade = ans[3]
             Student(usr_name=usr_name,usr_password=usr_password,id=student_id, name=name,grade=grade).save()

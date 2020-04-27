@@ -9,6 +9,15 @@ req_queue = []
 pending_work = []
 
 
+def delete_request(usr_name, password):
+    global req_id, req_queue, pending_work
+    for item in req_queue[:]:
+        if item['usr_name'] == usr_name \
+                and item['password'] == password:
+            req_queue.remove(item)
+            pending_work.remove(item['req_id'])
+    return 1
+    
 def add_request(req_type, student_id):
     global req_id, req_queue, pending_work
     exist = 0

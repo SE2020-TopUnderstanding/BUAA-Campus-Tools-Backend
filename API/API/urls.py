@@ -27,4 +27,6 @@ urlpatterns = [
     path('ping/', include('ping.urls')),
     path('request/', include('request_queue.urls')),
     path('version/', include('version_information.urls')),
+    path('delete/', include('error_handling.urls')),
+    path('aes/', include('aes.urls')),
 ]

@@ -88,7 +88,10 @@ class ScoreList(APIView):
                     origin_score = key[3].replace(' ', '')
                     score = key[4].replace(' ', '')
                     try:
-                        Score.objects.get(student_id=student, bid=bid)
+                        old_score = Score.objects.get(student_id=student, bid=bid)
+                        old_score.origin_score = origin_score
+                        old_score.score = score
+                        old_score.save()
                     except Score.DoesNotExist:
                         new_score = Score(student_id=student, semester=semester, course_name=course_name
                                           , bid=bid, credit=credit, origin_score=origin_score, score=score)

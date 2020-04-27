@@ -97,7 +97,7 @@ class ScoreList(APIView):
                                           , bid=bid, credit=credit, origin_score=origin_score, score=score)
                         new_score.save()
                 else:
-                    message = 'info里的元素个数错误，只能为4个'
+                    message = 'info里的元素个数错误，只能为5个'
                     return HttpResponse(message, status=400)
             return HttpResponse(status=201)
 

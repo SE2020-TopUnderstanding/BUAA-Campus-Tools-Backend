@@ -91,6 +91,7 @@ class ScoreList(APIView):
                         old_score = Score.objects.get(student_id=student, bid=bid)
                         old_score.origin_score = origin_score
                         old_score.score = score
+                        old_score.semester = semester
                         old_score.save()
                     except Score.DoesNotExist:
                         new_score = Score(student_id=student, semester=semester, course_name=course_name

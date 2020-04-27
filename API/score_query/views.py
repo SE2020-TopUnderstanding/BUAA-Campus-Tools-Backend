@@ -81,19 +81,24 @@ class ScoreList(APIView):
         if len(req) == 3:
             semester = req['semester']
             for key in req['info']:
-                if len(key) == 4:
+                if len(key) == 5:
                     bid = key[0].replace(' ', '')
                     course_name = key[1]
                     credit = key[2].replace(' ', '')
-                    score = key[3].replace(' ', '')
+                    origin_score = key[3].replace(' ', '')
+                    score = key[4].replace(' ', '')
                     try:
-                        Score.objects.get(student_id=student, bid=bid)
+                        old_score = Score.objects.get(student_id=student, bid=bid)
+                        old_score.origin_score = origin_score
+                        old_score.score = score
+                        old_score.semester = semester
+                        old_score.save()
                     except Score.DoesNotExist:
                         new_score = Score(student_id=student, semester=semester, course_name=course_name
-                                          , bid=bid, credit=credit, score=score)
+                                          , bid=bid, credit=credit, origin_score=origin_score, score=score)
                         new_score.save()
                 else:
-                    message = 'info里的元素个数错误，只能为4个'
+                    message = 'info里的元素个数错误，只能为5个'
                     return HttpResponse(message, status=400)
             return HttpResponse(status=201)
 

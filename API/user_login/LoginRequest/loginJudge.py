@@ -4,9 +4,14 @@ def loginJudge(username, password):
     '''
     Input: username, password
     return: 1 -> success
-            0 -> failed, username or password is wrong
+            0 -> failed, an unexcepted error on the login page
            -1 -> failed, request timeout
            -2 -> failed, unknown exception
+           -3 -> IP is banned from the buaa
+           -4 -> usr_name is wrong or there is a CAPTCHA
+           -5 -> password is wrong
+           -6 -> usr_name or password is empty
+           -7 -> account is locked
     '''
     vpn = ''
     try:
@@ -28,6 +33,9 @@ def loginJudge(username, password):
             elif success == -3:
                 vpn.getBrowser().quit()
                 return -2
+            elif success <= -6:
+                vpn.getBrowser().quit()
+                return success + 3
     except Exception:
         if vpn == '':
             return -2
@@ -38,10 +46,16 @@ def getStudentInfo(username, password):
     '''
     Input: username, password
     return: [stu_id, usr_name, name, grade] -> success
-            0 -> failed, username or password is wrong
+            0 -> failed, an unexcepted error on the login page
            -1 -> failed, request timeout
            -2 -> failed, unknown exception
-           -4 -> failed, others
+           -3 -> failed, push the commit button, but there is only one page
+           -4 -> failed, timeout or switch to an unknown page
+           -5 -> IP is banned from the buaa
+           -6 -> usr_name is wrong or there is a CAPTCHA
+           -7 -> password is wrong
+           -8 -> usr_name or password is empty
+           -9 -> account is locked
     password and major cannot be returned
     '''
     pr = aescrypt(key,model,iv,encode_)
@@ -65,7 +79,12 @@ def getStudentInfo(username, password):
             elif success == -3:
                 vpn.getBrowser().quit()
                 return -2
+            elif success <= -6:
+                vpn.getBrowser().quit()
+                return success + 1
         success = vpn.switchToJiaoWu()              # switch
+        if success == -4 or success == -5:
+            return -4
         browser = vpn.getBrowser()
         name = browser.find_element_by_xpath('//*[@id="north"]/div/div/div[2]')
         name = name.text.split('！')[1][0:-2]       # get student's name
@@ -110,7 +129,6 @@ def getStudentInfo(username, password):
         ans.append(usr_name)
         ans.append(name)
         ans.append(grade)
-        print(ans)
         vpn.getBrowser().quit()
         return ans
     except Exception:

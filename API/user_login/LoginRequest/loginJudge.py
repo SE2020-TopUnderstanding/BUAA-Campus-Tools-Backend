@@ -44,7 +44,8 @@ def getStudentInfo(username, password):
            -4 -> failed, others
     password and major cannot be returned
     '''
-    password = decrypt_string(password)
+    pr = aescrypt(key,model,iv,encode_)
+    password = pr.aesdecrypt(password)
     vpn = ''
     try:
         for i in range(3):

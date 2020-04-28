@@ -59,8 +59,9 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
         参数1:学生学号 e.g. 17373349
         例:http://127.0.0.1:8000/ddl/?student_id=17373349
         返回作业，dll，提交状态，课程
-        没有提供参数，参数数量错误，返回400错误;
-        参数错误，返回404错误;
+        没有提供参数，参数数量错误，返回500错误;
+        参数错误，返回500错误;
+        查询用户不存在返回401
         """
         try:#保存前端请求数据
             record = RequestRecord.objects.get(name="ddl")
@@ -72,15 +73,18 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
         req = request.query_params.dict()
 
         if len(req) != 1:
-            return HttpResponseBadRequest()
+            return HttpResponse(status=500)
         if ("student_id" not in req):
-            return HttpResponse(status=404)
+            return HttpResponse(status=500)
 
         student_id = req["student_id"]
         content = []
 
-
-        re = DDL_t.objects.filter(student_id=student_id)
+        try:
+            Student.objects.get(id=req['student_id'])
+            re = DDL_t.objects.filter(student_id=student_id)
+        except Student.DoesNotExist:
+            return HttpResponse(status=401)
 
         course_re = re.values("course").distinct()
 
@@ -134,7 +138,7 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
             student = Student.objects.get(id=req['student_id'])
             DDL_t.objects.filter(student_id=req['student_id']).delete()
         except Student.DoesNotExist:
-            return HttpResponse(status=500)
+            return HttpResponse(status=401)
         
         if "ddl" not in req:
             return HttpResponse(status=500)

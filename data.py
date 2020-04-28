@@ -1,6 +1,12 @@
 from jiaowu import *
 from course import *
 import traceback
+from P import *
+
+def encrypt_string(message):
+    pr = aescrypt(key,model,'',encode_)
+    en_text = pr.aesencrypt(message)
+    return en_text
 
 class DataReq():
     '''
@@ -27,6 +33,7 @@ class DataReq():
             stuId = getStuId.getId()
         print('studentId: ' + str(stuId))
         getStuId.quit()
+        
         if stuId == -5:
             print('something wrong')
             print('IP is banned')
@@ -52,6 +59,7 @@ class DataReq():
             print('something wrong')
             print('account is locked')
             return stuId
+        stuId = encrypt_string(stuId)
         if requestType == 'd':                                          # get ddl
             course = courseReq(self.userName, self.password)
             ddls = course.getDdl()

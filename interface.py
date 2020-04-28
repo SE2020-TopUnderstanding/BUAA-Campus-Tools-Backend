@@ -3,14 +3,14 @@ from multiprocessing import Queue
 import requests
 import traceback
 import sys
-from P import *
+from Password import *
 
 host = 'http://114.115.208.32:8000/'                  
 headers = {'Content-Type': 'application/json'}
 
 
 def decrypt_string(message):
-    pr = aescrypt('12345','CBC','2','gbk')
+    pr = aescrypt(key,model,'',encode_)
     decode_result = pr.aesdecrypt(message)
     return decode_result
 
@@ -31,7 +31,7 @@ def decrypt_string(message):
 '''
 
 def encrypt_string(message):
-    pr = aescrypt('12345','CBC','2','gbk')
+    pr = aescrypt(key,model,'',encode_)
     en_text = pr.aesencrypt(message)
     return en_text
 

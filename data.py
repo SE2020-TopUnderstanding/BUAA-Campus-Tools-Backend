@@ -36,6 +36,22 @@ class DataReq():
             print('usr_name: ' + self.userName)
             print('requestType: ' + 'getStuId')
             return stuId
+        elif stuId == -6:
+            print('something wrong')
+            print('usr_name is wrong or there is a CAPTCHA')
+            return stuId
+        elif stuId == -7:
+            print('something wrong')
+            print('password is wrong')
+            return stuId
+        elif stuId == -8:
+            print('something wrong')
+            print('usr_name or password is empty')
+            return stuId
+        elif stuId == -9:
+            print('something wrong')
+            print('account is locked')
+            return stuId
         if requestType == 'd':                                          # get ddl
             course = courseReq(self.userName, self.password)
             ddls = course.getDdl()

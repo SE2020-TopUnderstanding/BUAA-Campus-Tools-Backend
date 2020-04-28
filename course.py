@@ -30,7 +30,8 @@ class courseReq():
             elif success == 0:
                 break
         if vpn == '':
-            raise Exception('vpn not exists')
+            self.status = -11
+            return
         self.browser = vpn.getBrowser()         # get the browser.
         #self.getDdl()                           # for debug
 

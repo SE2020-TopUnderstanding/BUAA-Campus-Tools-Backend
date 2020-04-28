@@ -71,17 +71,3 @@ class aescrypt():
 
         t = t[0:length-surplus] + "\0"
         return t#得出解密后的密码再解码
-
-if __name__ == '__main__':
-    pr = aescrypt(key,model,iv,encode_)
-    en_text = pr.aesencrypt('h1016060768')
-    print('我的密文:',en_text)
-    print('用我的密文解密的明文:',pr.aesdecrypt(en_text))
-
-    t = 'j1/o0wJsmye3NBQXgwAgn3rPT8CCsOZTLHSZEvfxySQ='
-    print('你的密文:',t)
-    #print('用你的密文解密的明文:',pr.aesdecrypt(t))
-    
-    if pr.aesdecrypt(t) == pr.aesdecrypt(en_text):
-        print('相同')
-    

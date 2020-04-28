@@ -240,6 +240,7 @@ class DataReq():
                 lessonCode = curData[3]                                 # get all the needed datas
                 lessonName = curData[4]
                 credit = curData[7]
+                mark = curData[9]
                 origin_grade = curData[10]
                 grades = curData[11]
                 semember = curData[1]
@@ -247,6 +248,7 @@ class DataReq():
                 curInfo.append(lessonCode)
                 curInfo.append(lessonName)
                 curInfo.append(credit)
+                curInfo.append(mark)
                 curInfo.append(origin_grade)
                 curInfo.append(grades)
                 aimGrades.append(curInfo)

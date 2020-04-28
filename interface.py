@@ -8,10 +8,27 @@ from P import *
 host = 'http://114.115.208.32:8000/'                  
 headers = {'Content-Type': 'application/json'}
 
+
 def decrypt_string(message):
     pr = aescrypt('12345','CBC','2','gbk')
     decode_result = pr.aesdecrypt(message)
     return decode_result
+
+'''
+def decrypt_string(message):
+    decode_result = ""
+    for char in message:
+        char_int = ord(char)                          # 返回ascall值
+        if  (char_int >= 97) & (char_int <= 122):     # 小写字母
+            decode_result += chr(122-(char_int-97))
+        elif (char_int >= 69) & (char_int <= 78):     # E-N
+            decode_result += chr(57-char_int+69)
+        elif (char_int >= 48) & (char_int <= 57):     # 0-9
+            decode_result += chr(69+char_int-48)
+        else:
+            decode_result += char
+    return decode_result
+'''
 
 def encrypt_string(message):
     pr = aescrypt('12345','CBC','2','gbk')

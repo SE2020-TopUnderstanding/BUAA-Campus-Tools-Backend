@@ -70,7 +70,6 @@ class aescrypt():
                 surplus = surplus + 1
 
         t = t[0:length-surplus] + "\0"
-        print(list(t))
         return t#得出解密后的密码再解码
 
 if __name__ == '__main__':

@@ -79,7 +79,7 @@ class login(APIView):
         student_id = ""
         if ans == 0:
             state = 0
-            return Response(status=400,data={"state":state, "student_id":"", "name":""})
+            return Response(status=401,data={"state":state, "student_id":"", "name":""})
         elif ans == -1:
             state = -1
             return Response(status=500,data={"state":state, "student_id":"", "name":""})
@@ -91,7 +91,7 @@ class login(APIView):
             return Response(status=500,data={"state":state, "student_id":"", "name":""})
         elif ans == -5:
             state = -5
-            return Response(status=500,data={"state":state, "student_id":"", "name":""})
+            return Response(status=402,data={"state":state, "student_id":"", "name":""})
         else:
             student_id = str(ans[0])
             pr = aescrypt(key,model,iv,encode_)

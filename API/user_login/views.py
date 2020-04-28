@@ -79,7 +79,7 @@ class login(APIView):
         student_id = ""
         if ans == 0:
             state = 0
-            return Response(status=401,data={"state":state, "student_id":"", "name":""})
+            return Response(status=400,data={"state":state, "student_id":"", "name":""})
         elif ans == -1:
             state = -1
             return Response(status=500,data={"state":state, "student_id":"", "name":""})
@@ -91,13 +91,14 @@ class login(APIView):
             return Response(status=500,data={"state":state, "student_id":"", "name":""})
         elif ans == -5:
             state = -5
-            return Response(status=402,data={"state":state, "student_id":"", "name":""})
+            return Response(status=500,data={"state":state, "student_id":"", "name":""})
         else:
             student_id = str(ans[0])
             pr = aescrypt(key,model,iv,encode_)
             student_id = pr.aesencrypt(student_id)
             name = ans[2]
             grade = ans[3]
+           
             Student(usr_name=usr_name,usr_password=usr_password,id=student_id, name=name,grade=grade).save()
             if len(StudentCourse.objects.filter(student_id_id=student_id)) == 0:
                 add_request('s', student_id)
@@ -108,5 +109,5 @@ class login(APIView):
         
         #print(Student.objects.filter(usr_name=usr_name).values("name","grade"))
 
-        content = {"state":state, "student_id":str(ans[0]), "name":name}
+        content = {"state":state, "student_id":ans[0], "name":name}
         return Response(content)

@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'request_queue',
     'version_information',
     'error_handling',
-    'aes',
 ]
 
 MIDDLEWARE = [

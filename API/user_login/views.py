@@ -45,12 +45,21 @@ class login(APIView):
         参数1:用户名 e.g. mushan，用户密码 e.g. h1010
         例:http --form POST http://127.0.0.1:8000/login/ usr_name="mushan" usr_password="h1010"
         返回:登录状态
-        0 -> failed, username or password is wrong
+        0 -> failed, an unexcepted error on the login page
         -1 -> failed, request timeout
         -2 -> failed, unknown exception
-        -5 -> 账号被锁10分钟
+        -3 -> failed, push the commit button, but there is only one page
+        -4 -> failed, timeout or switch to an unknown page
+        -5 -> IP is banned from the buaa
+        -6 -> usr_name is wrong or there is a CAPTCHA
+        -7 -> password is wrong
+        -8 -> usr_name or password is empty
+        -9 -> account is locked
         没有提供参数，参数数量错误，返回400错误;
         参数错误，返回400错误;
+        账号被锁返回402
+        密码账号错误401
+        服务器ip返回403
         """
         
         try:#保存前端请求数据
@@ -89,9 +98,21 @@ class login(APIView):
         elif ans == -4:
             state = -4
             return Response(status=500,data={"state":state, "student_id":"", "name":""})
-        elif ans == -5:
+        elif ans == -5:#ip被ban
             state = -5
+            return Response(status=403,data={"state":state, "student_id":"", "name":""})
+        elif ans == -6:#用户名错误
+            state = -6
+            return Response(status=401,data={"state":state, "student_id":"", "name":""})
+        elif ans == -7:#密码错误
+            state = -7
+            return Response(status=401,data={"state":state, "student_id":"", "name":""})
+        elif ans == -8:
+            state = -8
             return Response(status=500,data={"state":state, "student_id":"", "name":""})
+        elif ans == -9:#账号被锁
+            state = -9
+            return Response(status=402,data={"state":state, "student_id":"", "name":""})
         else:
             student_id = str(ans[0])
             pr = aescrypt(key,model,iv,encode_)

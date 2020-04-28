@@ -65,9 +65,8 @@ class aescrypt():
         length = len(t_list)
         
         surplus = 0#多余的字符串
-        for i in t_list:
-            if i == t_list[length-1]:
-                surplus = surplus + 1
-
-        t = t[0:length-surplus] + "\0"
+        surplus = ord(t_list[length-1])
+        
+        
+        t = t[0:length-surplus]
         return t#得出解密后的密码再解码

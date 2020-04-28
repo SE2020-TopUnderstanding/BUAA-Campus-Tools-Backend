@@ -3,12 +3,12 @@ import base64
 '''
 目前采用ECB方法
 调用方法
-pr = aescrypt(key,'ECB','','gbk')
+pr = aescrypt(key,model,iv,encode_)
 en_text = pr.aesencrypt('17373349')
 pr.aesdecrypt(en_text)
 编码方式gbk
 '''
-key = '123456'#公钥
+key = '2020042820200428'#公钥 注意公钥只能为16的长度
 model = 'ECB'
 iv = ''
 encode_ = 'gbk'
@@ -20,7 +20,7 @@ class aescrypt():
     def __init__(self,key,model,iv,encode_):
         self.encode_ = encode_
         self.model =  {'ECB':AES.MODE_ECB,'CBC':AES.MODE_CBC}[model]
-        self.key = self.add_16(key)
+        self.key = key
         self.iv = self.add_16(iv)
         if model == 'ECB':
             self.aes = AES.new(self.key,self.model) #创建一个aes对象
@@ -35,8 +35,16 @@ class aescrypt():
         且将文本编码
         '''
         par = par.encode(self.encode_)#编码
-        while len(par) % 16 != 0:
-            par += b'\x00'
+        a = len(par) % 16 
+        if a == 0:
+            a = 16 - a
+            for i in range(16):
+               par += b'\x10'
+        else:
+            a = 16 - a
+            a = chr(a).encode(self.encode_)
+            while len(par) % 16 != 0:
+                par += a
         return par
 
     def aesencrypt(self,text):
@@ -50,11 +58,19 @@ class aescrypt():
         
         text = base64.decodebytes(text.encode(self.encode_))#先编码再按照base64解码
         self.decrypt_text = self.aes.decrypt(text)
-
+        print(self.decrypt_text)
         return self.decrypt_text.decode(self.encode_).strip('\0')#得出解密后的密码再解码
 
 if __name__ == '__main__':
     pr = aescrypt(key,model,'',encode_)
-    en_text = pr.aesencrypt('17373349')
-    print('密文:',en_text)
-    print('明文:',pr.aesdecrypt(en_text))
+    en_text = pr.aesencrypt('1737345217373452')
+    print('我的密文:',en_text)
+    print('用我的密文解密的明文:',pr.aesdecrypt(en_text))
+
+    t = 'j1/o0wJsmye3NBQXgwAgn3rPT8CCsOZTLHSZEvfxySQ='
+    print('你的密文:',t)
+    #print('用你的密文解密的明文:',pr.aesdecrypt(t))
+    
+    if pr.aesdecrypt(t) == pr.aesdecrypt(en_text):
+        print('相同')
+    

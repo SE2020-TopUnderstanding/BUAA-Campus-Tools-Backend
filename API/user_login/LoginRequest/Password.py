@@ -8,7 +8,7 @@ en_text = pr.aesencrypt('17373349')
 pr.aesdecrypt(en_text)
 编码方式gbk
 '''
-key = '2020042820200428'#公钥 注意公钥只能为16的长度
+key = b'2020042820200428'#公钥 注意公钥只能为16的长度
 model = 'ECB'
 iv = ''
 encode_ = 'gbk'

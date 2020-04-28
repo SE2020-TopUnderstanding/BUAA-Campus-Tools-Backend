@@ -8,7 +8,9 @@ en_text = pr.aesencrypt('17373349')
 pr.aesdecrypt(en_text)
 编码方式gbk
 '''
-key = b'2020042820200428'#公钥 注意公钥只能为16的长度
+key =  b'hangxu@buaase_20'#公钥 注意公钥只能为16的长度
+
+
 model = 'ECB'
 iv = ''
 encode_ = 'gbk'
@@ -58,5 +60,28 @@ class aescrypt():
         
         text = base64.decodebytes(text.encode(self.encode_))#先编码再按照base64解码
         self.decrypt_text = self.aes.decrypt(text)
-        print(self.decrypt_text)
-        return self.decrypt_text.decode(self.encode_).strip('\0')#得出解密后的密码再解码
+        t = self.decrypt_text.decode(self.encode_).strip('\0')
+        t_list = list(t)
+        length = len(t_list)
+        
+        surplus = 0#多余的字符串
+        for i in t_list:
+            if i == t_list[length-1]:
+                surplus = surplus + 1
+
+        t = t[0:length-surplus] + "\0"
+        return t#得出解密后的密码再解码
+
+if __name__ == '__main__':
+    pr = aescrypt(key,model,iv,encode_)
+    en_text = pr.aesencrypt('h1016060768')
+    print('我的密文:',en_text)
+    print('用我的密文解密的明文:',pr.aesdecrypt(en_text))
+
+    t = 'j1/o0wJsmye3NBQXgwAgn3rPT8CCsOZTLHSZEvfxySQ='
+    print('你的密文:',t)
+    #print('用你的密文解密的明文:',pr.aesdecrypt(t))
+    
+    if pr.aesdecrypt(t) == pr.aesdecrypt(en_text):
+        print('相同')
+    

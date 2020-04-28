@@ -81,24 +81,44 @@ class ScoreList(APIView):
         if len(req) == 3:
             semester = req['semester']
             for key in req['info']:
-                if len(key) == 5:
+                if len(key) == 6:
                     bid = key[0].replace(' ', '')
                     course_name = key[1]
                     credit = key[2].replace(' ', '')
-                    origin_score = key[3].replace(' ', '')
-                    score = key[4].replace(' ', '')
+                    label = key[3].replace(' ', '')
+                    origin_score = key[4].replace(' ', '')
+                    score = key[5].replace(' ', '')
                     try:
                         old_score = Score.objects.get(student_id=student, bid=bid)
-                        old_score.origin_score = origin_score
-                        old_score.score = score
-                        old_score.semester = semester
-                        old_score.save()
+                        if label == '补考':
+                            old_score.label = label
+                            if origin_score in ['优秀', '良好', '中等', '及格']:
+                                old_score.origin_score = '及格'
+                                old_score.score = 60
+                            elif origin_score == '不及格':
+                                old_score.origin_score = '不及格'
+                                old_score.score = score
+                            else:
+                                if int(origin_score) >= 60:
+                                    old_score.origin_score = str(max(60, int(int(origin_score) * 0.8)))
+                                    old_score.score = str(max(60, int(int(origin_score) * 0.8)))
+                                else:
+                                    old_score.origin_score = origin_score
+                                    old_score.score = score
+                            old_score.semester = semester
+                            old_score.save()
+                        elif label == '重修':
+                            old_score.label = label
+                            old_score.origin_score = origin_score
+                            old_score.score = score
+                            old_score.semester = semester
+                            old_score.save()
                     except Score.DoesNotExist:
                         new_score = Score(student_id=student, semester=semester, course_name=course_name
-                                          , bid=bid, credit=credit, origin_score=origin_score, score=score)
+                                          , bid=bid, credit=credit, label=label, origin_score=origin_score, score=score)
                         new_score.save()
                 else:
-                    message = 'info里的元素个数错误，只能为5个'
+                    message = 'info里的元素个数错误，只能为6个'
                     return HttpResponse(message, status=400)
             return HttpResponse(status=201)
 

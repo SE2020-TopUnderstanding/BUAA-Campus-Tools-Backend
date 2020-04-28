@@ -68,20 +68,18 @@ class aescrypt():
         surplus = ord(t_list[length-1])
         
         
-        t = t[0:length-surplus] + "\0"
-        print(list(t))
+        t = t[0:length-surplus]
         return t#得出解密后的密码再解码
 
 if __name__ == '__main__':
     pr = aescrypt(key,model,iv,encode_)
-    en_text = pr.aesencrypt('h1016060768')
+    t = '1234567812345678'
+    en_text = pr.aesencrypt(t)
     print('我的密文:',en_text)
     print('用我的密文解密的明文:',pr.aesdecrypt(en_text))
-
-    t = 'j1/o0wJsmye3NBQXgwAgn3rPT8CCsOZTLHSZEvfxySQ='
-    print('你的密文:',t)
-    #print('用你的密文解密的明文:',pr.aesdecrypt(t))
     
-    if pr.aesdecrypt(t) == pr.aesdecrypt(en_text):
+
+    
+    if pr.aesdecrypt(en_text) == t:
         print('相同')
     

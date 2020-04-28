@@ -143,3 +143,4 @@ cython_debug/
 .sqlite3
 migrations
 log.txt
+.stackdump

@@ -3,7 +3,7 @@ from multiprocessing import Queue
 import requests
 import traceback
 import sys
-from Password import *
+from P import *
 
 host = 'http://114.115.208.32:8000/'                  
 headers = {'Content-Type': 'application/json'}

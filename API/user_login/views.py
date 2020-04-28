@@ -108,5 +108,5 @@ class login(APIView):
         
         #print(Student.objects.filter(usr_name=usr_name).values("name","grade"))
 
-        content = {"state":state, "student_id":student_id, "name":name}
+        content = {"state":state, "student_id":str(ans[0]), "name":name}
         return Response(content)

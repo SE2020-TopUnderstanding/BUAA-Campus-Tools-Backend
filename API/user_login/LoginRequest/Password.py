@@ -60,12 +60,22 @@ class aescrypt():
         
         text = base64.decodebytes(text.encode(self.encode_))#先编码再按照base64解码
         self.decrypt_text = self.aes.decrypt(text)
-        print(self.decrypt_text)
-        return self.decrypt_text.decode(self.encode_).strip('\0')#得出解密后的密码再解码
+        t = self.decrypt_text.decode(self.encode_).strip('\0')
+        t_list = list(t)
+        length = len(t_list)
+        
+        surplus = 0#多余的字符串
+        for i in t_list:
+            if i == t_list[length-1]:
+                surplus = surplus + 1
+
+        t = t[0:length-surplus] + "\0"
+        print(list(t))
+        return t#得出解密后的密码再解码
 
 if __name__ == '__main__':
     pr = aescrypt(key,model,iv,encode_)
-    en_text = pr.aesencrypt('1737345217373452')
+    en_text = pr.aesencrypt('h1016060768')
     print('我的密文:',en_text)
     print('用我的密文解密的明文:',pr.aesdecrypt(en_text))
 

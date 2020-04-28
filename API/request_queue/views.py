@@ -2,7 +2,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import HttpResponse, Http404
 from course_query.models import Student
-import queue
 
 req_id = 0
 req_queue = []
@@ -33,9 +32,13 @@ def add_request(req_type, student_id):
             break
     if not exist:
         req_id += 1
-        req_queue.append(
-            {'req_id': req_id, 'usr_name': student.usr_name, 'password': student.usr_password,
-             'req_type': req_type})
+        new_request = {'req_id': req_id, 'usr_name': student.usr_name, 'password': student.usr_password,
+                       'req_type': req_type}
+        req_queue.append(new_request)
+        log = open('log.txt', 'a')
+        log.write('new request: ')
+        log.write(str(new_request))
+        log.write('\n')
         pending_work.append(req_id)
         return req_id
     else:
@@ -51,6 +54,10 @@ class Queue(APIView):
             if len(req_queue) == 0:
                 return HttpResponse(status=204)
             cur_queue = req_queue.pop(0)
+            log = open('log.txt', 'a')
+            log.write('request has been sent: ')
+            log.write(str(cur_queue))
+            log.write('\n')
             return Response(cur_queue)
 
         # 前端在这里取得对应任务是否完成的信息, true为已完成
@@ -65,17 +72,25 @@ class Queue(APIView):
     @staticmethod
     def post(request):
         # 爬虫执行完成时返回完成的request id
-        if 'req_id' in request.data.keys():
-            cur_id = int(request.data['req_id'])
+        req = request.data
+        if len(req) == 1 and 'req_id' in req.keys():
+            cur_id = int(req['req_id'])
             try:
                 pending_work.remove(cur_id)
             except ValueError:
                 message = '没有这个任务号'
                 return HttpResponse(message, status=404)
-
             return HttpResponse(status=200)
+        elif len(req) == 4:
+            req_queue.append(req)
+            log = open('log.txt', 'a')
+            log.write('new request: ')
+            log.write(str(req))
+            log.write('\n')
+            pending_work.append(req['req_id'])
+            return HttpResponse(status=201)
         else:
-            message = '没有\'req_id\'参数'
+            message = '参数数量不正确，需要为4个或1个且只有\'req_id\'参数'
             return HttpResponse(message, status=400)
 
 

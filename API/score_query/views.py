@@ -7,6 +7,21 @@ from course_query.models import Student
 from request_queue.models import RequestRecord
 
 
+def get_gpa(origin_score, credit):
+    if origin_score == "不及格":
+        return 0.0 * credit
+    elif origin_score == "及格":
+        return 1.7 * credit
+    elif origin_score == "中等":
+        return 2.8 * credit
+    elif origin_score == "良好":
+        return 3.5 * credit
+    elif origin_score == "优秀":
+        return 4.0 * credit
+    else:
+        return max(0, credit * (4.0 - 3 * (100 - int(origin_score)) ** 2 / 1600.0))
+
+
 class ScoreList(APIView):
     @staticmethod
     def get(request):
@@ -33,6 +48,12 @@ class ScoreList(APIView):
                 if key == 'semester':
                     result = result.filter(semester=value)
                 elif key == 'student_id':
+                    # 检查学生是否存在
+                    try:
+                        Student.objects.get(id=req['student_id'])
+                    except Student.DoesNotExist:
+                        message = "没有这个学生的信息"
+                        return HttpResponse(message, status=401)
                     result = result.filter(student_id=value)
                 else:
                     message = '您附加的参数名称有错误，只允许\'semester\',\'student_id\''
@@ -55,24 +76,49 @@ class ScoreList(APIView):
             student = Student.objects.get(id=req['student_id'])
         except Student.DoesNotExist:
             message = '数据库中没有这个学生，服务器数据库可能有错误'
-            return HttpResponse(message, status=500)
+            return HttpResponse(message, status=401)
         # 爬虫的数据库插入请求
         if len(req) == 3:
             semester = req['semester']
             for key in req['info']:
-                if len(key) == 4:
+                if len(key) == 6:
                     bid = key[0].replace(' ', '')
                     course_name = key[1]
                     credit = key[2].replace(' ', '')
-                    score = key[3].replace(' ', '')
+                    label = key[3].replace(' ', '')
+                    origin_score = key[4].replace(' ', '')
+                    score = key[5].replace(' ', '')
                     try:
-                        Score.objects.get(student_id=student, bid=bid)
+                        old_score = Score.objects.get(student_id=student, bid=bid)
+                        if label == '补考':
+                            old_score.label = label
+                            if origin_score in ['优秀', '良好', '中等', '及格']:
+                                old_score.origin_score = '及格'
+                                old_score.score = 60
+                            elif origin_score == '不及格':
+                                old_score.origin_score = '不及格'
+                                old_score.score = score
+                            else:
+                                if int(origin_score) >= 60:
+                                    old_score.origin_score = str(max(60, int(int(origin_score) * 0.8)))
+                                    old_score.score = str(max(60, int(int(origin_score) * 0.8)))
+                                else:
+                                    old_score.origin_score = origin_score
+                                    old_score.score = score
+                            old_score.semester = semester
+                            old_score.save()
+                        elif label == '重修':
+                            old_score.label = label
+                            old_score.origin_score = origin_score
+                            old_score.score = score
+                            old_score.semester = semester
+                            old_score.save()
                     except Score.DoesNotExist:
                         new_score = Score(student_id=student, semester=semester, course_name=course_name
-                                          , bid=bid, credit=credit, score=score)
+                                          , bid=bid, credit=credit, label=label, origin_score=origin_score, score=score)
                         new_score.save()
                 else:
-                    message = 'info里的元素个数错误，只能为4个'
+                    message = 'info里的元素个数错误，只能为6个'
                     return HttpResponse(message, status=400)
             return HttpResponse(status=201)
 
@@ -97,7 +143,7 @@ class GPACalculate(APIView):
         if len(req) == 1 and 'student_id' in req.keys():
             scores = Score.objects.filter(student_id=student_id)
             for score in scores:
-                gpa_sum += max(0, score.credit * (4.0 - 3 * (100 - score.score) ** 2 / 1600.0))
+                gpa_sum += get_gpa(score.origin_score, score.credit)
                 credit_sum += score.credit
             if credit_sum == 0:
                 return Response({'gpa': 0.0000})

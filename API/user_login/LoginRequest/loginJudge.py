@@ -84,6 +84,7 @@ def getStudentInfo(username, password):
                 return success + 1
         success = vpn.switchToJiaoWu()              # switch
         if success == -4 or success == -5:
+            vpn.getBrowser().quit()
             return -4
         browser = vpn.getBrowser()
         name = browser.find_element_by_xpath('//*[@id="north"]/div/div/div[2]')

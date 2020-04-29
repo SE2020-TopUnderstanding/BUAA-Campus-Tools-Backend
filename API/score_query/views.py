@@ -98,6 +98,12 @@ class ScoreList(APIView):
                             elif origin_score == '不及格':
                                 old_score.origin_score = '不及格'
                                 old_score.score = score
+                            elif origin_score == '通过':
+                                old_score.origin_score = '通过'
+                                old_score.score = 60
+                            elif origin_score == '不通过':
+                                old_score.origin_score = '不通过'
+                                old_score.score = score
                             else:
                                 if int(origin_score) >= 60:
                                     old_score.origin_score = str(max(60, int(int(origin_score) * 0.8)))
@@ -143,8 +149,9 @@ class GPACalculate(APIView):
         if len(req) == 1 and 'student_id' in req.keys():
             scores = Score.objects.filter(student_id=student_id)
             for score in scores:
-                gpa_sum += get_gpa(score.origin_score, score.credit)
-                credit_sum += score.credit
+                if score.origin_score != '通过' and score.origin_score != '不通过':
+                    gpa_sum += get_gpa(score.origin_score, score.credit)
+                    credit_sum += score.credit
             if credit_sum == 0:
                 return Response({'gpa': 0.0000})
             return Response({'gpa': gpa_sum / credit_sum})

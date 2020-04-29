@@ -88,6 +88,8 @@ class ScoreList(APIView):
                     label = key[3].replace(' ', '')
                     origin_score = key[4].replace(' ', '')
                     score = key[5].replace(' ', '')
+                    if origin_score == '缓考':
+                        continue
                     try:
                         old_score = Score.objects.get(student_id=student, bid=bid)
                         if label == '补考':

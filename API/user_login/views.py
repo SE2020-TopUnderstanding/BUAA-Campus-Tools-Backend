@@ -45,16 +45,17 @@ class login(APIView):
         参数1:用户名 e.g. mushan，用户密码 e.g. h1010
         例:http --form POST http://127.0.0.1:8000/login/ usr_name="mushan" usr_password="h1010"
         返回:登录状态
-        0 -> failed, an unexcepted error on the login page
-        -1 -> failed, request timeout
-        -2 -> failed, unknown exception
-        -3 -> failed, push the commit button, but there is only one page
-        -4 -> failed, timeout or switch to an unknown page
-        -5 -> IP is banned from the buaa
-        -6 -> usr_name is wrong or there is a CAPTCHA
-        -7 -> password is wrong
-        -8 -> usr_name or password is empty
-        -9 -> account is locked
+        0 -> request error when login the jiaowu web
+        -1 -> login error, unknown, please refer to the log
+        -2 -> login request status code is 2XX, but not 200
+        -3 -> jump to unknown page
+        -4 -> request exception, timeout or network error
+        -5 -> login request status code is 4XX or 5XX
+        -6 -> IP is banned from the buaa
+        -7 -> usr_name is wrong or there is a CAPTCHA
+        -8 -> password is wrong
+        -9 -> usr_name or password is empty
+        -10 -> account is locked
         没有提供参数，参数数量错误，返回400错误;
         参数错误，返回400错误;
         账号被锁返回402
@@ -86,32 +87,38 @@ class login(APIView):
         content = {}
         name = ""
         student_id = ""
-        if ans == 0:
+        if ans == 0:#request error when login the jiaowu web
             state = 0
-            return Response(status=400,data={"state":state, "student_id":"", "name":""})
-        elif ans == -1:
+            return Response(status=500,data={"state":state, "student_id":"", "name":""})
+        elif ans == -1:#login error, unknown, please refer to the log
             state = -1
             return Response(status=500,data={"state":state, "student_id":"", "name":""})
-        elif ans == -2:
+        elif ans == -2:#login request status code is 2XX, but not 200
             state = -2
             return Response(status=500,data={"state":state, "student_id":"", "name":""})
-        elif ans == -4:
+        elif ans == -3:#jump to unknown page
+            state = -3
+            return Response(status=500,data={"state":state, "student_id":"", "name":""})
+        elif ans == -4:#request exception, timeout or network error
             state = -4
             return Response(status=500,data={"state":state, "student_id":"", "name":""})
-        elif ans == -5:#ip被ban
+        elif ans == -5:#login request status code is 4XX or 5XX
             state = -5
-            return Response(status=403,data={"state":state, "student_id":"", "name":""})
-        elif ans == -6:#用户名错误
+            return Response(status=500,data={"state":state, "student_id":"", "name":""})
+        elif ans == -6:#IP is banned from the buaa
             state = -6
-            return Response(status=401,data={"state":state, "student_id":"", "name":""})
-        elif ans == -7:#密码错误
+            return Response(status=403,data={"state":state, "student_id":"", "name":""})
+        elif ans == -7:#usr_name is wrong or there is a CAPTCHA
             state = -7
             return Response(status=401,data={"state":state, "student_id":"", "name":""})
-        elif ans == -8:
+        elif ans == -8:#password is wrong
             state = -8
-            return Response(status=500,data={"state":state, "student_id":"", "name":""})
-        elif ans == -9:#账号被锁
+            return Response(status=401,data={"state":state, "student_id":"", "name":""})
+        elif ans == -9:#usr_name or password is empty
             state = -9
+            return Response(status=400,data={"state":state, "student_id":"", "name":""})
+        elif ans == -10:#account is locked
+            state = -10
             return Response(status=402,data={"state":state, "student_id":"", "name":""})
         else:
             student_id = str(ans[0])

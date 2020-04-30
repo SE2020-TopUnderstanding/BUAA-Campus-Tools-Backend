@@ -6,8 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select 
 import sys
 
-import datetime
-import time
+
 
 vpnUrl = 'https://e2.buaa.edu.cn/users/sign_in'
 

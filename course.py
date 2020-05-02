@@ -128,7 +128,11 @@ class courseReq():
                 datas = row.find_elements_by_tag_name('td')[1:]
                 work = []
                 if len(datas) >= 1:
-                    title = datas[0].find_elements_by_tag_name('a')[0]
+                    title = datas[0].find_elements_by_tag_name('a')
+                    if len(title) == 0:
+                        title = datas[0].find_elements_by_tag_name('span')[0]
+                    else:
+                        title = title[0]
                     title = title.text
                     #print(title)
                     work.append(title)
@@ -143,7 +147,7 @@ class courseReq():
                 if len(datas) >= 4:
                     duedate = datas[3].find_elements_by_tag_name('span')
                     if len(duedate) == 0:
-                        duedate = ''
+                        duedate = datas[3].text
                     else:
                         duedate = duedate[0].text
                     #print(duedate)

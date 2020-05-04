@@ -83,6 +83,12 @@ class courseReq():
             link = link.get_attribute('href')
             
             self.browser.get(link)                                                              # switch to the lesson
+            locator = (By.XPATH, '//*[@id="toolMenu"]/ul')
+            try:
+                WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))       
+            except Exception:
+                print('timeout or switch to an unknown page')
+                return -4
             workButtons = self.browser.find_element_by_xpath('//*[@id="toolMenu"]/ul')
             workButtons = workButtons.find_elements_by_tag_name('a')
             workButton = 0
@@ -114,6 +120,7 @@ class courseReq():
                     ddls[curLesson] = []
 
                     self.browser.switch_to.default_content()
+                    time.sleep(0.5)
                     curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
                     lessons = curLessons.find_elements_by_xpath('li')                           # do not have any jobs
 
@@ -159,6 +166,7 @@ class courseReq():
             ddls[curLesson] = jobs
 
             self.browser.switch_to.default_content()                                            # reget the lessons
+            time.sleep(0.5)
             curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
             lessons = curLessons.find_elements_by_xpath('li')
         return ddls  
@@ -174,9 +182,11 @@ class courseReq():
         nameButton.click()
         frame = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[2]/div[3]/div/div/div[2]/iframe')
         self.browser.switch_to.frame(frame)                                                 # switch to another frame to get datas
+        time.sleep(0.5)
         stuId = self.browser.find_element_by_xpath('//*[@id="userViewForm"]/fieldset/div[1]')
         stuId = stuId.text
         self.browser.switch_to.default_content()
+        time.sleep(0.5)
         return stuId.split(' ')[1]
         
 

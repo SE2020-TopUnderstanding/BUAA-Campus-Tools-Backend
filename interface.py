@@ -166,6 +166,7 @@ def reqDdl(dataReq):
     ddlUrl = host + 'ddl/'
     try:
         requests.post(url=ddlUrl, headers=headers, data=ddl.encode('utf-8'))
+        #ddlUrl = ddlUrl
     except Exception:
         print('req fail')
         print(traceback.format_exc())
@@ -463,22 +464,22 @@ if __name__ == '__main__':
     if len(sys.argv) != 3:
         print('请输入正确参数，-d 整数：启动ddl爬虫，-o 整数：启动其他爬虫, -r 整数：启动消息队列')
     elif sys.argv[1] == '-d':                     # get the ddl data
-        try:
-            insect_ddl(int(sys.argv[2]))
-        except Exception as e:
-            print(traceback.format_exc())
-            insect_ddl(int(sys.argv[2]))
+        while True:
+            try:
+                insect_ddl(int(sys.argv[2]))
+            except Exception as e:
+                print(traceback.format_exc())
     elif sys.argv[1] == '-o':                   # get the schedule, grade and emptyclassroom(current can not do that) data
-        try:
-            insect_other(int(sys.argv[2]))
-        except Exception as e:
-            print(traceback.format_exc())
-            insect_other(int(sys.argv[2]))
-    elif sys.argv[1] == '-r':                   # get the schedule, grade and emptyclassroom(current can not do that) data
-        try:
-            insect_req(int(sys.argv[2]))
-        except Exception as e:
-            print(traceback.format_exc())
-            insect_req(int(sys.argv[2]))
+        while True:
+            try:
+                insect_other(int(sys.argv[2]))
+            except Exception as e:
+                print(traceback.format_exc())
+    elif sys.argv[1] == '-r':                   # get the schedule, grade and ddl req data
+        while True:
+            try:
+                insect_req(int(sys.argv[2]))
+            except Exception as e:
+                print(traceback.format_exc())
     else:
         print('请输入正确参数，-d：启动ddl爬虫，-o：启动其他爬虫, -r 整数：启动消息队列')

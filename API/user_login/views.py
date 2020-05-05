@@ -56,8 +56,8 @@ class login(APIView):
         -8 -> password is wrong
         -9 -> usr_name or password is empty
         -10 -> account is locked
-        没有提供参数，参数数量错误，返回400错误;
-        参数错误，返回400错误;
+        没有提供参数，参数数量错误，返回500错误;
+        参数错误，返回500错误;
         账号被锁返回402
         密码账号错误401
         服务器ip返回403

@@ -73,7 +73,7 @@ class aescrypt():
 
 if __name__ == '__main__':
     pr = aescrypt(key,model,iv,encode_)
-    t = '1234567812345678123456781234578'
+    t = '17373349'
     en_text = pr.aesencrypt(t)
     print('我的密文:',en_text)
     print(len(en_text))

@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'request_queue',
     'version_information',
     'error_handling',
+    'django_coverage',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +86,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'CHARSET': 'utf8',
+        'COLLATION': 'utf8_general_ci',
+    },
+    'TEST': {
+        'NAME': 'test'
     }
 }
 
@@ -132,3 +138,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+COVERAGE_REPORT_HTML_OUTPUT_DIR = 'F:\\thisSemester\\softwareEngineer\\homework\\Alpha\\Test'

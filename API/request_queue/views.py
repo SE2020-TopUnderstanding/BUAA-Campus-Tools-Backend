@@ -106,19 +106,6 @@ class CourseRequest(APIView):
             message = '参数数量或名称错误，只能为1个且为\'student_id\''
             return HttpResponse(message, status=400)
 
-
-class RoomRequest(APIView):
-    @staticmethod
-    def post(request):
-        req = request.query_params.dict()
-        if len(req) == 1 and 'student_id' in req.keys():
-            request_id = add_request('e', req['student_id'])
-            return Response([{"id": request_id}])
-        else:
-            message = '参数数量或名称错误，只能为1个且为\'student_id\''
-            return HttpResponse(message, status=400)
-
-
 class DDLRequest(APIView):
     @staticmethod
     def post(request):

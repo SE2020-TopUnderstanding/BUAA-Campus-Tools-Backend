@@ -1,6 +1,6 @@
-from vpn import *
-from web import *
-from Password import *
+from .vpn import *
+from .web import *
+from .Password import *
 def loginJudge(username, password):
     '''
     Input: username, password

@@ -16,7 +16,8 @@ def delete_request(usr_name, password):
             req_queue.remove(item)
             pending_work.remove(item['req_id'])
     return 1
-    
+
+
 def add_request(req_type, student_id):
     global req_id, req_queue, pending_work
     exist = 0

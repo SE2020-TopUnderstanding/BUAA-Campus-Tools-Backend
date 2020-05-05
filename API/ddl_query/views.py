@@ -152,13 +152,13 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
                     else:
                         try:
                             t = standard_time(i["ddl"])
-                        except IndexError:
-                            logging.warning("ddl时间格式错误 "+t)
+                        except:
+                            logging.warning("ddl时间格式错误 "+i["ddl"])
                             return HttpResponse(status=500)
                     DDL_t(student_id=student, ddl=t, homework=i["homework"],
                      state=i["state"], course=name).save()
             else:
-                return HttpResponseBadRequest()
+                return HttpResponse(status=400)
         
         content = {"state":1}
         return Response(content)

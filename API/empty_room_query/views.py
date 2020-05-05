@@ -20,7 +20,7 @@ class query_classroom(APIView):
         没有提供参数，参数数量错误，返回400错误;
         参数错误，返回400错误;
         """
-
+        
         try:#保存前端请求数据
             record = RequestRecord.objects.get(name="classroom")
             record.count = record.count+1
@@ -41,11 +41,11 @@ class query_classroom(APIView):
         re = Classroom_t.objects.filter(campus=campus, date=date,
                                         section__contains=section)
         tb_re = re.values("teaching_building").distinct()
-
+        
         for i in tb_re:
             cr_re = re.filter(teaching_building=i["teaching_building"]).values("classroom").distinct()
             content.update({i["teaching_building"]:cr_re})
-
+        
         return Response(content)
 
     def post(self, request, format=None):#
@@ -85,10 +85,7 @@ class query_classroom(APIView):
             正确，{"state":1}
         '''
         req = request.data
-        try:
-            Classroom_t.objects.filter(date=req['date']).delete()
-        except Classroom_t.DoesNotExist:
-            return HttpResponse(status=500)
+        Classroom_t.objects.filter(date=req['date']).delete()
 
 
         if "classroom" not in req:

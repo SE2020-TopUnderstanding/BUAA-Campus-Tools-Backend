@@ -29,14 +29,15 @@ class version(APIView):
         '''
 
         req = request.data
-        if len(Version_t.objects.filter(version_number=req["version_number"])) > 0:
-            return Response(status=400,data={"state":"新版本号已有"})
-
         if len(req) != 4:
             return Response(status=400,data={"state":"参数数量不正确"})
         if (("version_number" not in req) | ("update_date" not in req) 
             | ("announcement" not in req) | ("download_address" not in req)):
             return Response(status=400,data={"state":"参数错误"})
+        
+        if len(Version_t.objects.filter(version_number=req["version_number"])) > 0:
+            return Response(status=400,data={"state":"新版本号已有"})
+
         
         Version_t(version_number=req["version_number"],update_date=req["update_date"],announcement=req["announcement"], 
                 download_address=req["download_address"]).save()

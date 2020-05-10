@@ -27,7 +27,17 @@ jobs:
         pip install -r requirements.txt
     - name: Check Linting Details
       run: |
-        python -m pylint --load-plugins pylint_django -rn ./
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./API/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./course_query/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./ddl_query/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./empty_room_query/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./error_handling/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./ping/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./request_queue/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./score_query/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./tests_query/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./user_login/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./version_information/
     - name: Run Tests
       run: |
         python manage.py test

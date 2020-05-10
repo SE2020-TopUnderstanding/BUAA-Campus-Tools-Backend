@@ -27,7 +27,7 @@ jobs:
         pip install -r requirements.txt
     - name: Check Linting Details
       run: |
-        python -m pylint --load-plugins pylint_django --init-hook "import sys;sys.path.append('..');sys.path.append('.')"  -rn ./
+        python -m pylint --load-plugins pylint_django -rn ./
     - name: Run Tests
       run: |
         python manage.py test

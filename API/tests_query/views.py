@@ -1,8 +1,8 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
-from .serializers import *
-from .models import *
+from .serializers import TestSerializer
+from .models import TestTable
 
 
 class TestList(APIView):
@@ -19,7 +19,7 @@ class TestList(APIView):
         """
         req = request.query_params.dict()
         result = TestTable.objects.all()
-        if (len(req) > 0) and (len(req) < 4):
+        if not req and (len(req) < 4):
             for key, value in req.items():
                 if key == 'student_id':
                     result = result.filter(student_id=value)
@@ -35,6 +35,6 @@ class TestList(APIView):
         return Response(test_serializer.data)
 
     @staticmethod
-    def post(self, request):
+    def post(request):
         # 暂时没有考试查询，一律返回201
         return HttpResponse(status=201)

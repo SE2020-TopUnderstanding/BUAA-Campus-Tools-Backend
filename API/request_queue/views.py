@@ -51,8 +51,8 @@ class Queue(APIView):
     def get(request):
         req = request.query_params.dict()
         # 爬虫在这里取得request
-        if len(req) == 0:
-            if len(req_queue) == 0:
+        if not req:
+            if not req_queue:
                 return HttpResponse(status=204)
             cur_queue = req_queue.pop(0)
             log = open('log.txt', 'a')

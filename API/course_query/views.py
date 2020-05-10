@@ -1,10 +1,10 @@
+from datetime import datetime
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import HttpResponse
-from .serializers import *
-from .models import *
 from request_queue.models import RequestRecord
-from datetime import datetime
+from .serializers import StudentCourseSerializer
+from .models import Student, Course, StudentCourse, Teacher, TeacherCourse, TeacherCourseSpecific
 
 
 def split_week(week):
@@ -41,6 +41,52 @@ def split_time(time):
     day = times[0][1]
     time_list = times[1].lstrip('第').rstrip('节').split('，')
     return day + '_' + time_list[0] + '_' + time_list[-1]
+
+
+def add_course(student, semester, info):
+    response = HttpResponse(status=500)
+    if len(info) == 5:
+        name = info[0].replace(' ', '')
+        place = info[1].replace(' ', '')
+        teacher = info[2].replace(' ', '')
+        week = info[3].replace(' ', '')
+        time = info[4]
+        # 增加课程信息
+        try:
+            course = Course.objects.get(name=name)
+        except Course.DoesNotExist:
+            course = Course(name=name)
+            course.save()
+        # 保存信息
+        new_student_course = StudentCourse(student_id=student, course_id=course
+                                           , week=split_week(week), time=split_time(time), place=place,
+                                           semester=semester)
+        new_student_course.save()
+        # 增加教师信息
+        teachers = teacher.split('，')
+        # 一门课程可能有多个教师
+        for key in teachers:
+            try:
+                teacher = Teacher.objects.get(name=key)
+            except Teacher.DoesNotExist:
+                teacher = Teacher(name=key)
+                teacher.save()
+            # 增加总课的关联关系
+            try:
+                course = Course.objects.get(name=name, teachercourse__teacher_id__name=teacher.name)
+            except Course.DoesNotExist:
+                new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
+                new_teacher_course.save()
+            # 增加这节课的关联关系
+            relation = TeacherCourseSpecific(student_course_id=new_student_course,
+                                             teacher_id=teacher)
+            relation.save()
+            response = HttpResponse(status=201)
+        # 不是5项表示数据有缺失
+    else:
+        message = 'info里的元素一定要为5项，请检查'
+        response = HttpResponse(message, status=400)
+    return response
 
 
 class CourseList(APIView):
@@ -124,54 +170,17 @@ class CourseList(APIView):
             return HttpResponse(message, status=401)
         # 爬虫的数据库插入请求
         if len(req) == 2:
+            response = HttpResponse(status=201)
             semester = '2020_Spring'
             # 更新则默认将原记录删除
             StudentCourse.objects.filter(student_id=student_id).delete()
             # 将爬虫爬取的数据写入数据库
             for lists in req['info']:
                 for info in lists:
-                    # info必须有5项
-                    if len(info) == 5:
-                        name = info[0].replace(' ', '')
-                        place = info[1].replace(' ', '')
-                        teacher = info[2].replace(' ', '')
-                        week = info[3].replace(' ', '')
-                        time = info[4]
-                        # 增加课程信息
-                        try:
-                            course = Course.objects.get(name=name)
-                        except Course.DoesNotExist:
-                            course = Course(name=name)
-                            course.save()
-                        # 保存信息
-                        new_student_course = StudentCourse(student_id=student, course_id=course
-                                                           , week=split_week(week), time=split_time(time), place=place,
-                                                           semester=semester)
-                        new_student_course.save()
-                        # 增加教师信息
-                        teachers = teacher.split('，')
-                        # 一门课程可能有多个教师
-                        for key in teachers:
-                            try:
-                                teacher = Teacher.objects.get(name=key)
-                            except Teacher.DoesNotExist:
-                                teacher = Teacher(name=key)
-                                teacher.save()
-                            # 增加总课的关联关系
-                            try:
-                                course = Course.objects.get(name=name, teachercourse__teacher_id__name=teacher.name)
-                            except Course.DoesNotExist:
-                                new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
-                                new_teacher_course.save()
-                            # 增加这节课的关联关系
-                            relation = TeacherCourseSpecific(student_course_id=new_student_course,
-                                                             teacher_id=teacher)
-                            relation.save()
-                    # 不是5项表示数据有缺失
-                    else:
-                        message = 'info里的元素一定要为5项，请检查'
-                        return HttpResponse(message, status=400)
-            return HttpResponse(status=201)
+                    response = add_course(student, semester, info)
+                    if response.status_code != 201:
+                        return response
+            return response
         # 其他非法请求
         else:
             message = '参数数量不正确'

@@ -1,7 +1,6 @@
-from django.test import TestCase, Client
 import json
-from .models import *
-from .views import *
+from django.test import TestCase, Client
+from .views import Student
 
 
 # Create your tests here.

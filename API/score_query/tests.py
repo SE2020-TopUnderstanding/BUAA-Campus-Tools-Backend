@@ -1,8 +1,6 @@
 from django.test import TestCase, Client
-import json
-from .models import *
 from course_query.models import Student
-from .views import *
+from .models import Score
 
 
 # Create your tests here.

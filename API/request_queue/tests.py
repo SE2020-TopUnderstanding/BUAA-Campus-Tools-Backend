@@ -1,8 +1,6 @@
 from django.test import TestCase, Client
-import json
-from .models import *
 from course_query.models import Student
-from .views import *
+from .views import add_request
 
 
 class RequestTest(TestCase):
@@ -64,5 +62,3 @@ class RequestTest(TestCase):
         request = client.post("/request/score/?student_id=17373010", content_type='application/json',
                               data=data)
         self.assertEqual(request.status_code, 200)
-
-

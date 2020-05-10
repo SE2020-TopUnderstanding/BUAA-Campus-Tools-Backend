@@ -1,10 +1,10 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import HttpResponse
-from .serializers import *
-from .models import *
 from course_query.models import Student
 from request_queue.models import RequestRecord
+from .serializers import ScoreSerializer
+from .models import Score
 
 
 def get_gpa(origin_score, credit):
@@ -20,6 +20,63 @@ def get_gpa(origin_score, credit):
         return 4.0 * credit
     else:
         return max(0, credit * (4.0 - 3 * (100 - int(origin_score)) ** 2 / 1600.0))
+
+
+def insert_failed_course(old_score, semester, label, origin_score, score):
+    old_score.label = label
+    if origin_score in ['优秀', '良好', '中等', '及格']:
+        old_score.origin_score = '及格'
+        old_score.score = 60
+    elif origin_score == '不及格':
+        old_score.origin_score = '不及格'
+        old_score.score = score
+    elif origin_score == '通过':
+        old_score.origin_score = '通过'
+        old_score.score = 60
+    elif origin_score == '不通过':
+        old_score.origin_score = '不通过'
+        old_score.score = score
+    else:
+        if int(origin_score) >= 60:
+            old_score.origin_score = str(max(60, int(int(origin_score) * 0.8)))
+            old_score.score = str(max(60, int(int(origin_score) * 0.8)))
+        else:
+            old_score.origin_score = origin_score
+            old_score.score = score
+    old_score.semester = semester
+    old_score.save()
+
+
+def insert_score(student, semester, key):
+    if len(key) == 6:
+        bid = key[0].replace(' ', '')
+        course_name = key[1]
+        credit = key[2].replace(' ', '')
+        label = key[3].replace(' ', '')
+        origin_score = key[4].replace(' ', '')
+        score = key[5].replace(' ', '')
+        if origin_score == '缓考':
+            return HttpResponse(status=201)
+        try:
+            old_score = Score.objects.get(student_id=student, bid=bid)
+            if label == '补考':
+                insert_failed_course(old_score=old_score, semester=semester, label=label, origin_score=origin_score,
+                                     score=score)
+            elif label == '重修':
+                old_score.label = label
+                old_score.origin_score = origin_score
+                old_score.score = score
+                old_score.semester = semester
+                old_score.save()
+        except Score.DoesNotExist:
+            new_score = Score(student_id=student, semester=semester, course_name=course_name
+                              , bid=bid, credit=credit, label=label, origin_score=origin_score, score=score)
+            new_score.save()
+        response = HttpResponse(status=201)
+    else:
+        message = 'info里的元素个数错误，只能为6个'
+        response = HttpResponse(message, status=400)
+    return response
 
 
 class ScoreList(APIView):
@@ -79,56 +136,13 @@ class ScoreList(APIView):
             return HttpResponse(message, status=401)
         # 爬虫的数据库插入请求
         if len(req) == 3:
+            response = HttpResponse(status=201)
             semester = req['semester']
             for key in req['info']:
-                if len(key) == 6:
-                    bid = key[0].replace(' ', '')
-                    course_name = key[1]
-                    credit = key[2].replace(' ', '')
-                    label = key[3].replace(' ', '')
-                    origin_score = key[4].replace(' ', '')
-                    score = key[5].replace(' ', '')
-                    if origin_score == '缓考':
-                        continue
-                    try:
-                        old_score = Score.objects.get(student_id=student, bid=bid)
-                        if label == '补考':
-                            old_score.label = label
-                            if origin_score in ['优秀', '良好', '中等', '及格']:
-                                old_score.origin_score = '及格'
-                                old_score.score = 60
-                            elif origin_score == '不及格':
-                                old_score.origin_score = '不及格'
-                                old_score.score = score
-                            elif origin_score == '通过':
-                                old_score.origin_score = '通过'
-                                old_score.score = 60
-                            elif origin_score == '不通过':
-                                old_score.origin_score = '不通过'
-                                old_score.score = score
-                            else:
-                                if int(origin_score) >= 60:
-                                    old_score.origin_score = str(max(60, int(int(origin_score) * 0.8)))
-                                    old_score.score = str(max(60, int(int(origin_score) * 0.8)))
-                                else:
-                                    old_score.origin_score = origin_score
-                                    old_score.score = score
-                            old_score.semester = semester
-                            old_score.save()
-                        elif label == '重修':
-                            old_score.label = label
-                            old_score.origin_score = origin_score
-                            old_score.score = score
-                            old_score.semester = semester
-                            old_score.save()
-                    except Score.DoesNotExist:
-                        new_score = Score(student_id=student, semester=semester, course_name=course_name
-                                          , bid=bid, credit=credit, label=label, origin_score=origin_score, score=score)
-                        new_score.save()
-                else:
-                    message = 'info里的元素个数错误，只能为6个'
-                    return HttpResponse(message, status=400)
-            return HttpResponse(status=201)
+                response = insert_score(student=student, semester=semester, key=key)
+                if response.status_code != 201:
+                    return response
+            return response
 
         # 其他非法请求
         else:

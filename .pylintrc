@@ -61,6 +61,7 @@ disable-msg=I0011
 # Disable the message(s) with the given id(s).
 # 本项目禁用规则
 # [E0401(import-error)] Unable to import %s Used when pylint has been unable to import a module.
+# [C0415(import-outside-toplevel)] Import outside toplevel (%s) Used when an import statement is used anywhere other than the module toplevel. Move this import to the top of the file.
 # [C0111(missing-docstring)] Missing module docstring
 # [R0903(too-few-public-methods), ParentType] Too few public methods (at least 1)
 # [W0603(global-statement)]: Using the global statement Used when you use the "global" statement to update a global variable. Pylint just try to discourage this usage. That doesn't mean you cannot use it! 
@@ -92,6 +93,7 @@ disable-msg=I0011
  
 disable =
     E0401,
+    C0415,
     C0111,
 	R0903,
     W0603,

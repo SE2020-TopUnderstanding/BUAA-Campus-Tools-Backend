@@ -10,16 +10,15 @@ from .models import Score
 def get_gpa(origin_score, credit):
     if origin_score == "不及格":
         return 0.0 * credit
-    elif origin_score == "及格":
+    if origin_score == "及格":
         return 1.7 * credit
-    elif origin_score == "中等":
+    if origin_score == "中等":
         return 2.8 * credit
-    elif origin_score == "良好":
+    if origin_score == "良好":
         return 3.5 * credit
-    elif origin_score == "优秀":
+    if origin_score == "优秀":
         return 4.0 * credit
-    else:
-        return max(0, credit * (4.0 - 3 * (100 - int(origin_score)) ** 2 / 1600.0))
+    return max(0, credit * (4.0 - 3 * (100 - int(origin_score)) ** 2 / 1600.0))
 
 
 def insert_failed_course(old_score, semester, label, origin_score, score):
@@ -145,9 +144,8 @@ class ScoreList(APIView):
             return response
 
         # 其他非法请求
-        else:
-            message = '参数个数有错误，只能为3个'
-            return HttpResponse(message, status=400)
+        message = '参数个数有错误，只能为3个'
+        return HttpResponse(message, status=400)
 
 
 class GPACalculate(APIView):
@@ -171,9 +169,8 @@ class GPACalculate(APIView):
             if credit_sum == 0:
                 return Response({'gpa': 0.0000})
             return Response({'gpa': gpa_sum / credit_sum})
-        else:
-            message = '您附加的参数名称有错误，只允许\'student_id\''
-            return HttpResponse(message, status=400)
+        message = '您附加的参数名称有错误，只允许\'student_id\''
+        return HttpResponse(message, status=400)
 
 
 class AvgScoreCalculate(APIView):
@@ -196,6 +193,5 @@ class AvgScoreCalculate(APIView):
             if credit_sum == 0:
                 return Response({'score': 0.00000})
             return Response({'score': score_sum / credit_sum})
-        else:
-            message = '您附加的参数名称有错误，只允许\'student_id\''
-            return HttpResponse(message, status=400)
+        message = '您附加的参数名称有错误，只允许\'student_id\''
+        return HttpResponse(message, status=400)

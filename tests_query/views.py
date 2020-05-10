@@ -35,6 +35,6 @@ class TestList(APIView):
         return Response(test_serializer.data)
 
     @staticmethod
-    def post(request):
+    def post():
         # 暂时没有考试查询，一律返回201
         return HttpResponse(status=201)

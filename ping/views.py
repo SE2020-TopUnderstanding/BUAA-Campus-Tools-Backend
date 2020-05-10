@@ -1,9 +1,10 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+
 class Ping(APIView):
     @staticmethod
-    def get(request):
+    def get():
         # windows环境下测试的时候无法使用
         with open("/root/BUAA-Campus-Tools-Backend/API/nohup.out", "r") as fp:
             info = fp.readlines()

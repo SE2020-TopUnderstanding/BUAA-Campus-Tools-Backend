@@ -137,7 +137,7 @@ class CourseList(APIView):
             course_serializer = StudentCourseSerializer(result, many=True)
             return Response(course_serializer.data)
         # 当前周查询请求
-        elif len(req) == 1:
+        if len(req) == 1:
             if 'date' in req.keys():
                 content = []
                 date1 = datetime.strptime(req['date'], "%Y-%m-%d")
@@ -146,13 +146,11 @@ class CourseList(APIView):
                 value = str(total_week)
                 content.append({"week": value})
                 return Response(content)
-            else:
-                message = '您附加参数有错误，请检查参数是否为date'
-                return HttpResponse(message, status=400)
-        # 其他非法请求
-        else:
-            message = '您附加参数数量有错误，请检查参数个数是否为1个或2个'
+            message = '您附加参数有错误，请检查参数是否为date'
             return HttpResponse(message, status=400)
+        # 其他非法请求
+        message = '您附加参数数量有错误，请检查参数个数是否为1个或2个'
+        return HttpResponse(message, status=400)
 
     @staticmethod
     def post(request):
@@ -182,6 +180,5 @@ class CourseList(APIView):
                         return response
             return response
         # 其他非法请求
-        else:
-            message = '参数数量不正确'
-            return HttpResponse(message, status=400)
+        message = '参数数量不正确'
+        return HttpResponse(message, status=400)

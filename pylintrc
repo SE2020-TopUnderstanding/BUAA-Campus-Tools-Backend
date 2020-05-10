@@ -57,19 +57,21 @@ load-plugins=
 # I0011: *Locally disabling %s*
 disable-msg=I0011
  
-# 跳过一些无伤大雅的警告, pylint 默认检太严格, http://pylint-messages.wikidot.com/all-codes
-# https://stackoverflow.com/questions/47348786/how-to-break-a-long-line-in-pylintrc-file
-#
+
 # Disable the message(s) with the given id(s).
+# 本项目禁用规则
+# [E0401(import-error)] Unable to import %s Used when pylint has been unable to import a module.
+# [C0111(missing-docstring)] Missing module docstring
+# [R0903(too-few-public-methods), ParentType] Too few public methods (at least 1)
+# [W0603(global-statement)]: Using the global statement Used when you use the "global" statement to update a global variable. Pylint just try to discourage this usage. That doesn't mean you cannot use it! 
+# 其他常见规则说明
 # [C0103(invalid-name), ] Invalid constant name "service_map"
-# [C0111(missing-docstring), ] Missing module docstring
 # [C0301(line-too-long), ] Line too long，有些 url 等允许超过 120 列
 # [C0304(missing-final-newline), ]
 # [C0325(superfluous-parens), ] Unnecessary parens after u'print' keyword 兼容 python3 的 print
 # [E0702(raising-bad-type), update_embedded_video] R
 # [E1120(no-value-for-parameter), update_embedded_vi [R0201(no-self-use), Attacher.make_dom] Method could be a function[W0235(useless-super-delegation), AttacherPin.__init__] Useless super delegation in method '__init__'
 # [R0201(Method could be a function)
-# [R0903(too-few-public-methods), ParentType] Too few public methods (0/2)
 # [R0911(too-many-return-statements), c
 # [R0912(too-many-branches), check_and_set_video_status] Too many branches (13/12)
 # [R0913(too-many-arguments), StaingContentError.__init__] Too many arguments (6/5)
@@ -89,11 +91,9 @@ disable-msg=I0011
 # disable = C0103, C0111, C0301, C0304, C0325, E0702, E1120, R0201, R0903, R0911, R0912, R0913, R1705, W0105, W0108, W0110, W0201, W0221, W0223, W0235, W0403, W0511, W0613, W0622, W0703, W1202
  
 disable =
+    E0401,
     C0111,
 	R0903,
-	R0911,
-	R0912,
-	R0913,
     W0603
  
 [REPORTS]

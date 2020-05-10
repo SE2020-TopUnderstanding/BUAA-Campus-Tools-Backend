@@ -1,11 +1,8 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import Http404
-from course_query.models import Student
-from django.http import Http404, HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponse
 from .models import *
 from request_queue.models import RequestRecord
-
 
 
 class query_classroom(APIView):
@@ -20,10 +17,10 @@ class query_classroom(APIView):
         没有提供参数，参数数量错误，返回400错误;
         参数错误，返回400错误;
         """
-        
-        try:#保存前端请求数据
+
+        try:  # 保存前端请求数据
             record = RequestRecord.objects.get(name="classroom")
-            record.count = record.count+1
+            record.count = record.count + 1
             record.save()
         except RequestRecord.DoesNotExist:
             RequestRecord(name="classroom", count=1).save()
@@ -41,14 +38,14 @@ class query_classroom(APIView):
         re = Classroom_t.objects.filter(campus=campus, date=date,
                                         section__contains=section)
         tb_re = re.values("teaching_building").distinct()
-        
+
         for i in tb_re:
             cr_re = re.filter(teaching_building=i["teaching_building"]).values("classroom").distinct()
-            content.update({i["teaching_building"]:cr_re})
-        
+            content.update({i["teaching_building"]: cr_re})
+
         return Response(content)
 
-    def post(self, request, format=None):#
+    def post(self, request, format=None):  #
         '''
         访问方法 POST http://127.0.0.1:8000/classroom/
         数据格式
@@ -87,12 +84,11 @@ class query_classroom(APIView):
         req = request.data
         Classroom_t.objects.filter(date=req['date']).delete()
 
-
         if "classroom" not in req:
             return HttpResponse(status=500)
         for key in req["classroom"]:
-                Classroom_t(campus=key["campus"],teaching_building=key["teaching_building"],
-                    classroom=key["classroom"],date=req["date"],section=key["section"]).save()
+            Classroom_t(campus=key["campus"], teaching_building=key["teaching_building"],
+                        classroom=key["classroom"], date=req["date"], section=key["section"]).save()
 
-        content = {"state":1}
+        content = {"state": 1}
         return Response(content)

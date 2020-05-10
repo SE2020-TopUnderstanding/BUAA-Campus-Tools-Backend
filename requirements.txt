@@ -6,3 +6,4 @@ djangorestframework==3.11.0
 pycryptodome==3.9.7
 pylint==2.5.2
 pylint-django==2.0.15
+selenium==3.141.0

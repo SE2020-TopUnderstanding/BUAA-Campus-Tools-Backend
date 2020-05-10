@@ -1,4 +1,3 @@
-import json
 from django.test import TestCase, Client
 from .views import Student
 
@@ -37,17 +36,6 @@ class CourseGetTest(TestCase):
         client = Client()
         response = client.get("/timetable/?dae=2020-4-19")
         self.assertEqual(response.status_code, 400)
-
-    def test_post(self):
-        client = Client()
-        student = Student(id='17373010', name='xxx', usr_name='xxx', usr_password='xxx', grade='2')
-        student.save()
-        data = {"student_id": "17373010",
-                "info": [["计算机网络", "(一)305", "荣文", "1-16", "周1 第3，4节"]]}
-        print(json.dumps(data))
-        response = client.post("/timetable/", content_type='application/json',
-                               data=data)
-        self.assertEqual(response.status_code, 201)
 
     def test_post2(self):
         client = Client()

@@ -1,6 +1,7 @@
 from django.test import TestCase
 from course_query.models import Student
 
+
 # Create your tests here.
 class error_handlingTests(TestCase):
     def testPost_200(self):
@@ -14,18 +15,17 @@ class error_handlingTests(TestCase):
             "usr_name": "mushan",
             "password": "2020",
         }
-        response = self.client.post('/delete/', content_type= 'application/json', data=data)
+        response = self.client.post('/delete/', content_type='application/json', data=data)
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.data["state"], 0)
 
-
-        Student(usr_name="mushan",usr_password="123",id="17373349", name="hbb",grade=3).save()
-        response = self.client.post('/delete/', content_type= 'application/json', data=data)
+        Student(usr_name="mushan", usr_password="123", id="17373349", name="hbb", grade=3).save()
+        response = self.client.post('/delete/', content_type='application/json', data=data)
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.data["state"], -1)
 
-        Student(usr_name="mushan",usr_password="2020",id="17373349", name="hbb",grade=3).save()
-        response = self.client.post('/delete/', content_type= 'application/json', data=data)
+        Student(usr_name="mushan", usr_password="2020", id="17373349", name="hbb", grade=3).save()
+        response = self.client.post('/delete/', content_type='application/json', data=data)
         self.assertEquals(response.status_code, 200)
         self.assertEquals(response.data["state"], 1)
 
@@ -39,13 +39,11 @@ class error_handlingTests(TestCase):
             "usr_nam": "mushan",
             "password": "2020",
         }
-        response = self.client.post('/delete/', content_type= 'application/json', data=data)
+        response = self.client.post('/delete/', content_type='application/json', data=data)
         self.assertEquals(response.status_code, 500)
 
         data = {
             "password": "2020",
         }
-        response = self.client.post('/delete/', content_type= 'application/json', data=data)
+        response = self.client.post('/delete/', content_type='application/json', data=data)
         self.assertEquals(response.status_code, 500)
-
-        

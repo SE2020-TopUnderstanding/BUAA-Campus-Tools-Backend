@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from django.http import HttpResponseBadRequest, HttpResponse
 from course_query.models import Student
 from request_queue.views import delete_request
+
+
 # Create your views here.
 
 class delete_student(APIView):
@@ -36,5 +38,5 @@ class delete_student(APIView):
                 state = 1
         except Student.DoesNotExist:
             state = 0
-        content = {"state":state}
+        content = {"state": state}
         return Response(content)

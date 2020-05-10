@@ -8,6 +8,7 @@ list_url = 'https://e2.buaa.edu.cn/'
 jiaowu_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome'
 course_url = 'https://course.e2.buaa.edu.cn/portal/login'
 
+
 class WebGetId():
 
     def __init__(self, userName, password):
@@ -15,12 +16,12 @@ class WebGetId():
         self.password = password
         self.now = requests.session()
         self.headersVpn = {
-            'Referer' : 'https://e2.buaa.edu.cn/',
-            'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
+            'Referer': 'https://e2.buaa.edu.cn/',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
         }
         self.headersLogin = {
-            'Referer' : 'https://e2.buaa.edu.cn/users/sign_in',
-            'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
+            'Referer': 'https://e2.buaa.edu.cn/users/sign_in',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
         }
 
     def login(self):
@@ -56,12 +57,12 @@ class WebGetId():
         code = text[codeStart:codeEnd]
 
         params = {
-            'utf8' : True,
-            'authenticity_token' : code,
-            'user[login]' : self.usr_name,
-            'user[password]' : self.password,
-            'user[dymatice_code]' : 'unknown',
-            'commit' : '登录 Login'
+            'utf8': True,
+            'authenticity_token': code,
+            'user[login]': self.usr_name,
+            'user[password]': self.password,
+            'user[dymatice_code]': 'unknown',
+            'commit': '登录 Login'
         }
         i = 0
         while i < 3:
@@ -88,21 +89,21 @@ class WebGetId():
                 print(page.text[warning_start:warning_end])
                 error_text = page.text[warning_start:warning_end]
                 if error_text.find('此IP') != -1:
-                    return -6     
+                    return -6
                 if error_text.find('验证码') != -1:
                     return -7
                 if error_text.find('超过五次') != -1:
-                    return -8     
+                    return -8
                 if error_text.find('不能为空') != -1:
-                    return -9   
+                    return -9
                 if error_text.find('已被锁定') != -1:
-                    return -10       
+                    return -10
                 return -1
             else:
                 return -3
         else:
             return -2
-            
+
     def getStudentInfo(self):
         '''
         get students' information
@@ -134,7 +135,7 @@ class WebGetId():
                 print(e)
                 i += 1
                 if i == 3:
-                    return 0    
+                    return 0
 
         name_start = web.text.find('<div class="welcome">您好！') + 24
         name_end = web.text.find('同学</div>', name_start)
@@ -142,8 +143,8 @@ class WebGetId():
 
         table_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kbcx/queryGrkb'
         headersJiaowu = {
-            'Referer' : 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome',
-            'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
+            'Referer': 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
         }
 
         i = 0
@@ -155,7 +156,7 @@ class WebGetId():
                 print(e)
                 i += 1
                 if i == 3:
-                    return 0    
+                    return 0
 
         soup = BeautifulSoup(schedule.text, 'lxml')
         table = soup.get_text()
@@ -180,6 +181,6 @@ class WebGetId():
 
 
 if __name__ == "__main__":
-    userName = input('Your username: ') 
+    userName = input('Your username: ')
     password = input('Your password: ')
     WebGetId(userName, password).getStudentInfo()

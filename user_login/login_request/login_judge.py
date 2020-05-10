@@ -1,7 +1,9 @@
-from .vpn import *
-from .web import *
-from .Password import *
-def loginJudge(username, password):
+from user_login.login_request.vpn import VpnLogin
+from user_login.login_request.web import WebGetId
+from user_login.login_request.password_utils import aescrypt, key, model, iv, encode_
+
+
+def login_judger(username, pswd):
     '''
     Input: username, password
     return: 1 -> success
@@ -17,20 +19,19 @@ def loginJudge(username, password):
     vpn = ''
     try:
         for i in range(3):
-            vpn = VpnLogin(username, password)
+            vpn = VpnLogin(username, pswd)
             success = vpn.getStatus()
             if success == -1:
                 vpn.getBrowser().quit()
                 return 0
-            elif success == 0:
+            if success == 0:
                 vpn.getBrowser().quit()
                 return 1
-            elif success == -2:
+            if success == -2:
                 if i == 2:
                     vpn.getBrowser().quit()
                     return -1
-                else:
-                    vpn.getBrowser().quit()
+                vpn.getBrowser().quit()
             elif success == -3:
                 vpn.getBrowser().quit()
                 return -2
@@ -43,7 +44,8 @@ def loginJudge(username, password):
         vpn.getBrowser().quit()
         return -2
 
-def getStudentInfo(username, password):
+
+def get_student_info(username, password):
     '''
         get students' information
         Input: username, password
@@ -62,14 +64,13 @@ def getStudentInfo(username, password):
         password and major cannot be returned
         the grade may be wrong, cause it is calculated by the student's id
     '''
-    pr = aescrypt(key,model,iv,encode_)
+    pr = aescrypt(key, model, iv, encode_)
     password = pr.aesdecrypt(password)
     return WebGetId(username, password).getStudentInfo()
 
 
 # for test
 if __name__ == "__main__":
-    userName = input('Your username: ') 
+    userName = input('Your username: ')
     password = input('Your password: ')
-    print(getStudentInfo(userName, password))
-    
+    print(get_student_info(userName, password))

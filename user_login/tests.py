@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+
 # Create your tests here.
 class user_loginTests(TestCase):
     def testGet_200(self):
@@ -13,7 +14,7 @@ class user_loginTests(TestCase):
 
         response = self.client.get('/login/?password=123&number=1')
         self.assertEquals(response.status_code, 200)
-    
+
     def testGet_500(self):
         '''
         检测返回状态码为500的get请求
@@ -21,7 +22,6 @@ class user_loginTests(TestCase):
         '''
         response = self.client.get('/login/?password=12')
         self.assertEquals(response.status_code, 500)
-    
 
     def testPost_200(self):
         '''
@@ -29,10 +29,10 @@ class user_loginTests(TestCase):
         1.成功登录
         '''
         data = {
-	        "usr_name":"mushan",
-	        "usr_password":"wEYiPWtqkBw4BQQQXfEH2w=="
+            "usr_name": "mushan",
+            "usr_password": "wEYiPWtqkBw4BQQQXfEH2w=="
         }
-        response = self.client.post('/login/', content_type= 'application/json', data=data)
+        response = self.client.post('/login/', content_type='application/json', data=data)
         self.assertEquals(response.status_code, 200)
 
     def testPost_500(self):
@@ -42,16 +42,16 @@ class user_loginTests(TestCase):
         2.参数名称错误
         '''
         data = {
-	        "usr_name":"mushan",
+            "usr_name": "mushan",
         }
-        response = self.client.post('/login/', content_type= 'application/json', data=data)
+        response = self.client.post('/login/', content_type='application/json', data=data)
         self.assertEquals(response.status_code, 500)
 
         data = {
-	        "usr_name":"mushan",
-            "usr_passwor":"zI4MS1ylntJ3TVE32dsImw=="
+            "usr_name": "mushan",
+            "usr_passwor": "zI4MS1ylntJ3TVE32dsImw=="
         }
-        response = self.client.post('/login/', content_type= 'application/json', data=data)
+        response = self.client.post('/login/', content_type='application/json', data=data)
         self.assertEquals(response.status_code, 500)
 
     def testPost_401(self):
@@ -60,11 +60,12 @@ class user_loginTests(TestCase):
         1.账号密码错误
         '''
         data = {
-	        "usr_name":"musha",
-	        "usr_password":"wEYiPWtqkBw4BQQQXfEH2w=="
+            "usr_name": "musha",
+            "usr_password": "wEYiPWtqkBw4BQQQXfEH2w=="
         }
-        response = self.client.post('/login/', content_type= 'application/json', data=data)
+        response = self.client.post('/login/', content_type='application/json', data=data)
         self.assertEquals(response.status_code, 401)
+
     def testPost_402(self):
         '''
         检测返回状态码为402的post请求

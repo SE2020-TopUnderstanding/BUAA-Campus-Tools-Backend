@@ -93,9 +93,11 @@ disable-msg=I0011
 disable =
     E0401,
     C0111,
-	R0903,
+    R0903,
     W0603,
-    C0415
+    C0415,
+    W0703,
+    W1505
  
 [REPORTS]
  

@@ -9,10 +9,12 @@ from django.db.models import Q
 from django.forms.models import model_to_dict
 from itertools import chain
 
+
 def add_0(s):
-    if (int(s)<10) & (s != "00"):
+    if (int(s) < 10) & (s != "00"):
         s = "0" + s
     return s
+
 
 def standard_time(t):
     '''
@@ -23,17 +25,17 @@ def standard_time(t):
     temp = t.split("-")
     year = temp[0]
     month = add_0(temp[1])
-    
+
     temp2 = temp[2].split(" ")
     day = add_0(temp2[0])
-    
+
     time = ""
     type = 0
     if "上午" in temp2[1]:
-        time = temp2[1].replace('上午','')
+        time = temp2[1].replace('上午', '')
     elif "下午" in temp2[1]:
-        type = 1#代表下午
-        time = temp2[1].replace("下午",'')
+        type = 1  # 代表下午
+        time = temp2[1].replace("下午", '')
     temp3 = time.split(":")
 
     if type == 0:
@@ -45,14 +47,13 @@ def standard_time(t):
         if temp3[0] == "12":
             hour = "12"
         else:
-            hour = str(int(temp3[0])+12)
+            hour = str(int(temp3[0]) + 12)
     minute = add_0(temp3[1])
 
     return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":00"
 
 
-
-class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课程
+class query_ddl(APIView):  # 输入学号：输出作业，dll，提交状态，课程
     def get(self, request, format=None):
         """
         输入：学号，输出：作业，dll，提交状态，课程
@@ -63,9 +64,9 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
         参数错误，返回500错误;
         查询用户不存在返回401
         """
-        try:#保存前端请求数据
+        try:  # 保存前端请求数据
             record = RequestRecord.objects.get(name="ddl")
-            record.count = record.count+1
+            record.count = record.count + 1
             record.save()
         except RequestRecord.DoesNotExist:
             RequestRecord(name="ddl", count=1).save()
@@ -88,17 +89,17 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
 
         course_re = re.values("course").distinct()
 
-        
         for i in course_re:
             cr_re_1 = re.filter(Q(course=i["course"])
-                    &(Q(state="尚未提交")|Q(state="草稿 - 进行中"))).values("homework", "ddl", "state").distinct()
+                                & (Q(state="尚未提交") | Q(state="草稿 - 进行中"))).values("homework", "ddl", "state").distinct()
             cr_re_2 = re.filter(Q(course=i["course"])
-                    &(~Q(state="尚未提交")&~Q(state="草稿 - 进行中"))).values("homework", "ddl", "state").distinct()
-            cr_re = chain(cr_re_1,cr_re_2)
-            content.append({"name":i["course"],"content":cr_re})
+                                & (~Q(state="尚未提交") & ~Q(state="草稿 - 进行中"))).values("homework", "ddl",
+                                                                                    "state").distinct()
+            cr_re = chain(cr_re_1, cr_re_2)
+            content.append({"name": i["course"], "content": cr_re})
         return Response(content)
-      
-    def post(self, request, format=None):#
+
+    def post(self, request, format=None):  #
         '''
         访问方法 POST http://127.0.0.1:8000/ddl/
         {
@@ -139,7 +140,7 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
             DDL_t.objects.filter(student_id=req['student_id']).delete()
         except Student.DoesNotExist:
             return HttpResponse(status=401)
-        
+
         if "ddl" not in req:
             return HttpResponse(status=500)
         for key in req['ddl']:
@@ -153,12 +154,12 @@ class query_ddl(APIView):#输入学号：输出作业，dll，提交状态，课
                         try:
                             t = standard_time(i["ddl"])
                         except:
-                            logging.warning("ddl时间格式错误 "+i["ddl"])
+                            logging.warning("ddl时间格式错误 " + i["ddl"])
                             return HttpResponse(status=500)
                     DDL_t(student_id=student, ddl=t, homework=i["homework"],
-                     state=i["state"], course=name).save()
+                          state=i["state"], course=name).save()
             else:
                 return HttpResponse(status=400)
-        
-        content = {"state":1}
+
+        content = {"state": 1}
         return Response(content)

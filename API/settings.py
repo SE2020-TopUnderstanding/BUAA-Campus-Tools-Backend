@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'request_queue',
     'version_information',
     'error_handling',
-    'django_coverage',
 ]
 
 MIDDLEWARE = [
@@ -94,15 +93,6 @@ DATABASES = {
     }
 }
 
-"""
-'ENGINE': 'django.db.backends.mysql',
-'NAME': 'backend_db',
-'USER': 'backend',
-'PASSWORD': 'se2020djlj',
-'HOST': '114.115.208.32',
-'PORT': '3306',
-'charset': 'utf8',
-"""
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 

@@ -1,6 +1,6 @@
 from user_login.login_request.vpn import VpnLogin
 from user_login.login_request.web import WebGetId
-from user_login.login_request.password_utils import aescrypt, key, model, iv, encode_
+from user_login.login_request.password_utils import aescrypt, KEY, MODEL, IV, ENCODE_
 
 
 def login_judger(username, pswd):
@@ -45,7 +45,7 @@ def login_judger(username, pswd):
         return -2
 
 
-def get_student_info(username, password):
+def get_student_info(username, pswd):
     '''
         get students' information
         Input: username, password
@@ -64,9 +64,9 @@ def get_student_info(username, password):
         password and major cannot be returned
         the grade may be wrong, cause it is calculated by the student's id
     '''
-    pr = aescrypt(key, model, iv, encode_)
-    password = pr.aesdecrypt(password)
-    return WebGetId(username, password).getStudentInfo()
+    pr = aescrypt(KEY, MODEL, IV, ENCODE_)
+    pswd = pr.aesdecrypt(pswd)
+    return WebGetId(username, pswd).getStudentInfo()
 
 
 # for test

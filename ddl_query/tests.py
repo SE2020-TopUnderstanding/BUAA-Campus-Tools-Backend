@@ -16,7 +16,7 @@ class ddlTests(TestCase):
               state="已提交", course="计算机科学").save()
 
         response = self.client.get('/ddl/?student_id=17373349')
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
     def testGet_401(self):
         '''
@@ -24,7 +24,7 @@ class ddlTests(TestCase):
         1.查询用户不存在
         '''
         response = self.client.get('/ddl/?student_id=17373349')
-        self.assertEquals(response.status_code, 401)
+        self.assertEqual(response.status_code, 401)
 
     def testGet_500(self):
         '''
@@ -33,10 +33,10 @@ class ddlTests(TestCase):
         2.参数数量错误
         '''
         response = self.client.get('/ddl/')
-        self.assertEquals(response.status_code, 500)
+        self.assertEqual(response.status_code, 500)
 
         response = self.client.get('/ddl/?studentid=17373349')
-        self.assertEquals(response.status_code, 500)
+        self.assertEqual(response.status_code, 500)
 
     def testPost_200(self):
         '''
@@ -77,7 +77,7 @@ class ddlTests(TestCase):
         }
 
         response = self.client.post('/ddl/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
     def testPost_400(self):
         '''
@@ -105,7 +105,7 @@ class ddlTests(TestCase):
             ]
         }
         response = self.client.post('/ddl/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 400)
+        self.assertEqual(response.status_code, 400)
 
     def testPost_500(self):
         '''
@@ -135,7 +135,7 @@ class ddlTests(TestCase):
             ]
         }
         response = self.client.post('/ddl/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 500)
+        self.assertEqual(response.status_code, 500)
 
         data = {
             "student_id": "17373349",
@@ -158,4 +158,4 @@ class ddlTests(TestCase):
             ]
         }
         response = self.client.post('/ddl/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 500)
+        self.assertEqual(response.status_code, 500)

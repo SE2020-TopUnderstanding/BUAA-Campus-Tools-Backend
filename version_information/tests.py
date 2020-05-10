@@ -11,12 +11,12 @@ class version_informationTests(TestCase):
         2.数据库中有数据
         '''
         response = self.client.get('/version/')
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         Version_t(version_number='1.01', update_date='2020-1-20', announcement="第一次",
                   download_address='22/21').save()
         response = self.client.get('/version/')
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
     def testPost_200(self):
         '''
@@ -30,7 +30,7 @@ class version_informationTests(TestCase):
             "download_address": "22"
         }
         response = self.client.post('/version/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
     def testPost_400(self):
         '''
@@ -47,7 +47,7 @@ class version_informationTests(TestCase):
         }
         response = self.client.post('/version/', content_type='application/json', data=data)
         response = self.client.post('/version/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 400)
+        self.assertEqual(response.status_code, 400)
 
         data = {
             "update_date": "2020",
@@ -55,7 +55,7 @@ class version_informationTests(TestCase):
             "download_address": "22"
         }
         response = self.client.post('/version/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 400)
+        self.assertEqual(response.status_code, 400)
 
         data = {
             "version_number": "1.1.1",
@@ -64,4 +64,4 @@ class version_informationTests(TestCase):
             "download_addres": "22"
         }
         response = self.client.post('/version/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 400)
+        self.assertEqual(response.status_code, 400)

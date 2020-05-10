@@ -16,18 +16,18 @@ class error_handlingTests(TestCase):
             "password": "2020",
         }
         response = self.client.post('/delete/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 200)
-        self.assertEquals(response.data["state"], 0)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["state"], 0)
 
         Student(usr_name="mushan", usr_password="123", id="17373349", name="hbb", grade=3).save()
         response = self.client.post('/delete/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 200)
-        self.assertEquals(response.data["state"], -1)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["state"], -1)
 
         Student(usr_name="mushan", usr_password="2020", id="17373349", name="hbb", grade=3).save()
         response = self.client.post('/delete/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 200)
-        self.assertEquals(response.data["state"], 1)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["state"], 1)
 
     def testPost_500(self):
         '''
@@ -40,10 +40,10 @@ class error_handlingTests(TestCase):
             "password": "2020",
         }
         response = self.client.post('/delete/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 500)
+        self.assertEqual(response.status_code, 500)
 
         data = {
             "password": "2020",
         }
         response = self.client.post('/delete/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 500)
+        self.assertEqual(response.status_code, 500)

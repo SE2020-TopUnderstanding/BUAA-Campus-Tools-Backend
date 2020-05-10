@@ -1,8 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import Http404
-from course_query.models import Student
-from django.http import Http404, HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponse
 from .models import *
 from request_queue.models import RequestRecord
 

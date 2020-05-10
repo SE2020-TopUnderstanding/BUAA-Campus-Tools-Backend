@@ -10,10 +10,10 @@ class user_loginTests(TestCase):
         2.爬取某一个服务器上用户的信息
         '''
         response = self.client.get('/login/?password=123')
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         response = self.client.get('/login/?password=123&number=1')
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
     def testGet_500(self):
         '''
@@ -21,7 +21,7 @@ class user_loginTests(TestCase):
         1.密码错误
         '''
         response = self.client.get('/login/?password=12')
-        self.assertEquals(response.status_code, 500)
+        self.assertEqual(response.status_code, 500)
 
     def testPost_200(self):
         '''
@@ -33,7 +33,7 @@ class user_loginTests(TestCase):
             "usr_password": "wEYiPWtqkBw4BQQQXfEH2w=="
         }
         response = self.client.post('/login/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
     def testPost_500(self):
         '''
@@ -45,14 +45,14 @@ class user_loginTests(TestCase):
             "usr_name": "mushan",
         }
         response = self.client.post('/login/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 500)
+        self.assertEqual(response.status_code, 500)
 
         data = {
             "usr_name": "mushan",
             "usr_passwor": "zI4MS1ylntJ3TVE32dsImw=="
         }
         response = self.client.post('/login/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 500)
+        self.assertEqual(response.status_code, 500)
 
     def testPost_401(self):
         '''
@@ -64,7 +64,7 @@ class user_loginTests(TestCase):
             "usr_password": "wEYiPWtqkBw4BQQQXfEH2w=="
         }
         response = self.client.post('/login/', content_type='application/json', data=data)
-        self.assertEquals(response.status_code, 401)
+        self.assertEqual(response.status_code, 401)
 
     def testPost_402(self):
         '''

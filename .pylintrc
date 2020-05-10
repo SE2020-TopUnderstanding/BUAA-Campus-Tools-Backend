@@ -96,8 +96,7 @@ disable =
     R0903,
     W0603,
     C0415,
-    W0703,
-    W1505
+    W0703
  
 [REPORTS]
  
@@ -262,7 +261,7 @@ max-args=10
 max-locals=35
  
 # Maximum number of return / yield for function / method body
-max-returns=6
+max-returns=10
  
 # Maximum number of branch for function / method body
 max-branchs=15

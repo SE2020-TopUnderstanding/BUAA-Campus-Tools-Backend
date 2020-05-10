@@ -120,7 +120,7 @@ class login(APIView):
             return Response(status=402, data={"state": state, "student_id": "", "name": ""})
         else:
             student_id = str(ans[0])
-            pr = aescrypt(key, model, iv, encode_)
+            pr = aescrypt(KEY, MODEL, IV, ENCODE_)
             student_id = pr.aesencrypt(student_id)
             name = ans[2]
             grade = ans[3]

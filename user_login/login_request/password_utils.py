@@ -8,11 +8,11 @@ import base64
 # pr.aesdecrypt(en_text)
 # 编码方式gbk
 
-key = b'2020042820200428'  # 公钥 注意公钥只能为16的长度
+KEY = b'2020042820200428'  # 公钥 注意公钥只能为16的长度
 
-model = 'ECB'
-iv = ''
-encode_ = 'gbk'
+MODEL = 'ECB'
+IV = ''
+ENCODE_ = 'gbk'
 
 
 class aescrypt():
@@ -74,7 +74,7 @@ class aescrypt():
 
 
 if __name__ == '__main__':
-    pr = aescrypt(key, model, iv, encode_)
+    pr = aescrypt(KEY, MODEL, IV, ENCODE_)
     t = '17373349'
     en_text = pr.aesencrypt(t)
     print('我的密文:', en_text)

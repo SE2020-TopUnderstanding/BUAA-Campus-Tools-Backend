@@ -1,28 +1,29 @@
-from django.shortcuts import render
+import logging
+from itertools import chain
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import Http404, HttpResponseBadRequest, HttpResponse
-from .models import *
-from request_queue.models import RequestRecord
-import logging
+from django.http import HttpResponse
 from django.db.models import Q
-from django.forms.models import model_to_dict
-from itertools import chain
 
 
-def add_0(s):
-    if (int(s) < 10) & (s != "00"):
-        s = "0" + s
-    return s
+from course_query.models import Student
+from request_queue.models import RequestRecord
+from .models import DDL
 
 
-def standard_time(t):
-    '''
+def add_0(time):
+    if (int(time) < 10) & (time != "00"):
+        time = "0" + time
+    return time
+
+
+def standard_time(initial_time):
+    """
     将爬虫爬的ddl时间修改为标准时间
     数据库中2020-3-19 下午11:55
     标准时间2020-03-19 23:55:00
-    '''
-    temp = t.split("-")
+    """
+    temp = initial_time.split("-")
     year = temp[0]
     month = add_0(temp[1])
 
@@ -30,15 +31,16 @@ def standard_time(t):
     day = add_0(temp2[0])
 
     time = ""
-    type = 0
+    kind = 0
     if "上午" in temp2[1]:
+        kind = 0
         time = temp2[1].replace('上午', '')
     elif "下午" in temp2[1]:
-        type = 1  # 代表下午
+        kind = 1  # 代表下午
         time = temp2[1].replace("下午", '')
     temp3 = time.split(":")
 
-    if type == 0:
+    if kind == 0:
         if temp3[0] == "12":
             hour = "00"
         else:
@@ -53,8 +55,9 @@ def standard_time(t):
     return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":00"
 
 
-class query_ddl(APIView):  # 输入学号：输出作业，dll，提交状态，课程
-    def get(self, request, format=None):
+class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，课程
+    @staticmethod
+    def get(request):
         """
         输入：学号，输出：作业，dll，提交状态，课程
         参数1:学生学号 e.g. 17373349
@@ -75,7 +78,7 @@ class query_ddl(APIView):  # 输入学号：输出作业，dll，提交状态，
 
         if len(req) != 1:
             return HttpResponse(status=500)
-        if ("student_id" not in req):
+        if "student_id" not in req:
             return HttpResponse(status=500)
 
         student_id = req["student_id"]
@@ -83,24 +86,25 @@ class query_ddl(APIView):  # 输入学号：输出作业，dll，提交状态，
 
         try:
             Student.objects.get(id=req['student_id'])
-            re = DDL_t.objects.filter(student_id=student_id)
+            req = DDL.objects.filter(student_id=student_id)
         except Student.DoesNotExist:
             return HttpResponse(status=401)
 
-        course_re = re.values("course").distinct()
+        course_re = req.values("course").distinct()
 
         for i in course_re:
-            cr_re_1 = re.filter(Q(course=i["course"])
-                                & (Q(state="尚未提交") | Q(state="草稿 - 进行中"))).values("homework", "ddl", "state").distinct()
-            cr_re_2 = re.filter(Q(course=i["course"])
-                                & (~Q(state="尚未提交") & ~Q(state="草稿 - 进行中"))).values("homework", "ddl",
-                                                                                    "state").distinct()
+            cr_re_1 = req.filter(Q(course=i["course"]) &
+                                 (Q(state="尚未提交") | Q(state="草稿 - 进行中"))).values("homework", "ddl", "state").distinct()
+            cr_re_2 = req.filter(Q(course=i["course"]) &
+                                 (~Q(state="尚未提交") &
+                                  ~Q(state="草稿 - 进行中"))).values("homework", "ddl", "state").distinct()
             cr_re = chain(cr_re_1, cr_re_2)
             content.append({"name": i["course"], "content": cr_re})
         return Response(content)
 
-    def post(self, request, format=None):  #
-        '''
+    @staticmethod
+    def post(request):
+        """
         访问方法 POST http://127.0.0.1:8000/ddl/
         {
             "student_id":"17373349",
@@ -133,11 +137,11 @@ class query_ddl(APIView):  # 输入学号：输出作业，dll，提交状态，
                 ]
         }
         错误：500
-        '''
+        """
         req = request.data
         try:
             student = Student.objects.get(id=req['student_id'])
-            DDL_t.objects.filter(student_id=req['student_id']).delete()
+            DDL.objects.filter(student_id=req['student_id']).delete()
         except Student.DoesNotExist:
             return HttpResponse(status=401)
 
@@ -149,15 +153,16 @@ class query_ddl(APIView):  # 输入学号：输出作业，dll，提交状态，
                 name = key["name"]
                 for i in content:
                     if i["ddl"] == "":
-                        t = ""
+                        time = ""
                     else:
                         try:
-                            t = standard_time(i["ddl"])
-                        except:
-                            logging.warning("ddl时间格式错误 " + i["ddl"])
+                            time = standard_time(i["ddl"])
+                        except ValueError:
+                            text = "ddl时间格式错误 " + i["ddl"]
+                            logging.warning(text)
                             return HttpResponse(status=500)
-                    DDL_t(student_id=student, ddl=t, homework=i["homework"],
-                          state=i["state"], course=name).save()
+                    DDL(student_id=student, ddl=time, homework=i["homework"],
+                        state=i["state"], course=name).save()
             else:
                 return HttpResponse(status=400)
 

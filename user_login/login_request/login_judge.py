@@ -1,76 +1,33 @@
-from user_login.login_request.vpn import VpnLogin
 from user_login.login_request.web import WebGetId
 from user_login.login_request.password_utils import Aescrypt, KEY, MODEL, IV, ENCODE_
 
 
-def login_judger(username, pswd):
-    '''
-    Input: username, password
-    return: 1 -> success
-            0 -> failed, an unexcepted error on the login page
-           -1 -> failed, request timeout
-           -2 -> failed, unknown exception
-           -3 -> IP is banned from the buaa
-           -4 -> usr_name is wrong or there is a CAPTCHA
-           -5 -> password is wrong
-           -6 -> usr_name or password is empty
-           -7 -> account is locked
-    '''
-    vpn = ''
-    try:
-        for i in range(3):
-            vpn = VpnLogin(username, pswd)
-            success = vpn.getStatus()
-            if success == -1:
-                vpn.getBrowser().quit()
-                return 0
-            if success == 0:
-                vpn.getBrowser().quit()
-                return 1
-            if success == -2:
-                if i == 2:
-                    vpn.getBrowser().quit()
-                    return -1
-                vpn.getBrowser().quit()
-            elif success == -3:
-                vpn.getBrowser().quit()
-                return -2
-            elif success <= -6:
-                vpn.getBrowser().quit()
-                return success + 3
-    except Exception:
-        if vpn == '':
-            return -2
-        vpn.getBrowser().quit()
-        return -2
-
-
 def get_student_info(username, pswd):
-    '''
-        get students' information
-        Input: username, password
-        return: [stu_id, usr_name, name, grade] -> success
-                 0 -> request error when login the jiaowu web
-                -1 -> login error, unknown, please refer to the log
-                -2 -> login request status code is 2XX, but not 200
-                -3 -> jump to unknown page
-                -4 -> request exception, timeout or network error
-                -5 -> login request status code is 4XX or 5XX
-                -6 -> IP is banned from the buaa
-                -7 -> usr_name is wrong or there is a CAPTCHA
-                -8 -> password is wrong
-                -9 -> usr_name or password is empty
-               -10 -> account is locked
-        password and major cannot be returned
-        the grade may be wrong, cause it is calculated by the student's id
-    '''
-    pr = Aescrypt(KEY, MODEL, IV, ENCODE_)
-    pswd = pr.aesdecrypt(pswd)
-    return WebGetId(username, pswd).getStudentInfo()
+    """
+        获取学生基本信息
+        输入: 用户名, 密码
+        返回:     [stu_id, usr_name, name, grade] -> 成功
+                 0 -> 登录教务时请求错误
+                -1 -> 不可预知的错误，请参考log信息
+                -2 -> 登录状态码是2XX，但不是200
+                -3 -> 跳转到未知网页
+                -4 -> 请求错误，超时或网络错误
+                -5 -> 登陆状态码是4XX或5XX
+                -6 -> IP被北航屏蔽
+                -7 -> 用户名错误，或者出现验证码
+                -8 -> 密码错误
+                -9 -> 用户名或密码为空
+               -10 -> 账户被锁定了
+        密码和专业暂时不能返回
+        年级的计算可能出现问题，因为年级是根据学号计算的，请一定注意
+    """
+    script = Aescrypt(KEY, MODEL, IV, ENCODE_)
+    pswd = script.aesdecrypt(pswd)
+    return WebGetId(username, pswd).get_student_info()
 
 
-# for test
+# 测试用代码
 if __name__ == "__main__":
-    userName = input('Your username: ')
-    password = input('Your password: ')
-    print(get_student_info(userName, password))
+    USR_NAME = input('Your username: ')
+    PW = input('Your password: ')
+    print(get_student_info(USR_NAME, PW))

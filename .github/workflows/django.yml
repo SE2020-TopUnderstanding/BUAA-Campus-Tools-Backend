@@ -27,7 +27,7 @@ jobs:
         pip install -r requirements.txt
     - name: Check Linting Details
       run: |
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./API/
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc --ignore-patterns asgi.py -rn ./API/
         python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./course_query/
         python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./ddl_query/
         python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./empty_room_query/

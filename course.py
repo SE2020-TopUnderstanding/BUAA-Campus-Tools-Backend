@@ -1,201 +1,210 @@
-from vpn import *
+import time
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as Ec
+from selenium.webdriver.common.by import By
+from vpn import VpnLogin
 
 
-class courseReq():
-    '''
-    this class is going to get messages from course.buaa.edu.cn
-    '''
-    def __init__(self, userName, password):
+class CourseRequest:
+    """
+    本类将从 course.buaa.edu.cn 网站获取信息
+    """
+    def __init__(self, user_name, pw):
         self.status = 0
         vpn = ''
         for i in range(3):
-            vpn = VpnLogin(userName, password)  # login
-            success = vpn.switchToCourse()      # switch
-            # handle errors
+            vpn = VpnLogin(user_name, pw)  # 登录
+            success = vpn.switch_to_course()      # 切换到课程中心
+            # 错误处理
             if success == -1:
                 self.status = -1
                 break
-            elif success == -2 or success == -5:
+            if success in (-2, -5):
                 if i == 2:
                     self.status = -2
                     break
-                else:
-                    vpn.getBrowser().quit()
-            elif success == -3 or success == -4:
+                vpn.get_browser().quit()
+            if success in (-3, -4):
                 self.status = -3
                 break
-            elif success <= -6 and success >= -10 :
+            if -6 >= success >= -10:
                 self.status = success + 1
                 break
-            elif success == 0:
+            if success == 0:
                 break
         if vpn == '':
             self.status = -11
             return
-        self.browser = vpn.getBrowser()         # get the browser.
-        #self.getDdl()                           # for debug
+        self.browser = vpn.get_browser()         # 获取浏览器.
+        # self.getDdl()                           # debug用
 
-    def getStatus(self):
-        '''
-        init step's result
-        status = 0 : success
-        status = -1 : error occur on the network, usually due to username and password
-        status = -2 : timeout for 3 times
-        status = -3 : unknown error
-        status = -5 : IP is banned
-        status = -6 : usr_name is wrong or there is a CAPTCHA
-        status = -7 : password is wrong
-        status = -8 : usr_name or password is empty
-        status = -9 : account is locked
-        '''
+    def get_status(self):
+        """
+        初始化的结果
+        status =  0 : 成功
+        status = -1 : 登陆错误
+        status = -2 : 超时3次
+        status = -3 : 未知错误
+        status = -5 : IP被封
+        status = -6 : 用户名错误或者网站要求输入验证码
+        status = -7 : 密码错误
+        status = -8 : 用户名或密码为空
+        status = -9 : 账号被锁
+        """
         return self.status
 
-    def getDdl(self):
-        '''
-        this func will return ddls from the course.buaa.edu.cn
-        a list will be returned
-        data type:
+    def get_ddl(self):
+        """
+        该函数将从 course.buaa.edu.cn 网页获取ddl
+        将返回一个列表
+        列表数据格式:
         {
-            curLesson : [[title, status, opendate, duedate], [title, status, opendate, duedate], ...]
-            curLesson : [[title, status, opendate, duedate], [title, status, opendate, duedate], ...]
+            当前课程 : [[作业名, 作业状态, 开放日期, 截止日期], [作业名, 作业状态, 开放日期, 截止日期], ...]
+            当前课程 : [[作业名, 作业状态, 开放日期, 截止日期], [作业名, 作业状态, 开放日期, 截止日期], ...]
             ...
         }
-        '''
+        """
         if self.status != 0:
             return self.status
+        # noinspection PyBroadException
         try:
-            curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
+            cur_lessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
         except Exception:
             print('timeout or this guy redefined the network')
             time.sleep(5)
+            # noinspection PyBroadException
             try:
-                curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
+                cur_lessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
             except Exception:
                 print('this guy redefined the network')
                 return -10
-        lessons = curLessons.find_elements_by_xpath('li')                                       # get all the lessons
+        lessons = cur_lessons.find_elements_by_xpath('li')                                       # 获取所有课程
         ddls = {}
         for i in range(len(lessons)):
             link = lessons[i].find_elements_by_xpath('a')[0]
-            #print(link.get_attribute('href'))
-            curLesson = link.get_attribute('title')                                             # get lesson's name
-            #print(curLesson)
+            # print(link.get_attribute('href'))
+            cur_lesson = link.get_attribute('title')                                             # 获取课程名字
+            # print(curLesson)
             link = link.get_attribute('href')
-            
-            self.browser.get(link)                                                              # switch to the lesson
+
+            self.browser.get(link)                                                              # 切换到该课程页面
             locator = (By.XPATH, '//*[@id="toolMenu"]/ul')
+            # noinspection PyBroadException
             try:
-                WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))       
+                WebDriverWait(self.browser, 5).until(Ec.presence_of_element_located(locator))
             except Exception:
                 print('timeout or switch to an unknown page')
                 return -4
-            workButtons = self.browser.find_element_by_xpath('//*[@id="toolMenu"]/ul')
-            workButtons = workButtons.find_elements_by_tag_name('a')
-            workButton = 0
-            for each in workButtons:
+            work_buttons = self.browser.find_element_by_xpath('//*[@id="toolMenu"]/ul')
+            work_buttons = work_buttons.find_elements_by_tag_name('a')
+            work_button = 0
+            for each in work_buttons:
                 if each.get_attribute('title') == '在线发布、提交和批改作业':
-                    workButton = each
+                    work_button = each
                     break
-            if workButton == 0:
-                self.browser.switch_to.default_content()                                            # reget the lessons
-                curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
-                lessons = curLessons.find_elements_by_xpath('li')
+            if work_button == 0:
+                self.browser.switch_to.default_content()                                            # 重新获取下一个课程
+                cur_lessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
+                lessons = cur_lessons.find_elements_by_xpath('li')
                 continue
 
-            workButton.click()
+            work_button.click()
             frame = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[2]/div[3]/div/div/div[2]/iframe')
-            self.browser.switch_to.frame(frame)                                                 # switch to another frame to get datas  
+            self.browser.switch_to.frame(frame)                                                 # 切换到另一个frame获取数据
             locator = (By.XPATH, '/html/body/div')
+            # noinspection PyBroadException
             try:
-                WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))       
+                WebDriverWait(self.browser, 5).until(Ec.presence_of_element_located(locator))
             except Exception:
                 print('timeout or switch to an unknown page')
                 return -4
-            try: 
-                self.browser.find_element_by_xpath('/html/body/div/form/table')                 # judge if there are some jobs
+            # noinspection PyBroadException
+            try:
+                self.browser.find_element_by_xpath('/html/body/div/form/table')                 # 检查是否存在作业
             except Exception:
+                # noinspection PyBroadException
                 try:
                     self.browser.find_element_by_xpath('/html/body/div/p')
-                    #print('no homework founded\n')
-                    ddls[curLesson] = []
+                    # print('no homework founded\n')
+                    ddls[cur_lesson] = []
 
                     self.browser.switch_to.default_content()
                     time.sleep(0.5)
-                    curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
-                    lessons = curLessons.find_elements_by_xpath('li')                           # do not have any jobs
+                    cur_lessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
+                    lessons = cur_lessons.find_elements_by_xpath('li')                           # 如果没有作业
 
                     continue
-                except:
+                except Exception:
                     print('timeout or switch to an unknown page')
                     return -4
             table = self.browser.find_element_by_xpath('/html/body/div/form/table')
-            tableRows = table.find_elements_by_tag_name('tr')[1:]
+            table_rows = table.find_elements_by_tag_name('tr')[1:]
             jobs = []
-            for row in tableRows:                                                               # get the information of the job
+            for row in table_rows:                                                               # 获取作业信息
                 datas = row.find_elements_by_tag_name('td')[1:]
                 work = []
                 if len(datas) >= 1:
                     title = datas[0].find_elements_by_tag_name('a')
-                    if len(title) == 0:
-                        title = datas[0].find_elements_by_tag_name('span')[0]
-                    else:
+                    if title:
                         title = title[0]
+                    else:
+                        title = datas[0].find_elements_by_tag_name('span')[0]
                     title = title.text
-                    #print(title)
+                    # print(title)
                     work.append(title)
                 if len(datas) >= 2:
                     status = datas[1].text
-                    #print(status)
+                    # print(status)
                     work.append(status)
                 if len(datas) >= 3:
                     opendate = datas[2].text
-                    #print(opendate)
+                    # print(opendate)
                     work.append(opendate)
                 if len(datas) >= 4:
                     duedate = datas[3].find_elements_by_tag_name('span')
-                    if len(duedate) == 0:
-                        duedate = datas[3].text
-                    else:
+                    if duedate:
                         duedate = duedate[0].text
-                    #print(duedate)
+                    else:
+                        duedate = datas[3].text
+                    # print(duedate)
                     work.append(duedate)
                 while len(work) < 4:
                     work.append('')
-                #print()
+                # print()
                 jobs.append(work)
-            ddls[curLesson] = jobs
+            ddls[cur_lesson] = jobs
 
-            self.browser.switch_to.default_content()                                            # reget the lessons
+            self.browser.switch_to.default_content()                                            # 重新获取下一个课程
             time.sleep(0.5)
-            curLessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
-            lessons = curLessons.find_elements_by_xpath('li')
-        return ddls  
+            cur_lessons = self.browser.find_element_by_xpath('//*[@id="otherSitesCategorWrap"]/ul[1]')
+            lessons = cur_lessons.find_elements_by_xpath('li')
+        return ddls
 
-    def getId(self):
+    def get_id(self):
         if self.status != 0:
             return self.status
+        # noinspection PyBroadException
         try:
-            nameButton = self.browser.find_element_by_xpath('//*[@id="toolMenu"]/ul/li[9]/a')
+            name_button = self.browser.find_element_by_xpath('//*[@id="toolMenu"]/ul/li[9]/a')
         except Exception:
             print('timeout or switch to an unknown page')
             return -4
-        nameButton.click()
+        name_button.click()
         frame = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[2]/div[3]/div/div/div[2]/iframe')
-        self.browser.switch_to.frame(frame)                                                 # switch to another frame to get datas
+        self.browser.switch_to.frame(frame)                                                 # 切换到另一个frame获取数据
         time.sleep(0.5)
-        stuId = self.browser.find_element_by_xpath('//*[@id="userViewForm"]/fieldset/div[1]')
-        stuId = stuId.text
+        stu_id = self.browser.find_element_by_xpath('//*[@id="userViewForm"]/fieldset/div[1]')
+        stu_id = stu_id.text
         self.browser.switch_to.default_content()
         time.sleep(0.5)
-        return stuId.split(' ')[1]
-        
+        return stu_id.split(' ')[1]
 
     def quit(self):
-        self.browser.quit()         
+        self.browser.quit()
 
 
-# for test
+# 测试用
 if __name__ == "__main__":
-    userName = input('Your username: ') 
-    password = input('Your password: ')
-    courseReq(userName, password)
+    USR_NAME = input('Your username: ')
+    PW = input('Your password: ')
+    CourseRequest(USR_NAME, PW)

@@ -1,63 +1,53 @@
-from data import *
-from multiprocessing import Queue
-import requests
 import traceback
 import sys
-from P import *
+import json
+import time
+from datetime import datetime
+import requests
+from data import DataReq
+from password_utils import Aescrypt, KEY, MODEL, ENCODE_
 
-host = 'http://114.115.208.32:8000/'                  
-headers = {'Content-Type': 'application/json'}
+HOST = 'http://114.115.208.32:8000/'
+HEADERS = {'Content-Type': 'application/json'}
 
 
 def decrypt_string(message):
-    pr = aescrypt(key,model,'',encode_)
-    decode_result = pr.aesdecrypt(message)
+    script = Aescrypt(KEY, MODEL, '', ENCODE_)
+    decode_result = script.aesdecrypt(message)
     return decode_result
 
-'''
-def decrypt_string(message):
-    decode_result = ""
-    for char in message:
-        char_int = ord(char)                          # 返回ascall值
-        if  (char_int >= 97) & (char_int <= 122):     # 小写字母
-            decode_result += chr(122-(char_int-97))
-        elif (char_int >= 69) & (char_int <= 78):     # E-N
-            decode_result += chr(57-char_int+69)
-        elif (char_int >= 48) & (char_int <= 57):     # 0-9
-            decode_result += chr(69+char_int-48)
-        else:
-            decode_result += char
-    return decode_result
-'''
 
 def encrypt_string(message):
-    pr = aescrypt(key,model,'',encode_)
-    en_text = pr.aesencrypt(message)
+    script = Aescrypt(KEY, MODEL, '', ENCODE_)
+    en_text = script.aesencrypt(message)
     return en_text
 
-def sendError(error_id, usr, pw):
-    encode_result = encrypt_string(pw)
-    url = host + 'delete/'
-    jsons = {}
-    jsons['usr_name'] = usr
-    jsons['password'] = encode_result
-    jsons = json.dumps(jsons, ensure_ascii=False)      # get the json package
+
+def send_error(error_id, usr, passw):
+    encode_result = encrypt_string(passw)
+    url = HOST + 'delete/'
+    jsons = {'usr_name': usr, 'password': encode_result}
+    jsons = json.dumps(jsons, ensure_ascii=False)      # 获取json包
+    print('send error ' + str(error_id))
+    # noinspection PyBroadException
     try:
-        requests.post(url=url, headers=headers, data=jsons.encode('utf-8'))
+        requests.post(url=url, headers=HEADERS, data=jsons.encode('utf-8'))
     except Exception:
         print('send error req fail')
         print(traceback.format_exc())
         return 0
     return 1
 
-def getAllStu(insectId):
-    '''
-    get all the students' usr_name and password
-    return jsons -> success
-    return -1 -> req fail
-    '''
-    url = host + 'login/'
-    params = {'password' : '123', 'number' : insectId}
+
+def get_all_stu(insect_id):
+    """
+    获取所有需要爬取的学生的账号密码
+    返回 jsons -> 成功
+    返回 -1 -> 请求失败
+    """
+    url = HOST + 'login/'
+    params = {'password': '123', 'number': insect_id}
+    # noinspection PyBroadException
     try:
         req = requests.get(url, verify=False, params=params)
     except Exception:
@@ -66,354 +56,372 @@ def getAllStu(insectId):
     jsons = req.json()
     return jsons
 
-def reqSchedule(dataReq):
-    '''
-    get the schedule's json and post it to the back 
-    return 1 -> success
-    return 0 -> web fail
-    return -5 -> req fail
-    return -6 -> ip is banned
-    '''
-    schedule = dataReq.request('s')
-    # due with the errors
+
+def req_schedule(data_req):
+    """
+    获取学生课表并post给后端
+    返回  1 -> 成功
+    返回  0 -> 网络错误
+    返回 -5 -> post错误
+    返回 -6 -> ip被封
+    返回 -7 -> 用户名错误或者网站要求输入验证码
+    返回 -8 -> 密码错误
+    返回 -9 -> 用户名或密码为空
+    返回-10 -> 账号被锁
+    """
+    schedule = data_req.request('s')
+    # 错误处理
     if schedule == -1:
         print('usr_name or password is wrong\n')
         return 0
-    elif schedule == -2:
+    if schedule == -2:
         print('there is something wrong on network\n')
         return 0
-    elif schedule == -3:
-        print('unknown errors\n')  
+    if schedule == -3:
+        print('unknown errors\n')
         return 0
-    elif schedule == -4:
-        print('error on the jiaowu web\n')  
+    if schedule == -4:
+        print('error on the jiaowu web\n')
         return 0
-    elif schedule == -5:
+    if schedule == -5:
         return -6
-    elif schedule == -6 or schedule == -7 or schedule == -8 or schedule == -9:
-       return schedule - 1
-    scheduleUrl = host + 'timetable/'
+    if schedule in (-6, -7, -8, -9):
+        return schedule - 1
+    schedule_url = HOST + 'timetable/'
+    # noinspection PyBroadException
     try:
-        requests.post(url=scheduleUrl, headers=headers, data=schedule.encode('utf-8'))
+        requests.post(url=schedule_url, headers=HEADERS, data=schedule.encode('utf-8'))
     except Exception:
         print('req fail')
         print(traceback.format_exc())
         return -5
     return 1
 
-def reqGrades(dataReq):
-    '''
-    get the grade's json and post it to the back 
-    return 1 -> success
-    return 0 -> web fail
-    return -5 -> req fail
-    return -6 -> ip is banned
-    '''
-    grades = dataReq.request('g')
-    # due with the errors
+
+def req_grades(data_req):
+    """
+    获取学生成绩并post给后端
+    返回  1 -> 成功
+    返回  0 -> 网络错误
+    返回 -5 -> post错误
+    返回 -6 -> ip被封
+    返回 -7 -> 用户名错误或者网站要求输入验证码
+    返回 -8 -> 密码错误
+    返回 -9 -> 用户名或密码为空
+    返回-10 -> 账号被锁
+    """
+    grades = data_req.request('g')
+    # 错误处理
     if grades == -1:
         print('usr_name or password is wrong\n')
         return 0
-    elif grades == -2:
+    if grades == -2:
         print('there is something wrong on network\n')
         return 0
-    elif grades == -3:
-        print('unknown errors\n')  
+    if grades == -3:
+        print('unknown errors\n')
         return 0
-    elif grades == -4:
-        print('error on the jiaowu web\n')  
+    if grades == -4:
+        print('error on the jiaowu web\n')
         return 0
-    elif grades == -5:
+    if grades == -5:
         return -6
-    elif grades == -6 or grades == -7 or grades == -8 or grades == -9:
-       return grades - 1
-    gradesUrl = host + 'score/'
+    if grades in (-6, -7, -8, -9):
+        return grades - 1
+    grades_url = HOST + 'score/'
     for each in grades:
+        # noinspection PyBroadException
         try:
-            requests.post(url=gradesUrl, headers=headers, data=each.encode('utf-8'))
+            requests.post(url=grades_url, headers=HEADERS, data=each.encode('utf-8'))
         except Exception:
             print('req fail')
             print(traceback.format_exc())
             return -5
     return 1
 
-def reqDdl(dataReq):
-    '''
-    get the ddl's json and post it to the back 
-    return 1 -> success
-    return 0 -> web fail
-    return -5 -> req fail
-    return -6 -> ip is banned
-    '''
-    ddl = dataReq.request('d')
-    # due with the errors
+
+def req_ddl(data_req):
+    """
+    获取学生ddl信息并post给后端
+    返回  1 -> 成功
+    返回  0 -> 网络错误
+    返回 -5 -> post错误
+    返回 -6 -> ip被封
+    返回 -7 -> 用户名错误或者网站要求输入验证码
+    返回 -8 -> 密码错误
+    返回 -9 -> 用户名或密码为空
+    返回-10 -> 账号被锁
+    """
+    ddl = data_req.request('d')
+    # 错误处理
     if ddl == -1:
         print('usr_name or password is wrong\n')
         return 0
-    elif ddl == -2:
+    if ddl == -2:
         print('there is something wrong on network\n')
         return 0
-    elif ddl == -3:
-        print('unknown errors\n')  
+    if ddl == -3:
+        print('unknown errors\n')
         return 0
-    elif ddl == -4:
-        print('error on the course web\n')  
+    if ddl == -4:
+        print('error on the course web\n')
         return 0
-    elif ddl == -5:
+    if ddl == -5:
         return -6
-    elif ddl == -6 or ddl == -7 or ddl == -8 or ddl == -9:
-       return ddl - 1
-    ddlUrl = host + 'ddl/'
+    if ddl in (-6, -7, -8, -9):
+        return ddl - 1
+    ddl_url = HOST + 'ddl/'
+    # noinspection PyBroadException
     try:
-        requests.post(url=ddlUrl, headers=headers, data=ddl.encode('utf-8'))
-        #ddlUrl = ddlUrl
+        requests.post(url=ddl_url, headers=HEADERS, data=ddl.encode('utf-8'))
+        # ddlUrl = ddlUrl
     except Exception:
         print('req fail')
         print(traceback.format_exc())
         return -5
     return 1
 
-def reqEmptyClassroom(dataReq):
-    '''
-    get the empty classroom's json and post it to the back 
-    return 1 -> success
-    return 0 -> web fail
-    return -5 -> req fail
-    return -6 -> ip is banned
-    '''
-    emptyClassroom = dataReq.request('e')
-    # due with the errors
-    if emptyClassroom == -1:
+
+def req_empty_classroom(data_req):
+    """
+    获取空教室信息并post给后端
+    返回  1 -> 成功
+    返回  0 -> 网络错误
+    返回 -5 -> post错误
+    返回 -6 -> ip被封
+    返回 -7 -> 用户名错误或者网站要求输入验证码
+    返回 -8 -> 密码错误
+    返回 -9 -> 用户名或密码为空
+    返回-10 -> 账号被锁
+    """
+    empty_classroom = data_req.request('e')
+    # 错误处理
+    if empty_classroom == -1:
         print('usr_name or password is wrong\n')
         return 0
-    elif emptyClassroom == -2:
+    if empty_classroom == -2:
         print('there is something wrong on network\n')
         return 0
-    elif emptyClassroom == -3:
-        print('unknown errors\n')  
+    if empty_classroom == -3:
+        print('unknown errors\n')
         return 0
-    elif emptyClassroom == -4:
-        print('error on the jiaowu web\n')  
+    if empty_classroom == -4:
+        print('error on the jiaowu web\n')
         return 0
-    elif emptyClassroom == -5:
+    if empty_classroom == -5:
         return -6
-    elif emptyClassroom == -6 or emptyClassroom == -7 or emptyClassroom == -8 or emptyClassroom == -9:
-       return emptyClassroom - 1
-    emptyClassroomUrl = host + 'classroom/'
-    for each in emptyClassroom:
-        returnJson = json.dumps(each, ensure_ascii=False)
+    if empty_classroom in (-6, -7, -8, -9):
+        return empty_classroom - 1
+    empty_classroom_url = HOST + 'classroom/'
+    for each in empty_classroom:
+        return_json = json.dumps(each, ensure_ascii=False)
+        # noinspection PyBroadException
         try:
-            requests.post(url=emptyClassroomUrl, headers=headers, data=returnJson.encode('utf-8'))
+            requests.post(url=empty_classroom_url, headers=HEADERS, data=return_json.encode('utf-8'))
         except Exception:
             print(traceback.format_exc())
             print('req fail')
             return -5
     return 1
 
-def dealReqs():
-    '''
-    due with the reqs from the background
-    return 1 -> success
-    return 0 -> no req exists
-    return -1 -> failed
-    return -2 -> empty classroom req
-    return -5 -> req get fail
-    return -6 -> req post fail
-    return -7 -> IP is banned
-    return -8, -9, -10, -11 -> login errors
-    '''
-    askUrl = host + 'request/'
+
+def deal_reqs():
+    """
+    处理后端发来的临时请求
+    返回 1 -> 成功
+    返回 0 -> 当前不存在临时请求
+    返回 -1 -> 失败
+    返回 -2 -> 暂时不支持空教室请求
+    返回 -5 -> 与后端的get失败
+    返回 -6 -> 与后端的post失败
+    返回 -7 -> IP被封
+    返回 -8 -> 用户名错误或者网站要求输入验证码
+    返回 -9 -> 密码错误
+    返回-10 -> 用户名或密码为空
+    返回-11 -> 账号被锁
+    """
+    ask_url = HOST + 'request/'
+    # noinspection PyBroadException
     try:
-        req = requests.get(askUrl)
+        req = requests.get(ask_url)
     except Exception:
         print('req get fail')
         return -5
-        
-    
+
     if req.status_code == 204:                  # if there is not any reqs
         return 0
 
-    # due with the reqs
+    # 错误处理
     jsons = req.json()
     data = jsons
     user = data['usr_name']
-    password = decrypt_string(data['password'])
-    reqType = data['req_type']
-    dataReq = DataReq(user, password)
+    passw = decrypt_string(data['password'])
+    req_type = data['req_type']
+    data_req = DataReq(user, passw)
     success = 0
-    returnId = 1
-    if reqType == 's':
+    return_id = 1
+    if req_type == 's':
         i = 0
         while success != 1 and i < 3:
-            success = reqSchedule(dataReq)
+            success = req_schedule(data_req)
             if success == -6:
-                returnId = -7
-            if success == -7 or success == -8 or success == -10:
-                sendError(success, user, password)
+                return_id = -7
+            if success in (-7, -8, -10):
+                send_error(success, user, passw)
                 return success - 1
             i += 1
-    if reqType == 'g':
+    if req_type == 'g':
         i = 0
         while success != 1 and i < 3:
-            success = reqGrades(dataReq)
+            success = req_grades(data_req)
             if success == -6:
-                returnId = -7
-            if success == -7 or success == -8 or success == -10:
-                sendError(success, user, password)
+                return_id = -7
+            if success in (-7, -8, -10):
+                send_error(success, user, passw)
                 return success - 1
             i += 1
-    if reqType == 'd':
+    if req_type == 'd':
         i = 0
         while success != 1 and i < 3:
-            success = reqDdl(dataReq)
+            success = req_ddl(data_req)
             if success == -6:
-                returnId = -7
-            if success == -7 or success == -8 or success == -10:
-                sendError(success, user, password)
+                return_id = -7
+            if success in (-7, -8, -10):
+                send_error(success, user, passw)
                 return success - 1
             i += 1
-    '''
-    it cost too much time
-    so we won't let it happen
-    '''
-    if reqType == 'e':
-        #reqEmptyClassroom(dataReq)
+
+    # 空教室查询花费时间过长
+    # 暂时不支持这种情况
+
+    if req_type == 'e':
+        # reqEmptyClassroom(dataReq)
         return -2
     if success == 0:
-        returnId = -1
+        return_id = -1
+    # noinspection PyBroadException
     try:
-        if returnId < 0:
+        if return_id < 0:
             jsons = json.dumps(jsons, ensure_ascii=False)
-            requests.post(url=askUrl, headers=headers, data=jsons.encode('utf-8'))
+            requests.post(url=ask_url, headers=HEADERS, data=jsons.encode('utf-8'))
         else:
-            newJson = {}
-            newJson['req_id'] = jsons['req_id']
-            jsons = json.dumps(newJson, ensure_ascii=False)
-            requests.post(url=askUrl, headers=headers, data=jsons.encode('utf-8'))
+            new_json = {'req_id': jsons['req_id']}
+            jsons = json.dumps(new_json, ensure_ascii=False)
+            requests.post(url=ask_url, headers=HEADERS, data=jsons.encode('utf-8'))
     except Exception:
         print('req post fail')
         print(traceback.format_exc())
         return -6
-    return returnId
+    return return_id
+
 
 def insect_other(insect_id):
-    '''
-    the main func
-    circle and circle again to get the other datas
-    '''
+    """
+    循环获取课表、成绩（空教室）信息
+    """
     print('爬虫部署成功！')
     print('将进行课表、成绩、空教室的查询')
     while True:
         print('开始新一轮循环')
-        now = datetime.now()                                # get the cur time
-        '''
-        this part will start to get the data at 3:00 am, but it cannot start at this time,
-        because more situations need to be discussed and considered
+        now = datetime.now()                                # 获取当前时间
 
-        time_begin = datetime.strptime(str(datetime.now().date()) + '3:00',"%Y-%m-%d%H:%M")
-        time_end = datetime.strptime(str(datetime.now().date()) + '3:30',"%Y-%m-%d%H:%M")
-        while now > time_end or now < time_begin:
-            dealReqs()                                      # deal with the reqs in the waiting time
-            time.sleep(5)                                   # avoid the cpu from circling all the time
-            now = datetime.now()
-        '''
-        allStu = getAllStu(insect_id)
-        if allStu == -1:
+        all_stu = get_all_stu(insect_id)
+        if all_stu == -1:
             continue
-        for j in range(len(allStu)):                        # flush all the students' datas
-            usr = allStu[j]['usr_name']
-            pw = decrypt_string(allStu[j]['usr_password'])
-            curDataReq = DataReq(usr, pw)
+        for j in range(len(all_stu)):                        # 刷新学生信息
+            usr = all_stu[j]['usr_name']
+            passw = decrypt_string(all_stu[j]['usr_password'])
+            cur_data_req = DataReq(usr, passw)
             if j == 0:
                 success = 0
                 i = 0
                 while success != 1 and i < 3:
-                    #success = reqEmptyClassroom(curDataReq) # empty classroom checked once
+                    # success = reqEmptyClassroom(curDataReq) # 空教室只查询一次
                     if success == -6:
-                        time.sleep(630)                     # ip is banned, wait for 10 mins
+                        time.sleep(630)                     # ip被封, 等待10分钟
                     i += 1
-            #dealReqs()
+            # dealReqs()
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqSchedule(curDataReq)   
+                success = req_schedule(cur_data_req)
                 if success == -6:
-                    time.sleep(630)                        # ip is banned, wait for 10 mins  
-                if success == -7 or success == -8 or success == -10:
-                    sendError(success, usr, pw)
+                    time.sleep(630)                        # ip被封, 等待10分钟
+                if success in (-7, -8, -10):
+                    send_error(success, usr, passw)
                     break
                 i += 1
-            if success == -7 or success == -8 or success == -10:
+            if success in (-7, -8, -10):
                 continue
-            #dealReqs()
+            # dealReqs()
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqGrades(curDataReq)          
+                success = req_grades(cur_data_req)
                 if success == -6:
-                    time.sleep(630)                        # ip is banned, wait for 10 mins
-                if success == -7 or success == -8 or success == -10:
-                    sendError(success, usr, pw)
+                    time.sleep(630)                        # ip被封, 等待10分钟
+                if success in (-7, -8, -10):
+                    send_error(success, usr, passw)
                     break
-                i += 1  
-            if success == -7 or success == -8 or success == -10:
-                continue        
-            #dealReqs()
+                i += 1
+            if success in (-7, -8, -10):
+                continue
+            # dealReqs()
         print('本轮循环完成，进入待机状态')
         while True:
-            afterProc = datetime.now()                      # get the cur time
-            deltatime = afterProc - now
+            after_proc = datetime.now()                      # 获取当前时间
+            deltatime = after_proc - now
             seconds = deltatime.total_seconds()
-            limitTime = 60 * 60 * 24
-            if seconds >= limitTime:                        # will not flush the datas until 24h later
+            limit_time = 60 * 60 * 24
+            if seconds >= limit_time:                        # 24小时后重新开始循环
                 break
-            #dealReqs()                                     # deal with the reqs in the waiting time
-            time.sleep(10)                                  # avoid the cpu from circling all the time
+            # dealReqs()
+            time.sleep(10)                                  # 防止轮询占用大量cpu资源
+
 
 def insect_ddl(insect_id):
-    '''
-    the main func
-    circle and circle again to get the ddl datas
-    '''
+    """
+    循环获取ddl信息
+    """
     print('爬虫部署成功！')
     print('将进行ddl的获取，刷新间隔极少，为60s')
     while True:
         print('开始新一轮循环')
-        allStu = getAllStu(insect_id)
-        if allStu == -1:
+        all_stu = get_all_stu(insect_id)
+        if all_stu == -1:
             continue
-        for j in range(len(allStu)):                        # flush all the students' datas
-            print('当前总人数：' + str(len(allStu)))
+        for j in range(len(all_stu)):                        # 刷新学生信息
+            print('当前总人数：' + str(len(all_stu)))
             print('当前爬取学生序号：' + str(j + 1))
-            usr = allStu[j]['usr_name']
-            pw = decrypt_string(allStu[j]['usr_password'])
-            curDataReq = DataReq(usr, pw)
+            usr = all_stu[j]['usr_name']
+            passw = decrypt_string(all_stu[j]['usr_password'])
+            cur_data_req = DataReq(usr, passw)
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = reqDdl(curDataReq)  
+                success = req_ddl(cur_data_req)
                 if success == -6:
-                    time.sleep(630)                        # ip is banned, wait for 10 mins  
-                if success == -7 or success == -8 or success == -10:
-                    sendError(success, usr, pw)
-                    break 
-                i += 1  
-            time.sleep(1)    
+                    time.sleep(630)                        # ip被封, 等待10分钟
+                if success in (-7, -8, -10):
+                    send_error(success, usr, passw)
+                    break
+                i += 1
+            time.sleep(1)
         print('本轮循环结束，将进行60s待机')
-        time.sleep(60)        
+        time.sleep(60)
 
-def insect_req(insect_id):
-    '''
-    the main func
-    circle and circle again to get the req datas
-    '''
+
+def insect_req():
+    """
+    循环执行后端发出的临时请求
+    """
     print('爬虫部署成功！')
     print('将进行消息队列的获取与处理')
     while True:
         print('开始新一轮循环')
-        success = dealReqs()
+        success = deal_reqs()
         if success == -7:
-            time.sleep(630)                     # ip is banned, wait for 10 mins
+            time.sleep(630)                     # ip被封, 等待10分钟
         if success == 1:
             print('处理成功')
         elif success == 0:
@@ -421,29 +429,30 @@ def insect_req(insect_id):
         else:
             print('处理出现问题，错误码为：' + str(success))
         print('本轮循环结束，将进行5s待机')
-        time.sleep(5)  
+        time.sleep(5)
 
-def testTime():
-    '''
-    test the time cost
-    result:
-    empty classroom: 0:20:41.309
-    schedule: 0:00:28.732
-    grades: 0.00.55.983
-    ddls: 0.00.52.933
-    '''
+
+def test_time():
+    """
+    计算耗时
+    结果:
+    空教室查询: 0:20:41.309
+    课表查询: 0:00:28.732
+    成绩查询: 0.00.55.983
+    ddl查询: 0.00.52.933
+    """
     usr = input('user: ')
-    pw = input('password: ')
-    curDataReq = DataReq(usr, pw)
-    now = datetime.now() 
-    reqEmptyClassroom(curDataReq)   
-    enow = datetime.now() 
-    reqSchedule(curDataReq)
-    snow = datetime.now() 
-    reqGrades(curDataReq)
-    gnow = datetime.now() 
-    reqDdl(curDataReq)
-    dnow = datetime.now() 
+    passw = input('password: ')
+    cur_data_req = DataReq(usr, passw)
+    now = datetime.now()
+    req_empty_classroom(cur_data_req)
+    enow = datetime.now()
+    req_schedule(cur_data_req)
+    snow = datetime.now()
+    req_grades(cur_data_req)
+    gnow = datetime.now()
+    req_ddl(cur_data_req)
+    dnow = datetime.now()
     deltatime = enow - now
     print('empty ' + str(deltatime.total_seconds()))
     print(deltatime)
@@ -458,28 +467,31 @@ def testTime():
     print(deltatime)
 
 
-# start the program                
+# 程序开始执行
 if __name__ == '__main__':
-    #testTime()                                 # test the average cost time
+    # testTime()                                 # 计算耗时
     if len(sys.argv) != 3:
         print('请输入正确参数，-d 整数：启动ddl爬虫，-o 整数：启动其他爬虫, -r 整数：启动消息队列')
-    elif sys.argv[1] == '-d':                     # get the ddl data
+    elif sys.argv[1] == '-d':                     # 获取ddl信息
         while True:
+            # noinspection PyBroadException
             try:
                 insect_ddl(int(sys.argv[2]))
-            except Exception as e:
+            except Exception as err:
                 print(traceback.format_exc())
-    elif sys.argv[1] == '-o':                   # get the schedule, grade and emptyclassroom(current can not do that) data
+    elif sys.argv[1] == '-o':                   # 获取课表和成绩信息
         while True:
+            # noinspection PyBroadException
             try:
                 insect_other(int(sys.argv[2]))
-            except Exception as e:
+            except Exception as err:
                 print(traceback.format_exc())
-    elif sys.argv[1] == '-r':                   # get the schedule, grade and ddl req data
+    elif sys.argv[1] == '-r':                   # 处理后端的临时请求
         while True:
+            # noinspection PyBroadException
             try:
-                insect_req(int(sys.argv[2]))
-            except Exception as e:
+                insect_req()
+            except Exception as err:
                 print(traceback.format_exc())
     else:
         print('请输入正确参数，-d：启动ddl爬虫，-o：启动其他爬虫, -r 整数：启动消息队列')

@@ -1,0 +1,6 @@
+requests==2.23.0
+beautifulsoup4==4.9.0
+pycryptodome==3.9.7
+pylint==2.5.2
+selenium==3.141.0
+lxml==4.5.0

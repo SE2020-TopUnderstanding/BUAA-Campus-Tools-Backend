@@ -1,301 +1,292 @@
-from jiaowu import *
-from course import *
 import traceback
-from P import *
+import json
+from datetime import datetime, timedelta
+from jiaowu import JiaoWuReq
+from course import CourseRequest
+from password_utils import Aescrypt, KEY, MODEL, ENCODE_
+
 
 def encrypt_string(message):
-    pr = aescrypt(key,model,'',encode_)
-    en_text = pr.aesencrypt(message)
+    script = Aescrypt(KEY, MODEL, '', ENCODE_)
+    en_text = script.aesencrypt(message)
     return en_text
 
-class DataReq():
-    '''
-    this class is goint to arrange the data 
-    '''
-    def __init__(self, userName, password):
-        self.userName = userName
-        self.password = password
 
-    def request(self, requestType):
-        '''
-        catch all the reqs 
-        get and sort the datas
-        requestType: {'d':'ddls', 'g':'grades', 'e':'empty classrooms', 's':'schedule'}
-        '''
-        print('start to get the data, usr_name: ' + self.userName)
-        print('requestType: ' + requestType)
-        stuId = ''
-        if requestType == 'd':
-            getStuId = courseReq(self.userName, self.password)
-            stuId = getStuId.getId()
+class DataReq:
+    """
+    这个类对爬取的数据进行处理
+    """
+    def __init__(self, user_name, pw):
+        self.usr_name = user_name
+        self.password = pw
+
+    def request(self, request_type):
+        """
+        获取所有的查询请求
+        爬取信息
+        请求格式: {'d':'ddl查询', 'g':'成绩查询', 'e':'空教室查询', 's':'课表查询'}
+        """
+        print('start to get the data, usr_name: ' + self.usr_name)
+        print('requestType: ' + request_type)
+
+        if request_type == 'd':
+            get_stu_id = CourseRequest(self.usr_name, self.password)      # 获取该学生的学号
+            stu_id = get_stu_id.get_id()
         else:
-            getStuId = jiaoWuReq(self.userName, self.password)          # get the student's id
-            stuId = getStuId.getId()
-        print('studentId: ' + str(stuId))
-        getStuId.quit()
-        
-        if stuId == -5:
+            get_stu_id = JiaoWuReq(self.usr_name, self.password)          # 获取该学生的学号
+            stu_id = get_stu_id.get_id()
+        print('studentId: ' + str(stu_id))
+        get_stu_id.quit()
+
+        if stu_id == -5:
             print('something wrong')
             print('IP is banned')
-            return stuId
-        if stuId == -1 or stuId == -2 or stuId == -3 or stuId == -4 or stuId == '':    # if there is something wrong
+            return stu_id
+        if stu_id in (-1, -2, -3, -4, ''):                                # 如果出现错误
             print('something wrong')
-            print('usr_name: ' + self.userName)
+            print('usr_name: ' + self.usr_name)
             print('requestType: ' + 'getStuId')
-            return stuId
-        elif stuId == -6:
+            return stu_id
+        if stu_id == -6:
             print('something wrong')
             print('usr_name is wrong or there is a CAPTCHA')
-            return stuId
-        elif stuId == -7:
+            return stu_id
+        if stu_id == -7:
             print('something wrong')
             print('password is wrong')
-            return stuId
-        elif stuId == -8:
+            return stu_id
+        if stu_id == -8:
             print('something wrong')
             print('usr_name or password is empty')
-            return stuId
-        elif stuId == -9:
+            return stu_id
+        if stu_id == -9:
             print('something wrong')
             print('account is locked')
-            return stuId
-        stuId = encrypt_string(stuId)
-        if requestType == 'd':                                          # get ddl
-            course = courseReq(self.userName, self.password)
-            ddls = course.getDdl()
+            return stu_id
+        stu_id = encrypt_string(stu_id)
+        if request_type == 'd':                                          # 获取ddl信息
+            course = CourseRequest(self.usr_name, self.password)
+            ddls = course.get_ddl()
             course.quit()
-            if ddls == -1 or ddls == -2 or ddls == -3 or ddls == -4:    # if there is something wrong
+            if ddls in (-1, -2, -3, -4):    # 如果出现错误
                 print('something wrong')
-                print('usr_name: ' + self.userName)
+                print('usr_name: ' + self.usr_name)
                 print('requestType: ddl')
                 return ddls
-            elif ddls == -5:
+            if ddls == -5:
                 print('something wrong')
                 print('IP is banned')
                 return ddls
-            elif ddls == -6:
+            if ddls == -6:
                 print('something wrong')
                 print('usr_name is wrong or there is a CAPTCHA')
                 return ddls
-            elif ddls == -7:
+            if ddls == -7:
                 print('something wrong')
                 print('password is wrong')
                 return ddls
-            elif ddls == -8:
+            if ddls == -8:
                 print('something wrong')
                 print('usr_name or password is empty')
                 return ddls
-            elif ddls == -9:
+            if ddls == -9:
                 print('something wrong')
                 print('account is locked')
                 return ddls
-            elif ddls == -10:
-                ddls = {}
-                ddls['student_id'] = stuId
-                wrongList = []
-                wrongDict = {}
+            if ddls == -10:
+                ddls = {'student_id': stu_id}
+                wrong_list = []
+                wrong_dict = {}
+                message = '抱歉，我们暂时无法获取您的ddl信息。\n为解决此问题，请在课程中心的用户偏好标签页面保证您所需' \
+                          '爬取的课程都属于收藏站点或活跃站点，并且活跃站点不要为空'
                 content = []
-                contentDict = {}
-                contentDict['ddl'] = ''
-                contentDict['homework'] = '抱歉，我们暂时无法获取您的ddl信息。\n为解决此问题，请在课程中心的用户偏好标签页面保证您所需爬取的课程都属于收藏站点或活跃站点，并且活跃站点不要为空'
-                contentDict['state'] = '错误'
-                content.append(contentDict)
-                wrongDict['name'] = '错误'
-                wrongDict['content'] = content
-                wrongList.append(wrongDict)
-                ddls['ddl'] = wrongList
-                ddls = json.dumps(ddls, ensure_ascii=False)            # get the json package
+                content_dict = {'ddl': '',
+                                'homework': message,
+                                'state': '错误'}
+                content.append(content_dict)
+                wrong_dict['name'] = '错误'
+                wrong_dict['content'] = content
+                wrong_list.append(wrong_dict)
+                ddls['ddl'] = wrong_list
+                ddls = json.dumps(ddls, ensure_ascii=False)            # 使用json打包
                 return ddls
-            else:
-                return self.dealWithDdl(ddls, stuId) 
-        elif requestType == 'g':                                        # get grades
-            jiaowu = jiaoWuReq(self.userName, self.password)
-            grades = jiaowu.getGrade()
+            return self.deal_with_ddl(ddls, stu_id)
+        if request_type == 'g':                                        # 获取成绩信息
+            jiaowu = JiaoWuReq(self.usr_name, self.password)
+            grades = jiaowu.get_grade()
             jiaowu.quit()
-            if grades == -1 or grades == -2 or grades == -3 or grades == -4:
+            if grades in (-1, -2, -3, -4):
                 print('something wrong')
-                print('usr_name: ' + self.userName)
+                print('usr_name: ' + self.usr_name)
                 print('requestType: grades')
                 return grades
-            elif grades == -5:
+            if grades == -5:
                 print('something wrong')
                 print('IP is banned')
                 return grades
-            elif grades == -6:
+            if grades == -6:
                 print('something wrong')
                 print('usr_name is wrong or there is a CAPTCHA')
                 return grades
-            elif grades == -7:
+            if grades == -7:
                 print('something wrong')
                 print('password is wrong')
                 return grades
-            elif grades == -8:
+            if grades == -8:
                 print('something wrong')
                 print('usr_name or password is empty')
                 return grades
-            elif grades == -9:
+            if grades == -9:
                 print('something wrong')
                 print('account is locked')
                 return grades
-            else:
-                return self.dealWithGrades(grades, stuId) 
-        elif requestType == 'e':                                        # get empty classrooms
-            jiaowu = jiaoWuReq(self.userName, self.password)
-            emptyClassroom = jiaowu.getEmptyClassroom()
+            return self.deal_with_grades(grades, stu_id)
+        if request_type == 'e':                                        # 获取空教室信息
+            jiaowu = JiaoWuReq(self.usr_name, self.password)
+            empty_classroom = jiaowu.get_empty_classroom()
             jiaowu.quit()
-            if emptyClassroom == -1 or emptyClassroom == -2 or emptyClassroom == -3 or emptyClassroom == -4:
+            if empty_classroom in (-1, -2, -3, -4):
                 print('something wrong')
-                print('usr_name: ' + self.userName)
+                print('usr_name: ' + self.usr_name)
                 print('requestType: empty calssroom')
-                return emptyClassroom
-            elif emptyClassroom == -5:
+                return empty_classroom
+            if empty_classroom == -5:
                 print('something wrong')
                 print('IP is banned')
-                return emptyClassroom
-            elif emptyClassroom == -6:
+                return empty_classroom
+            if empty_classroom == -6:
                 print('something wrong')
                 print('usr_name is wrong or there is a CAPTCHA')
-                return emptyClassroom
-            elif emptyClassroom == -7:
+                return empty_classroom
+            if empty_classroom == -7:
                 print('something wrong')
                 print('password is wrong')
-                return emptyClassroom
-            elif emptyClassroom == -8:
+                return empty_classroom
+            if empty_classroom == -8:
                 print('something wrong')
                 print('usr_name or password is empty')
-                return emptyClassroom
-            elif emptyClassroom == -9:
+                return empty_classroom
+            if empty_classroom == -9:
                 print('something wrong')
                 print('account is locked')
-                return emptyClassroom
-            else:
-                return self.dealWithEmptyClassroom(emptyClassroom) 
-        elif requestType == 's':                                        # get schedules
-            jiaowu = jiaoWuReq(self.userName, self.password)
-            schedules = jiaowu.getSchedule()
+                return empty_classroom
+            return self.deal_with_empty_classroom(empty_classroom)
+        if request_type == 's':                                        # 获取课表信息
+            jiaowu = JiaoWuReq(self.usr_name, self.password)
+            schedules = jiaowu.get_schedule()
             jiaowu.quit()
-            if schedules == -1 or schedules == -2 or schedules == -3 or schedules == -4:
+            if schedules in (-1, -2, -3, -4):
                 print('something wrong')
-                print('usr_name: ' + self.userName)
+                print('usr_name: ' + self.usr_name)
                 print('requestType: schedule')
                 return schedules
-            elif schedules == -5:
+            if schedules == -5:
                 print('something wrong')
                 print('IP is banned')
                 return schedules
-            elif schedules == -6:
+            if schedules == -6:
                 print('something wrong')
                 print('usr_name is wrong or there is a CAPTCHA')
                 return schedules
-            elif schedules == -7:
+            if schedules == -7:
                 print('something wrong')
                 print('password is wrong')
                 return schedules
-            elif schedules == -8:
+            if schedules == -8:
                 print('something wrong')
                 print('usr_name or password is empty')
                 return schedules
-            elif schedules == -9:
+            if schedules == -9:
                 print('something wrong')
                 print('account is locked')
                 return schedules
-            else:
-                return self.dealWithSchedules(schedules, stuId) 
+            return self.deal_with_schedules(schedules, stu_id)
 
-    def dealWithDdl(self, ddls, studentId):
-        '''
-        data sort for ddls
-        '''
-        aimJson = {}
-        aimJson['student_id'] = studentId
+    @staticmethod
+    def deal_with_ddl(ddls, student_id):
+        """
+        进行ddl信息的数据整理
+        """
+        aim_json = {'student_id': student_id}
         ddl = []
-        for lesson, allDdl in ddls.items():
-            curLessonDdl = {}
+        for lesson, all_ddl in ddls.items():
+            cur_lesson_ddl = {}
             content = []
-            for each in allDdl:                                         # get all the needed items
-                curDdl = {}
+            for each in all_ddl:                                         # 获取所有后端所需的数据
+                cur_ddl = {}
                 if len(each) >= 4:
-                    curDdl['ddl'] = each[3]
+                    cur_ddl['ddl'] = each[3]
                 else:
-                    curDdl['ddl'] = ''
-                curDdl['homework'] = each[0]
-                curDdl['state'] = each[1]
-                content.append(curDdl)
-            curLessonDdl['content'] = content
-            curLessonDdl['name'] = lesson
-            ddl.append(curLessonDdl)
-        aimJson['ddl'] = ddl
-        returnJson = json.dumps(aimJson, ensure_ascii=False)            # get the json package
-        '''
-        # for test
-        f = open('ddl.txt', 'a', encoding='utf-8')                     
-        f.write(returnJson)
-        f.close()
-        print(returnJson)
-        '''
-        return returnJson
-    
-    def dealWithGrades(self, oriGrades, studentId):
-        '''
+                    cur_ddl['ddl'] = ''
+                cur_ddl['homework'] = each[0]
+                cur_ddl['state'] = each[1]
+                content.append(cur_ddl)
+            cur_lesson_ddl['content'] = content
+            cur_lesson_ddl['name'] = lesson
+            ddl.append(cur_lesson_ddl)
+        aim_json['ddl'] = ddl
+        return_json = json.dumps(aim_json, ensure_ascii=False)            # 使用json打包
+
+        # 测试用
+        # f = open('ddl.txt', 'a', encoding='utf-8')
+        # f.write(returnJson)
+        # f.close()
+        # print(returnJson)
+
+        return return_json
+
+    @staticmethod
+    def deal_with_grades(ori_grades, student_id):
+        """
         data sort for grades
-        '''
+        """
         jsons = []
-        for i in range(len(oriGrades)):
-            aimGrades = []
+        for i in range(len(ori_grades)):
+            aim_grades = []
             semember = ''
-            for j in range(len(oriGrades[i])):
-                curData = oriGrades[i][j]
-                lessonCode = curData[3]                                 # get all the needed datas
-                lessonName = curData[4]
-                credit = curData[7]
-                mark = curData[9]
-                origin_grade = curData[10]
-                grades = curData[11]
-                semember = curData[1]
-                curInfo = []
-                curInfo.append(lessonCode)
-                curInfo.append(lessonName)
-                curInfo.append(credit)
-                curInfo.append(mark)
-                curInfo.append(origin_grade)
-                curInfo.append(grades)
-                aimGrades.append(curInfo)
-            
-            scheduleChart = {}
-            scheduleChart['student_id'] = studentId
-            scheduleChart['semester'] = semember
-            scheduleChart['info'] = aimGrades
-            returnJson = json.dumps(scheduleChart, ensure_ascii=False)  # get the json package
-            '''
-            # for test
-            f = open('grade.txt', 'a', encoding='utf-8')
-            f.write(returnJson)
-            f.close()
-            print(returnJson)
-            '''
-            jsons.append(returnJson)
+            for j in range(len(ori_grades[i])):
+                cur_data = ori_grades[i][j]
+                lesson_code = cur_data[3]                                 # 获取所有后端所需的数据
+                lesson_name = cur_data[4]
+                credit = cur_data[7]
+                mark = cur_data[9]
+                origin_grade = cur_data[10]
+                grades = cur_data[11]
+                semember = cur_data[1]
+                cur_info = [lesson_code, lesson_name, credit, mark, origin_grade, grades]
+                aim_grades.append(cur_info)
+
+            schedule_chart = {'student_id': student_id, 'semester': semember, 'info': aim_grades}
+            return_json = json.dumps(schedule_chart, ensure_ascii=False)   # 使用json打包
+
+            # 测试用
+            # f = open('grade.txt', 'a', encoding='utf-8')
+            # f.write(returnJson)
+            # f.close()
+            # print(returnJson)
+
+            jsons.append(return_json)
         return jsons
 
-    def dealWithEmptyClassroom(self, emptyClassroom):
-        '''
+    @staticmethod
+    def deal_with_empty_classroom(empty_classroom):
+        """
         data sort for empty classrooms
-        '''
-        aimJsons = []
-        for i in range(len(emptyClassroom)):
-            thisWeek = emptyClassroom[i]
-            curWeek = []
-            for m in range(7):
-                curWeek.append([])
-            for room, isEmpty in thisWeek.items():
-                campus = ''
+        """
+        aim_jsons = []
+        for i in range(len(empty_classroom)):
+            this_week = empty_classroom[i]
+            cur_week = []
+            for week in range(7):
+                cur_week.append([])
+            for room, is_empty in this_week.items():
                 teaching_building = ''
-                classroom = ''
-                if room[0] == 'J':                                      # get the campus
+                if room[0] == 'J':                                      # 获取校区
                     campus = '沙河校区'
                 else:
                     campus = '学院路校区'
                 classroom = room
-                if room[0] == 'J' and room[1] == '1':                   # get the building
+                if room[0] == 'J' and room[1] == '1':                   # 获取教学楼
                     teaching_building = '教一'
                 elif room[0] == 'J' and room[1] == '2':
                     teaching_building = '教二'
@@ -324,39 +315,36 @@ class DataReq():
                 elif room[0] == '主':
                     teaching_building = '主楼'
                 elif room[0] == 'A':
-                    teaching_building = '新主楼A座'   
+                    teaching_building = '新主楼A座'
                 elif room[0] == 'B':
-                    teaching_building = '新主楼B座'  
+                    teaching_building = '新主楼B座'
                 elif room[0] == 'C':
-                    teaching_building = '新主楼C座'    
+                    teaching_building = '新主楼C座'
                 elif room[0] == 'D':
-                    teaching_building = '新主楼D座'    
+                    teaching_building = '新主楼D座'
                 elif room[0] == 'E':
-                    teaching_building = '新主楼E座'    
+                    teaching_building = '新主楼E座'
                 elif room[0] == 'F':
-                    teaching_building = '新主楼F座'    
+                    teaching_building = '新主楼F座'
                 elif room[0] == 'G':
-                    teaching_building = '新主楼G座'   
+                    teaching_building = '新主楼G座'
                 elif room[0] == 'H':
-                    teaching_building = '新主楼H座'   
+                    teaching_building = '新主楼H座'
                 section = []
-                for j in range(len(isEmpty)):                           # get the date and section
-                    if j % 6 == 5:                                      # if it is end of a day                       
-                        if isEmpty[j] == 1:
+                for j in range(len(is_empty)):                          # 获取时间和节数
+                    if j % 6 == 5:                                      # 如果是这一天的最后一节
+                        if is_empty[j] == 1:
                             section.append(13)
                             section.append(14)
-                        dictCur = {}
-                        dictCur['campus'] = campus
-                        dictCur['teaching_building'] = teaching_building
-                        dictCur['classroom'] = classroom
+                        dict_cur = {'campus': campus, 'teaching_building': teaching_building, 'classroom': classroom}
                         tmp = str(section.copy())
                         tmp = tmp[:-1] + ',]'
-                        dictCur['section'] = tmp
-                        if len(section) > 0:
-                            curWeek[j // 6].append(dictCur)
+                        dict_cur['section'] = tmp
+                        if section:
+                            cur_week[j // 6].append(dict_cur)
                         section.clear()
-                    else:                                               # it is still in a single day
-                        if isEmpty[j] == 1:
+                    else:                                               # 如果不是这一天的最后一节
+                        if is_empty[j] == 1:
                             if j % 6 == 0:
                                 section.append(1)
                                 section.append(2)
@@ -374,159 +362,150 @@ class DataReq():
                             if j % 6 == 4:
                                 section.append(11)
                                 section.append(12)
-            for m in range(7):                                          # sort all the datas in a day
-                curDate = {}
-                days = i * 7 + m
-                originDay = datetime.strptime('2020-02-24',"%Y-%m-%d")
-                date = originDay + timedelta(days = days)
-                date = date.strftime("%Y-%m-%d")
-                curDate['date'] = date
-                curDate['classroom'] = curWeek[m].copy()
-                '''
-                # for test
-                f = open('empty.txt', 'a', encoding='utf-8')
-                f.write(str(curDate))
-                f.close()
-                print(curDate)
-                '''
-                aimJsons.append(curDate)                                # push this day to the list
-        return aimJsons
+            for week in range(7):                                             # 整理这一周的所有数据
+                cur_datedict = {}
+                days = i * 7 + week
+                origin_day = datetime.strptime('2020-02-24', "%Y-%m-%d")
+                cur_date = origin_day + timedelta(days=days)
+                cur_date = cur_date.strftime("%Y-%m-%d")
+                cur_datedict['date'] = cur_date
+                cur_datedict['classroom'] = cur_week[week].copy()
 
-    def dealWithSchedules(self, schedules, studentId):
-        '''
+                # 测试用
+                # f = open('empty.txt', 'a', encoding='utf-8')
+                # f.write(str(curDate))
+                # f.close()
+                # print(curDate)
+
+                aim_jsons.append(cur_datedict)                                # 将这一周的数据整理好放入列表
+        return aim_jsons
+
+    @staticmethod
+    def deal_with_schedules(schedules, student_id):
+        """
         data sort for schedules
-        '''
-        aimLessons = []
-        sectionDict = {0:'1，2', 1:'3，4', 2:'6，7', 3:'8，9', 4:'11，12', 5:'13，14'}
+        """
+        aim_lessons = []
+        section_dict = {0: '1，2', 1: '3，4', 2: '6，7', 3: '8，9', 4: '11，12', 5: '13，14'}
         for i in range(len(schedules) - 1):
             for j in range(len(schedules[i])):
+                # noinspection PyBroadException
                 try:
-                    curStr = schedules[i][j]
-                    if curStr == ' ':
+                    cur_str = schedules[i][j]
+                    if cur_str == ' ':
                         continue
 
-                    curStrs = curStr.split('节')                            # divide different lessons by '节'
+                    cur_strs = cur_str.split('节')                            # 使用‘节’来划分不同的课
                     lessons = []
-                    curLesson = ''
-                    for k in range(len(curStrs)):                           # get all the lessons
-                        if curStrs[k] == '':
+                    cur_lesson = ''
+                    for k in range(len(cur_strs)):                            # 获取所有课程
+                        if cur_strs[k] == '':
                             continue
-                        if curLesson == '':
-                            curLesson = curLesson + curStrs[k]
+                        if cur_lesson == '':
+                            cur_lesson = cur_lesson + cur_strs[k]
                             continue
-                        if curStrs[k][0] == '，':
-                            curLesson = curLesson + '节' + curStrs[k]
-                            if k == len(curStrs) - 2:
-                                curLesson = curLesson + '节'
-                                lessons.append(curLesson)
-                                curLesson = ''
+                        if cur_strs[k][0] == '，':
+                            cur_lesson = cur_lesson + '节' + cur_strs[k]
+                            if k == len(cur_strs) - 2:
+                                cur_lesson = cur_lesson + '节'
+                                lessons.append(cur_lesson)
+                                cur_lesson = ''
                                 break
-                        if curStrs[k][0] != '，':
-                            curLesson = curLesson + '节'
-                            lessons.append(curLesson)
-                            curLesson = curStrs[k]
-                            if k == len(curStrs) - 2:
-                                curLesson = curLesson + '节'
-                                lessons.append(curLesson)
-                                curLesson = ''
+                        if cur_strs[k][0] != '，':
+                            cur_lesson = cur_lesson + '节'
+                            lessons.append(cur_lesson)
+                            cur_lesson = cur_strs[k]
+                            if k == len(cur_strs) - 2:
+                                cur_lesson = cur_lesson + '节'
+                                lessons.append(cur_lesson)
+                                cur_lesson = ''
                                 break
-                    if curLesson != '':
-                        if curLesson[-1] == '：':
-                            lessons.append(curLesson)
+                    if cur_lesson != '':
+                        if cur_lesson[-1] == '：':
+                            lessons.append(cur_lesson)
                         else:
-                            lessons.append(curLesson + '节')
+                            lessons.append(cur_lesson + '节')
 
-                    curInfos = []
-                    for curStr in lessons:                                  # get the datas in a lesson
-                        curStrs = curStr.split('\n')
-                        lesson = curStrs[0]
-                        if curStrs[0] == '':
-                            lesson = curStrs[1]
-                            curStrs = curStrs[1:]
+                    cur_infos = []
+                    for cur_str in lessons:                                  # 获取这个课程的信息
+                        cur_strs = cur_str.split('\n')
+                        lesson = cur_strs[0]
+                        if cur_strs[0] == '':
+                            lesson = cur_strs[1]
+                            cur_strs = cur_strs[1:]
                         info = ''
-                        for k in range(len(curStrs) - 1):
-                            info = info + curStrs[k + 1]
+                        for k in range(len(cur_strs) - 1):
+                            info = info + cur_strs[k + 1]
                         infos = info.split('，')
                         types = []
-                        tmpStr = ''
-                        for each in infos:                                  # deal with the multi classes problem
-                            tmpStr = tmpStr + each
+                        tmp_str = ''
+                        for each in infos:                                  # 处理多课程问题
+                            tmp_str = tmp_str + each
                             if each[-1] == '节':
-                                types.append(tmpStr)
-                                tmpStr = ''
+                                types.append(tmp_str)
+                                tmp_str = ''
                             else:
-                                tmpStr = tmpStr + '，'
-                        anotherTypes = []
+                                tmp_str = tmp_str + '，'
+                        another_types = []
                         for each in types:
                             info = each
                             if len(info.split('[')) > 2:
-                                divideWeeks = info.split('周')
-                                for k in range(len(divideWeeks) - 1):
-                                    strs = divideWeeks[k] + '周' + divideWeeks[-1]
+                                divide_weeks = info.split('周')
+                                for k in range(len(divide_weeks) - 1):
+                                    strs = divide_weeks[k] + '周' + divide_weeks[-1]
                                     if strs[0] == '，':
                                         strs = strs[1:]
-                                    anotherTypes.append(strs)
+                                    another_types.append(strs)
                             else:
-                                anotherTypes = types
-                        types = anotherTypes
+                                another_types = types
+                        types = another_types
                         for each in types:
                             info = each
-                            teachers, info = info.split('[')                # get the teacher
-                            week, info = info.split(']')                    # get the week
+                            teachers, info = info.split('[')                    # 获取老师信息
+                            week, info = info.split(']')                        # 获取周数信息
                             if info.find(' ') != -1:
-                                place, time = info.split(' ')               # get the place and time
+                                place, aim_time = info.split(' ')               # 获取时间地点信息
                             else:
-                                place, time = info.split('第')
-                                time = '第' + time
+                                place, aim_time = info.split('第')
+                                aim_time = '第' + aim_time
                             # deal with some certain problems
-                            if week == '' or week == '周':
+                            if week in ('', '周'):
                                 week = '1-16'
                             if place[0] == '单' or place[0] == '双':
                                 week = week + place[0]
                                 place = place[1:]
-                            if time[0] == time[1]:
-                                time = time[1:]
-                            curInfo = []
-                            curInfo.append(lesson)
-                            curInfo.append(place[1:])
-                            curInfo.append(teachers)
-                            curInfo.append(week)
-                            curInfo.append('周' + str(j + 1) + ' ' + time)
-                            curInfos.append(curInfo)
-                    aimLessons.append(curInfos)
+                            if aim_time[0] == aim_time[1]:
+                                aim_time = aim_time[1:]
+                            cur_info = [lesson, place[1:], teachers, week, '周' + str(j + 1) + ' ' + aim_time]
+                            cur_infos.append(cur_info)
+                    aim_lessons.append(cur_infos)
                 except Exception:
                     print(traceback.format_exc())
                     print('解析课表信息出错')
-                    curStr = schedules[i][j]
-                    curInfos = []
-                    curInfo = []
-                    curInfo.append(curStr.split('\n')[0])
-                    curInfo.append('未知')
-                    curInfo.append('未知')
-                    curInfo.append('1-16')
-                    section = sectionDict[i]
-                    curInfo.append('周' + str(j + 1) + ' 第' + section + '节')
-                    curInfos.append(curInfo)
-                    aimLessons.append(curInfos)
-        scheduleChart = {}
-        scheduleChart['student_id'] = studentId
-        scheduleChart['info'] = aimLessons
-        returnJson = json.dumps(scheduleChart, ensure_ascii=False)      # get the json package
-        '''
-        # for test
-        f = open('schedule.txt', 'a', encoding='utf-8')
-        f.write(returnJson)
-        f.close()
-        print(returnJson)
-        '''
-        return returnJson
+                    cur_str = schedules[i][j]
+                    cur_infos = []
+                    cur_info = [cur_str.split('\n')[0], '未知', '未知', '1-16']
+                    section = section_dict[i]
+                    cur_info.append('周' + str(j + 1) + ' 第' + section + '节')
+                    cur_infos.append(cur_info)
+                    aim_lessons.append(cur_infos)
+        schedule_chart = {'student_id': student_id, 'info': aim_lessons}
+        return_json = json.dumps(schedule_chart, ensure_ascii=False)      # 使用json进行打包
 
-# for test
+        # 测试用
+        # f = open('schedule.txt', 'a', encoding='utf-8')
+        # f.write(returnJson)
+        # f.close()
+        # print(return_json)
+
+        return return_json
+
+
+# 测试用
 if __name__ == "__main__":
-    userName = input('Your username: ') 
-    password = input('Your password: ')
-    #DataReq(userName, password).request('d')
-    #DataReq(userName, password).request('g')
-    #DataReq(userName, password).request('e')
-    #DataReq(userName, password).request('s')
-
+    USR_NAME = input('Your username: ')
+    PW = input('Your password: ')
+    # DataReq(userName, password).request('d')
+    # DataReq(userName, password).request('g')
+    # DataReq(userName, password).request('e')
+    # DataReq(userName, password).request('s')

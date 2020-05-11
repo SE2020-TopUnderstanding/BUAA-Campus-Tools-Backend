@@ -92,7 +92,7 @@ class WebGetId:
                 warning_end = page.text.find('</div>', warning_start)
                 print(page.text[warning_start:warning_end])
                 error_text = page.text[warning_start:warning_end]
-                for key, value in error_dict:
+                for key, value in error_dict.items():
                     if error_text.find(key) != -1:
                         return value
                 return -1

@@ -31,4 +31,5 @@ jobs:
         python -m pylint --rcfile .pylintrc -rn BUAA-Campus-Tools-Backend
     - name: Run Tests
       run: |
+        rm __init__.py
         python manage.py test

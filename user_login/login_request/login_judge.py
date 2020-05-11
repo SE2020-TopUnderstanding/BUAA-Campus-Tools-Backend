@@ -21,13 +21,13 @@ def get_student_info(username, pswd):
         密码和专业暂时不能返回
         年级的计算可能出现问题，因为年级是根据学号计算的，请一定注意
     """
-    pr = Aescrypt(KEY, MODEL, IV, ENCODE_)
-    pswd = pr.aesdecrypt(pswd)
+    script = Aescrypt(KEY, MODEL, IV, ENCODE_)
+    pswd = script.aesdecrypt(pswd)
     return WebGetId(username, pswd).get_student_info()
 
 
 # 测试用代码
 if __name__ == "__main__":
-    userName = input('Your username: ')
-    password = input('Your password: ')
-    print(get_student_info(userName, password))
+    USR_NAME = input('Your username: ')
+    PW = input('Your password: ')
+    print(get_student_info(USR_NAME, PW))

@@ -1,26 +1,27 @@
+import datetime
 import requests
 from bs4 import BeautifulSoup
-import datetime
 
-url = 'https://e2.buaa.edu.cn/users/sign_in'
-list_url = 'https://e2.buaa.edu.cn/'
-jw_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome'
-course_url = 'https://course.e2.buaa.edu.cn/portal/login'
+
+URL = 'https://e2.buaa.edu.cn/users/sign_in'
+LIST_URL = 'https://e2.buaa.edu.cn/'
+JW_URL = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome'
+COURSE_URL = 'https://course.e2.buaa.edu.cn/portal/login'
 
 
 class WebGetId:
 
-    def __init__(self, user_name, pw):
-        self.usr_name = user_name
+    def __init__(self, usr_name, pw):
+        self.usr_name = usr_name
         self.password = pw
         self.now = requests.session()
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
                      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
-        self.headersVpn = {
+        self.headers_vpn = {
             'Referer': 'https://e2.buaa.edu.cn/',
             'User-Agent': user_agent
         }
-        self.headersLogin = {
+        self.headers_login = {
             'Referer': 'https://e2.buaa.edu.cn/users/sign_in',
             'User-Agent': user_agent
         }
@@ -44,10 +45,10 @@ class WebGetId:
         i = 0
         while i < 3:
             try:
-                page = self.now.get(url=url, headers=self.headersVpn, timeout=5)
+                page = self.now.get(url=URL, headers=self.headers_vpn, timeout=5)
                 break
-            except requests.exceptions.RequestException as e:
-                print(e)
+            except requests.exceptions.RequestException as err:
+                print(err)
                 i += 1
                 if i == 3:
                     return -4
@@ -68,42 +69,35 @@ class WebGetId:
         i = 0
         while i < 3:
             try:
-                page = self.now.post(url=url, headers=self.headersLogin, params=params, timeout=5)
+                page = self.now.post(url=URL, headers=self.headers_login, params=params, timeout=5)
                 break
-            except requests.exceptions.RequestException as e:
-                print(e)
+            except requests.exceptions.RequestException as err:
+                print(err)
                 i += 1
                 if i == 3:
                     return -4
         try:
             page.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            print(e)
+        except requests.exceptions.RequestException as err:
+            print(err)
             return -5
 
+        error_dict = {'此IP': -6, '验证码': -7, '超过五次': -8, '不能为空': -9, '已被锁定': -10}
+
         if page.status_code == 200:
-            if page.url == list_url:
+            if page.url == LIST_URL:
                 return 0
-            elif page.url.find('sign_in') != -1:
+            if page.url.find('sign_in') != -1:
                 warning_start = page.text.find('data-dismiss="alert">&times;</button>') + 37
                 warning_end = page.text.find('</div>', warning_start)
                 print(page.text[warning_start:warning_end])
                 error_text = page.text[warning_start:warning_end]
-                if error_text.find('此IP') != -1:
-                    return -6
-                if error_text.find('验证码') != -1:
-                    return -7
-                if error_text.find('超过五次') != -1:
-                    return -8
-                if error_text.find('不能为空') != -1:
-                    return -9
-                if error_text.find('已被锁定') != -1:
-                    return -10
+                for key, value in error_dict:
+                    if error_text.find(key) != -1:
+                        return value
                 return -1
-            else:
-                return -3
-        else:
-            return -2
+            return -3
+        return -2
 
     def get_student_info(self):
         """
@@ -131,10 +125,10 @@ class WebGetId:
         i = 0
         while i < 3:
             try:
-                web = self.now.get(url=jw_url, headers=self.headersVpn, timeout=5)
+                web = self.now.get(url=JW_URL, headers=self.headers_vpn, timeout=5)
                 break
-            except requests.exceptions.RequestException as e:
-                print(e)
+            except requests.exceptions.RequestException as err:
+                print(err)
                 i += 1
                 if i == 3:
                     return 0
@@ -156,8 +150,8 @@ class WebGetId:
             try:
                 schedule = self.now.get(url=table_url, headers=headers_jw)
                 break
-            except requests.exceptions.RequestException as e:
-                print(e)
+            except requests.exceptions.RequestException as err:
+                print(err)
                 i += 1
                 if i == 3:
                     return 0
@@ -181,6 +175,6 @@ class WebGetId:
 
 
 if __name__ == "__main__":
-    userName = input('Your username: ')
-    password = input('Your password: ')
-    WebGetId(userName, password).get_student_info()
+    USR_NAME = input('Your username: ')
+    PW = input('Your password: ')
+    WebGetId(USR_NAME, PW).get_student_info()

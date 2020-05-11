@@ -28,7 +28,7 @@ jobs:
     - name: Check Linting Details
       run: |
         touch __init__.py
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc --ignore-patterns asgi.py -rn BUAA-Campus-Tools-Backend
+        python -m pylint --rcfile .pylintrc -rn BUAA-Campus-Tools-Backend
     - name: Run Tests
       run: |
         python manage.py test

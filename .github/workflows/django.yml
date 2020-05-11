@@ -27,17 +27,8 @@ jobs:
         pip install -r requirements.txt
     - name: Check Linting Details
       run: |
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc --ignore-patterns asgi.py -rn ./API/
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./course_query/
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./ddl_query/
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./empty_room_query/
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./error_handling/
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./ping/
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./request_queue/
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./score_query/
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./tests_query/
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./user_login/
-        python -m pylint --load-plugins pylint_django --rcfile .pylintrc -rn ./version_information/
+        touch __init__.py
+        python -m pylint --load-plugins pylint_django --rcfile .pylintrc --ignore-patterns asgi.py -rn BUAA-Campus-Tool-Backend
     - name: Run Tests
       run: |
         python manage.py test

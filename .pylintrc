@@ -21,7 +21,7 @@ profile=no
  
 # Add <file or directory> to the black list. It should be a base name, not a
 # path. You may set this option multiple times.
-ignore=CVS
+ignore=manage.py
  
 # Pickle collected data for later comparisons.
 persistent=no
@@ -31,7 +31,7 @@ cache-size=500
  
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
-load-plugins=
+load-plugins=pylint_django
  
  
 [MESSAGES CONTROL]
@@ -63,39 +63,15 @@ disable-msg=I0011
 # [E0401(import-error)] Unable to import %s Used when pylint has been unable to import a module.
 # [C0111(missing-docstring)] Missing module docstring
 # [R0903(too-few-public-methods), ParentType] Too few public methods (at least 1)
-# [W0603(global-statement)]: Using the global statement Used when you use the "global" statement to update a global variable. Pylint just try to discourage this usage. That doesn't mean you cannot use it! 
-# 其他常见规则说明
-# [C0103(invalid-name), ] Invalid constant name "service_map"
-# [C0301(line-too-long), ] Line too long，有些 url 等允许超过 120 列
-# [C0304(missing-final-newline), ]
-# [C0325(superfluous-parens), ] Unnecessary parens after u'print' keyword 兼容 python3 的 print
-# [E0702(raising-bad-type), update_embedded_video] R
-# [E1120(no-value-for-parameter), update_embedded_vi [R0201(no-self-use), Attacher.make_dom] Method could be a function[W0235(useless-super-delegation), AttacherPin.__init__] Useless super delegation in method '__init__'
-# [R0201(Method could be a function)
-# [R0911(too-many-return-statements), c
-# [R0912(too-many-branches), check_and_set_video_status] Too many branches (13/12)
-# [R0913(too-many-arguments), StaingContentError.__init__] Too many arguments (6/5)
-# [R1705(no-else-return), RelatedVideo.resolve_links] Unnecessary "else" after "return"
-# [W0105(pointless-string-statement), ] String statement has no effect
-# [W0108(unnecessary-lambda), VideoFormatter.<lambda>]
-# [W0110(deprecated-lambda),
-# [W0201(attribute-defined-outside-init), BaseHandler.device_id] Attribute '_device_id' defined outside __init__
-# [W0221(arguments-differ), ResumableUploadHandler.put] Parameters differ from overridden 'put' method
-# [W0223(abstract-method), BaseHandler] Method 'data_received' is abstract in class 'RequestHandler' but is not overridden
-# [W0235(useless-super-delegation), AttacherPin.__init__]
-# [W0403(relative-import), ]
-# [W0511(fixme), ]
-# [W0622(redefined-builtin),
-# [W0703(broad-except), BaseHandler.device_id] Catching too general exception Exception
-# [W1202(logging-format-interpolation), fetch_thumbnail_from_vaider] Use % formatting in logging functions and pass the % parameters as arguments
-# disable = C0103, C0111, C0301, C0304, C0325, E0702, E1120, R0201, R0903, R0911, R0912, R0913, R1705, W0105, W0108, W0110, W0201, W0221, W0223, W0235, W0403, W0511, W0613, W0622, W0703, W1202
+# [W0603(global-statement)]: Using the global statement Used when you use the "global" statement to update a global variable. Pylint just try to discourage this usage. That doesn't mean you cannot use it!
+# [W0703(broad-except), BaseHandler.device_id] Catching too general exception Exception 
+# [E1101(no-member)] %s %r has no %r member%s Used when a variable is accessed for an unexistent member.
  
 disable =
     E0401,
     C0111,
     R0903,
     W0603,
-    C0415,
     W0703,
     E1101
  
@@ -154,7 +130,7 @@ required-attributes=
 no-docstring-rgx=__.*__
  
 # Regular expression which should only match correct module names
-module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
+module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))|(BUAA\-Campus\-Tools\-Backend)$
  
 # Regular expression which should only match correct module level names
 const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$

@@ -31,7 +31,7 @@ class Student(models.Model):
     grade = models.IntegerField(default=-1)
     # manytomany
     student_course = models.ManyToManyField(Course, through='StudentCourse')
-    course_evaluation = models.ManyToManyField(Course, through='CourseEvaluation')
+    course_evaluation = models.ManyToManyField(Course, through='CourseEvaluation', related_name='evaluated_course')
 
 
 class StudentCourse(models.Model):

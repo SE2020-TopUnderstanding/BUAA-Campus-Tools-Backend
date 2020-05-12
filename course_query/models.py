@@ -65,8 +65,10 @@ class TeacherCourse(models.Model):
 class CourseEvaluation(models.Model):
     # 课程评价分
     score = models.IntegerField(default=0)
-    # 楼层数
-    floor = models.IntegerField(default=1)
+    # 创建时间
+    created_time = models.TimeField(auto_now_add=True)
+    # 最后修改时间
+    updated_time = models.TimeField(auto_now=True)
     # 评价内容
     evaluation = models.TextField()
     # 外键

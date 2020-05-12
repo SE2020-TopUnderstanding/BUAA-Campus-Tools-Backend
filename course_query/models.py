@@ -54,8 +54,6 @@ class TeacherCourseSpecific(models.Model):
 
 
 class TeacherCourse(models.Model):
-    # 老师被点赞数
-    up = models.IntegerField(default=0)
     # 外键
     teacher_id = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
@@ -67,10 +65,6 @@ class TeacherCourse(models.Model):
 class CourseEvaluation(models.Model):
     # 课程评价分
     score = models.IntegerField(default=0)
-    # 点赞数
-    up = models.IntegerField(default=0)
-    # 被踩数
-    down = models.IntegerField(default=0)
     # 楼层数
     floor = models.IntegerField(default=1)
     # 评价内容

@@ -9,7 +9,6 @@ class Teacher(models.Model):
 
 
 class Course(models.Model):
-    # 我们定义，只有除id外的所有属性域都相同的才算同一门课程，一周上两次的课按照两门课来对待
     # course's bid, e.g.B2F020550
     bid = models.CharField(max_length=20)
     # the course's name, e.g. Software Engineering
@@ -32,6 +31,7 @@ class Student(models.Model):
     grade = models.IntegerField(default=-1)
     # manytomany
     student_course = models.ManyToManyField(Course, through='StudentCourse')
+    course_evaluation = models.ManyToManyField(Course, through='CourseEvaluation')
 
 
 class StudentCourse(models.Model):
@@ -54,5 +54,25 @@ class TeacherCourseSpecific(models.Model):
 
 
 class TeacherCourse(models.Model):
+    # 老师被点赞数
+    up = models.IntegerField(default=0)
+
     teacher_id = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+
+# Beta阶段新功能
+class CourseEvaluation(models.Model):
+    # 课程评价分
+    score = models.IntegerField(default=0)
+    # 楼层数
+    floor = models.IntegerField(default=1)
+    # 点赞数
+    up = models.IntegerField(default=0)
+    # 被踩数
+    down = models.IntegerField(default=0)
+    # 评价内容
+    evaluation = models.TextField()
+    # 外键
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)

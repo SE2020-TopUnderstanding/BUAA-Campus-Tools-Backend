@@ -55,42 +55,50 @@ class TeacherCourseSpecific(models.Model):
 
 class TeacherCourse(models.Model):
     # 老师被点赞数
-    up = models.ManyToManyField(Student, through="TeacherEvaluationRecord")
-
+    up = models.IntegerField(default=0)
+    # 外键
     teacher_id = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
+    # 点赞记录
+    up_record = models.ManyToManyField(Student, through="TeacherEvaluationRecord")
 
 
 # Beta阶段新功能
 class CourseEvaluation(models.Model):
     # 课程评价分
     score = models.IntegerField(default=0)
+    # 点赞数
+    up = models.IntegerField(default=0)
+    # 被踩数
+    down = models.IntegerField(default=0)
     # 楼层数
     floor = models.IntegerField(default=1)
     # 评价内容
     evaluation = models.TextField()
     # 外键
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='evaluator')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     # 多对多关系
-    evaluation_record = models.ManyToManyField(Student, through='EvaluationRecord')
+    up_record = models.ManyToManyField(Student, through='EvaluationUpRecord', related_name='up_evaluator')
+    down_record = models.ManyToManyField(Student, through='EvaluationDownRecord', related_name='down_evaluator')
 
 
-# 每条评价的点赞数与被踩数的记录
-class EvaluationRecord(models.Model):
-    # 点赞数
-    up = models.IntegerField(default=0)
-    # 被踩数
-    down = models.IntegerField(default=0)
+# 每条评价的点赞人
+class EvaluationUpRecord(models.Model):
     # 外键
     evaluation = models.ForeignKey(CourseEvaluation, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
 
 
-# 每位老师的点赞数
+# 每条评价的加踩人
+class EvaluationDownRecord(models.Model):
+    # 外键
+    evaluation = models.ForeignKey(CourseEvaluation, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+
+
+# 每位老师的点赞人
 class TeacherEvaluationRecord(models.Model):
-    # 点赞数
-    up = models.IntegerField(default=0)
     # 外键
     teacher_course = models.ForeignKey(TeacherCourse, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)

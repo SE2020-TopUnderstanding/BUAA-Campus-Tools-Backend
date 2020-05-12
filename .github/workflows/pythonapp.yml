@@ -26,4 +26,4 @@ jobs:
         pip install -r requirements.txt
     - name: Check Linting Details
       run: |
-        python -m pylint --rcfile .pylintrc -rn group_project
+        python -m pylint --rcfile .pylintrc -rn BUAA-Campus-Tools-Backend

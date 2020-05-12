@@ -9,7 +9,6 @@ class Teacher(models.Model):
 
 
 class Course(models.Model):
-    # 我们定义，只有除id外的所有属性域都相同的才算同一门课程，一周上两次的课按照两门课来对待
     # course's bid, e.g.B2F020550
     bid = models.CharField(max_length=20)
     # the course's name, e.g. Software Engineering
@@ -32,6 +31,7 @@ class Student(models.Model):
     grade = models.IntegerField(default=-1)
     # manytomany
     student_course = models.ManyToManyField(Course, through='StudentCourse')
+    course_evaluation = models.ManyToManyField(Course, through='CourseEvaluation', related_name='evaluated_course')
 
 
 class StudentCourse(models.Model):
@@ -54,5 +54,47 @@ class TeacherCourseSpecific(models.Model):
 
 
 class TeacherCourse(models.Model):
+    # 外键
     teacher_id = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
+    # 点赞记录
+    up_record = models.ManyToManyField(Student, through="TeacherEvaluationRecord")
+
+
+# Beta阶段新功能
+class CourseEvaluation(models.Model):
+    # 课程评价分
+    score = models.IntegerField(default=0)
+    # 创建时间
+    created_time = models.TimeField(auto_now_add=True)
+    # 最后修改时间
+    updated_time = models.TimeField(auto_now=True)
+    # 评价内容
+    evaluation = models.TextField()
+    # 外键
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    # 多对多关系
+    up_record = models.ManyToManyField(Student, through='EvaluationUpRecord', related_name='up_evaluator')
+    down_record = models.ManyToManyField(Student, through='EvaluationDownRecord', related_name='down_evaluator')
+
+
+# 每条评价的点赞人
+class EvaluationUpRecord(models.Model):
+    # 外键
+    evaluation = models.ForeignKey(CourseEvaluation, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+
+
+# 每条评价的加踩人
+class EvaluationDownRecord(models.Model):
+    # 外键
+    evaluation = models.ForeignKey(CourseEvaluation, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+
+
+# 每位老师的点赞人
+class TeacherEvaluationRecord(models.Model):
+    # 外键
+    teacher_course = models.ForeignKey(TeacherCourse, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)

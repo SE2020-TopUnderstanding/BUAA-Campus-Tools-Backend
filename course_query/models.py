@@ -55,7 +55,7 @@ class TeacherCourseSpecific(models.Model):
 
 class TeacherCourse(models.Model):
     # 老师被点赞数
-    up = models.IntegerField(default=0)
+    up = models.ManyToManyField(Student, through="TeacherEvaluationRecord")
 
     teacher_id = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
@@ -67,12 +67,30 @@ class CourseEvaluation(models.Model):
     score = models.IntegerField(default=0)
     # 楼层数
     floor = models.IntegerField(default=1)
+    # 评价内容
+    evaluation = models.TextField()
+    # 外键
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='evaluator')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    # 多对多关系
+    evaluation_record = models.ManyToManyField(Student, through='EvaluationRecord')
+
+
+# 每条评价的点赞数与被踩数的记录
+class EvaluationRecord(models.Model):
     # 点赞数
     up = models.IntegerField(default=0)
     # 被踩数
     down = models.IntegerField(default=0)
-    # 评价内容
-    evaluation = models.TextField()
     # 外键
+    evaluation = models.ForeignKey(CourseEvaluation, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+
+# 每位老师的点赞数
+class TeacherEvaluationRecord(models.Model):
+    # 点赞数
+    up = models.IntegerField(default=0)
+    # 外键
+    teacher_course = models.ForeignKey(TeacherCourse, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)

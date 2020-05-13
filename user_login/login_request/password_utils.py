@@ -1,6 +1,7 @@
 import base64
 from Crypto.Cipher import AES
 
+from API.settings import  KEY
 # 目前采用ECB方法
 # 调用方法
 # password_d = Aescrypt(key,model,iv,encode_)
@@ -8,7 +9,6 @@ from Crypto.Cipher import AES
 # password_d.Aesdecrypt(en_text)
 # 编码方式gbk
 
-KEY = b'2020042820200428'  # 公钥 注意公钥只能为16的长度
 
 MODEL = 'ECB'
 IV = ''

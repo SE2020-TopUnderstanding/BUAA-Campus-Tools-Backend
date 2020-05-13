@@ -243,6 +243,12 @@ class CourseEvaluations(APIView):
                     EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
                     return HttpResponse(status=202)
                 except EvaluationUpRecord.DoesNotExist:
+                    try:
+                        down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
+                        down.delete()
+                        evaluation.down -= 1
+                    except EvaluationDownRecord.DoesNotExist:
+                        pass
                     up_record = EvaluationUpRecord(evaluation=evaluation, student=actor)
                     up_record.save()
                     evaluation.up += 1
@@ -255,6 +261,12 @@ class CourseEvaluations(APIView):
                     EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
                     return HttpResponse(status=202)
                 except EvaluationDownRecord.DoesNotExist:
+                    try:
+                        up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
+                        up_record.delete()
+                        evaluation.up -= 1
+                    except EvaluationUpRecord.DoesNotExist:
+                        pass
                     down = EvaluationDownRecord(evaluation=evaluation, student=actor)
                     down.save()
                     evaluation.down += 1

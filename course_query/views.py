@@ -8,6 +8,7 @@ from course_query.serializers import StudentCourseSerializer, TeacherCourseSeria
 from course_query.models import Student, Course, StudentCourse, Teacher, TeacherCourse, TeacherCourseSpecific, \
     CourseEvaluation, \
     EvaluationUpRecord, EvaluationDownRecord, TeacherEvaluationRecord
+from api_exception.exceptions import ArgumentError, UnAuthorizedError, NotFoundError
 
 
 def split_week(week):
@@ -242,18 +243,15 @@ class CourseEvaluations(APIView):
                 student = Student.objects.get(id=student_id)
                 actor = Student.objects.get(id=actor)
             except Student.DoesNotExist:
-                message = "没有这个学生"
-                return HttpResponse(message, status=401)
+                raise UnAuthorizedError()
             try:
                 course = Course.objects.get(bid=bid)
             except Course.DoesNotExist:
-                message = "没有这门课程"
-                return HttpResponse(message, status=404)
+                raise NotFoundError(detail="没有这门课程")
             try:
                 evaluation = CourseEvaluation.objects.get(student=student, course=course)
             except CourseEvaluation.DoesNotExist:
-                message = "没有这条评价"
-                return HttpResponse(message, status=404)
+                raise NotFoundError(detail="没有这条评价")
             # 点赞
             if action == 'up':
                 try:
@@ -287,8 +285,7 @@ class CourseEvaluations(APIView):
                     evaluation.save()
                     return HttpResponse(status=201)
                 except EvaluationUpRecord.DoesNotExist:
-                    message = "不存在这条点赞记录"
-                    return HttpResponse(message, status=404)
+                    raise NotFoundError(detail="不存在这条点赞记录")
             # 取消加踩
             if action == 'cancel_down':
                 try:
@@ -298,10 +295,8 @@ class CourseEvaluations(APIView):
                     evaluation.save()
                     return HttpResponse(status=201)
                 except EvaluationDownRecord.DoesNotExist:
-                    message = "不存在这条被踩记录"
-                    return HttpResponse(message, status=404)
-        message = "参数数量不正确"
-        return HttpResponse(message, status=400)
+                    raise NotFoundError(detail="不存在这条被踩记录")
+        raise ArgumentError()
 
     # 创建新评价/修改评价
     @staticmethod
@@ -313,18 +308,15 @@ class CourseEvaluations(APIView):
             score = req['score']
             student_id = req['student_id']
             if not 1 <= score <= 5:
-                message = "评分只能为1-5分"
-                return HttpResponse(message, status=400)
+                raise ArgumentError(detail="评分只能为1-5分")
             try:
                 student = Student.objects.get(id=student_id)
             except Student.DoesNotExist:
-                message = "没有这个学生"
-                return HttpResponse(message, status=401)
+                raise UnAuthorizedError()
             try:
                 course = Course.objects.get(bid=bid)
             except Course.DoesNotExist:
-                message = "没有这门课程"
-                return HttpResponse(message, status=404)
+                raise NotFoundError(detail="没有这门课程")
             try:
                 evaluation = CourseEvaluation.objects.get(student=student, course=course)
                 evaluation.evaluation = text
@@ -333,8 +325,7 @@ class CourseEvaluations(APIView):
                 evaluation = CourseEvaluation(student=student, course=course, score=score, evaluation=text)
             evaluation.save()
             return HttpResponse(status=201)
-        message = "参数数量不正确"
-        return HttpResponse(message, status=400)
+        raise ArgumentError
 
     # 删除评价
     @staticmethod
@@ -346,22 +337,18 @@ class CourseEvaluations(APIView):
             try:
                 student = Student.objects.get(id=student_id)
             except Student.DoesNotExist:
-                message = "没有这个学生"
-                return HttpResponse(message, status=401)
+                raise UnAuthorizedError()
             try:
                 course = Course.objects.get(bid=bid)
             except Course.DoesNotExist:
-                message = "没有这门课程"
-                return HttpResponse(message, status=404)
+                raise NotFoundError(detail="没有这门课程")
             try:
                 evaluation = CourseEvaluation.objects.get(student=student, course=course)
                 evaluation.delete()
                 return HttpResponse(status=204)
             except CourseEvaluation.DoesNotExist:
-                message = "没有这条评价"
-                return HttpResponse(message, status=404)
-        message = "参数数量不正确"
-        return HttpResponse(message, status=400)
+                raise NotFoundError(detail="没有这条评价")
+        raise ArgumentError()
 
 
 class TeacherEvaluations(APIView):
@@ -378,23 +365,19 @@ class TeacherEvaluations(APIView):
             try:
                 teacher = Teacher.objects.get(name=teacher_name)
             except Teacher.DoesNotExist:
-                message = "没有这个老师！"
-                return HttpResponse(message, status=404)
+                raise NotFoundError(detail="没有这个老师")
             try:
                 course = Course.objects.get(bid=bid)
             except Course.DoesNotExist:
-                message = "没有这门课程"
-                return HttpResponse(message, status=404)
+                raise NotFoundError(detail="没有这门课程")
             try:
                 student = Student.objects.get(id=actor)
             except Student.DoesNotExist:
-                message = "没有这个学生！"
-                return HttpResponse(message, status=401)
+                raise UnAuthorizedError()
             try:
                 teacher_course = TeacherCourse.objects.get(teacher_id=teacher, course_id=course)
             except TeacherCourse.DoesNotExist:
-                message = "没有这个课程评价"
-                return HttpResponse(message, status=404)
+                raise NotFoundError(detail="没有这个课程评价")
             if action == 'up':
                 try:
                     # 已经点过赞
@@ -414,8 +397,6 @@ class TeacherEvaluations(APIView):
                     teacher_course.up -= 1
                     teacher_course.save()
                 except TeacherEvaluationRecord.DoesNotExist:
-                    message = "不存在这个点赞记录"
-                    return HttpResponse(status=404)
+                    raise NotFoundError(detail="不存在这个点赞记录")
                 return HttpResponse(status=201)
-        message = "参数数量错误"
-        return HttpResponse(message, status=400)
+        raise ArgumentError()

@@ -88,6 +88,42 @@ def add_course(student, semester, info):
     raise ArgumentError()
 
 
+def up_action(evaluation, actor):
+    try:
+        # 已经赞过
+        EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
+        return HttpResponse(status=202)
+    except EvaluationUpRecord.DoesNotExist:
+        try:
+            down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
+            down.delete()
+            evaluation.down -= 1
+        except EvaluationDownRecord.DoesNotExist:
+            pass
+        up_record = EvaluationUpRecord(evaluation=evaluation, student=actor)
+        up_record.save()
+        evaluation.up += 1
+        evaluation.save()
+
+
+def down_action(evaluation, actor):
+    try:
+        # 已经踩过
+        EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
+        return HttpResponse(status=202)
+    except EvaluationDownRecord.DoesNotExist:
+        try:
+            up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
+            up_record.delete()
+            evaluation.up -= 1
+        except EvaluationUpRecord.DoesNotExist:
+            pass
+        down = EvaluationDownRecord(evaluation=evaluation, student=actor)
+        down.save()
+        evaluation.down += 1
+        evaluation.save()
+
+
 class CourseList(APIView):
 
     @staticmethod
@@ -238,40 +274,12 @@ class CourseEvaluations(APIView):
                 raise NotFoundError(detail="没有这条评价")
             # 点赞
             if action == 'up':
-                try:
-                    # 已经赞过
-                    EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
-                    return HttpResponse(status=202)
-                except EvaluationUpRecord.DoesNotExist:
-                    try:
-                        down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
-                        down.delete()
-                        evaluation.down -= 1
-                    except EvaluationDownRecord.DoesNotExist:
-                        pass
-                    up_record = EvaluationUpRecord(evaluation=evaluation, student=actor)
-                    up_record.save()
-                    evaluation.up += 1
-                    evaluation.save()
-                    return HttpResponse(status=201)
+                up_action(evaluation, actor)
+                return HttpResponse(status=201)
             # 加踩
             if action == 'down':
-                try:
-                    # 已经踩过
-                    EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
-                    return HttpResponse(status=202)
-                except EvaluationDownRecord.DoesNotExist:
-                    try:
-                        up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
-                        up_record.delete()
-                        evaluation.up -= 1
-                    except EvaluationUpRecord.DoesNotExist:
-                        pass
-                    down = EvaluationDownRecord(evaluation=evaluation, student=actor)
-                    down.save()
-                    evaluation.down += 1
-                    evaluation.save()
-                    return HttpResponse(status=201)
+                down_action(evaluation, actor)
+                return HttpResponse(status=201)
             # 取消点赞
             if action == 'cancel_up':
                 try:

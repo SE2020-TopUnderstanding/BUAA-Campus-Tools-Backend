@@ -149,7 +149,6 @@ class CourseList(APIView):
             raise UnAuthorizedError()
         # 爬虫的数据库插入请求
         if len(req) == 2:
-            response = HttpResponse(status=201)
             semester = '2020_Spring'
             # 更新则默认将原记录删除
             StudentCourse.objects.filter(student_id=student_id).delete()

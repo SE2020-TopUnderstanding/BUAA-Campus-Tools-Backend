@@ -3,9 +3,9 @@ from rest_framework.views import APIView
 from django.http import HttpResponse
 from course_query.models import Student
 from request_queue.models import RequestRecord
-from .serializers import ScoreSerializer
-from .models import Score
-from api_exception.exceptions import ArgumentError, UnAuthorizedError, NotFoundError
+from api_exception.exceptions import ArgumentError, UnAuthorizedError
+from score_query.serializers import ScoreSerializer
+from score_query.models import Score
 
 
 def get_gpa(origin_score, credit):

@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from course_query.models import Student
 from api_exception.exceptions import ArgumentError, UnAuthorizedError, NotFoundError
 

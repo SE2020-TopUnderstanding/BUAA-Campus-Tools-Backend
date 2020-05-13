@@ -84,8 +84,7 @@ def add_course(student, semester, info):
             relation = TeacherCourseSpecific(student_course_id=new_student_course,
                                              teacher_id=teacher)
             relation.save()
-            return HttpResponse(status=201)
-        # 不是5项表示数据有缺失
+    # 不是5项表示数据有缺失
     raise ArgumentError()
 
 
@@ -155,7 +154,8 @@ class CourseList(APIView):
             # 将爬虫爬取的数据写入数据库
             for lists in req['info']:
                 for info in lists:
-                    return add_course(student, semester, info)
+                    add_course(student, semester, info)
+            return HttpResponse(status=201)
         # 其他非法请求
         raise ArgumentError()
 
@@ -181,8 +181,7 @@ class Search(APIView):
                     message = "参数名称错误"
                     return HttpResponse(message, status=400)
             return Response(TeacherCourseSerializer(result, many=True).data)
-        message = "参数数量或名称不正确"
-        return HttpResponse(message, status=400)
+        raise ArgumentError()
 
 
 class CourseEvaluations(APIView):
@@ -213,8 +212,7 @@ class CourseEvaluations(APIView):
             info.insert(1, {"avg_score": avg_score})
             info.insert(2, teacher_info)
             return Response(info)
-        message = "参数数量不正确"
-        return HttpResponse(message, status=400)
+        raise ArgumentError()
 
     # 点赞/加踩
     @staticmethod

@@ -77,9 +77,9 @@ class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，�
         req = request.query_params.dict()
 
         if len(req) != 1:
-            return HttpResponse(status=500)
+            return HttpResponse(status=400)
         if "student_id" not in req:
-            return HttpResponse(status=500)
+            return HttpResponse(status=400)
 
         student_id = req["student_id"]
         content = []
@@ -136,7 +136,7 @@ class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，�
                     }
                 ]
         }
-        错误：500
+        错误：400
         """
         req = request.data
         try:
@@ -146,7 +146,7 @@ class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，�
             return HttpResponse(status=401)
 
         if "ddl" not in req:
-            return HttpResponse(status=500)
+            return HttpResponse(status=400)
         for key in req['ddl']:
             if len(key) == 2:
                 content = key["content"]
@@ -160,7 +160,7 @@ class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，�
                         except ValueError:
                             text = "ddl时间格式错误 " + i["ddl"]
                             logging.warning(text)
-                            return HttpResponse(status=500)
+                            return HttpResponse(status=400)
                     DDL(student_id=student, ddl=time, homework=i["homework"],
                         state=i["state"], course=name).save()
             else:

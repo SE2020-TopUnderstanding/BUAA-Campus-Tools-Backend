@@ -25,17 +25,17 @@ class DdlTests(TestCase):
         response = self.client.get('/ddl/?student_id=17373349')
         self.assertEqual(response.status_code, 401)
 
-    def test_get_500(self):
+    def test_get_400(self):
         """
-        检测返回状态码为500的get请求
+        检测返回状态码为400的get请求
         1.参数名称错误
         2.参数数量错误
         """
         response = self.client.get('/ddl/')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
         response = self.client.get('/ddl/?studentid=17373349')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def test_post_200(self):
         """
@@ -78,39 +78,12 @@ class DdlTests(TestCase):
         response = self.client.post('/ddl/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 200)
 
-    def test_post_400(self):
-        """
-        检测返回状态码为400的post请求
-        1.json包中参数不正确
-        """
-        Student(usr_name="mushan", usr_password="123", id="17373349", name="hbb", grade=3).save()
-        data = {
-            "student_id": "17373349",
-            "ddl": [
-                {
-                    "content": [
-                        {
-                            "ddl": "2020-3-19 下午11:55",
-                            "homework": "第一次作业",
-                            "state": "提交"
-                        },
-                        {
-                            "ddl": "2020-3-19 下午11:55",
-                            "homework": "第二次作业",
-                            "state": "未提交"
-                        }
-                    ],
-                }
-            ]
-        }
-        response = self.client.post('/ddl/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 400)
-
     def test_post_500(self):
         """
-        检测返回状态码为500的post请求
+        检测返回状态码为400的post请求
         1.json包中无key:ddl
         2.ddl时间格式问题
+        3.json包中参数不正确
         """
         Student(usr_name="mushan", usr_password="123", id="17373349", name="hbb", grade=3).save()
         data = {
@@ -134,7 +107,7 @@ class DdlTests(TestCase):
             ]
         }
         response = self.client.post('/ddl/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
         data = {
             "student_id": "17373349",
@@ -157,4 +130,26 @@ class DdlTests(TestCase):
             ]
         }
         response = self.client.post('/ddl/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
+
+        data = {
+            "student_id": "17373349",
+            "ddl": [
+                {
+                    "content": [
+                        {
+                            "ddl": "2020-3-19 下午11:55",
+                            "homework": "第一次作业",
+                            "state": "提交"
+                        },
+                        {
+                            "ddl": "2020-3-19 下午11:55",
+                            "homework": "第二次作业",
+                            "state": "未提交"
+                        }
+                    ],
+                }
+            ]
+        }
+        response = self.client.post('/ddl/', content_type='application/json', data=data)
+        self.assertEqual(response.status_code, 400)

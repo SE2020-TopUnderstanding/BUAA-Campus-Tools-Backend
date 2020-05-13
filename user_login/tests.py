@@ -15,13 +15,13 @@ class UserLoginTests(TestCase):
         response = self.client.get('/login/?password=123&number=1')
         self.assertEqual(response.status_code, 200)
 
-    def test_get_500(self):
+    def test_get_462(self):
         """
         检测返回状态码为500的get请求
         1.密码错误
         """
         response = self.client.get('/login/?password=12')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 462)
 
     def test_post_200(self):
         """
@@ -35,7 +35,7 @@ class UserLoginTests(TestCase):
         response = self.client.post('/login/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 200)
 
-    def test_post_500(self):
+    def test_post_400(self):
         """
         检测返回状态码为500的post请求
         1.参数数量错误
@@ -45,14 +45,14 @@ class UserLoginTests(TestCase):
             "usr_name": "mushan",
         }
         response = self.client.post('/login/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
         data = {
             "usr_name": "mushan",
             "usr_passwor": "zI4MS1ylntJ3TVE32dsImw=="
         }
         response = self.client.post('/login/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def test_post_401(self):
         """
@@ -66,13 +66,13 @@ class UserLoginTests(TestCase):
         response = self.client.post('/login/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 401)
 
-    def test_post_402(self):
+    def test_post_460(self):
         """
         检测返回状态码为402的post请求
         1.账号被锁//未测试因为情况不易出现
         """
 
-    def test_post_403(self):
+    def test_post_461(self):
         """
         检测返回状态码为403的post请求
         1.服务器ip被锁//未测试因为情况不易出现

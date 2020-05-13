@@ -12,6 +12,12 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
+#加密解密密钥
+KEY = b'2020042820200428'
+
+#爬虫获取信息密码
+PASSWORD_SPIDER = "123"
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

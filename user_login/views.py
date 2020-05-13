@@ -8,6 +8,8 @@ from score_query.models import Score
 from ddl_query.models import DDL
 from request_queue.models import RequestRecord
 from request_queue.views import add_request
+
+from API.settings import PASSWORD_SPIDER
 from .login_request.password_utils import Aescrypt, KEY, MODEL, IV, ENCODE_
 from .login_request.login_judge import get_student_info
 
@@ -26,7 +28,7 @@ class Login(APIView):
         错误：500
         """
         req = request.query_params.dict()
-        if req["password"] == "123":
+        if req["password"] == PASSWORD_SPIDER:
             content = Student.objects.all().values("usr_name", "usr_password")
             if "number" in req:
                 number = int(req["number"])

@@ -104,6 +104,7 @@ def up_action(evaluation, actor):
         up_record.save()
         evaluation.up += 1
         evaluation.save()
+        return HttpResponse(status=201)
 
 
 def down_action(evaluation, actor):
@@ -122,6 +123,7 @@ def down_action(evaluation, actor):
         down.save()
         evaluation.down += 1
         evaluation.save()
+        return HttpResponse(status=201)
 
 
 class CourseList(APIView):
@@ -274,12 +276,10 @@ class CourseEvaluations(APIView):
                 raise NotFoundError(detail="没有这条评价")
             # 点赞
             if action == 'up':
-                up_action(evaluation, actor)
-                return HttpResponse(status=201)
+                return up_action(evaluation, actor)
             # 加踩
             if action == 'down':
-                down_action(evaluation, actor)
-                return HttpResponse(status=201)
+                return down_action(evaluation, actor)
             # 取消点赞
             if action == 'cancel_up':
                 try:

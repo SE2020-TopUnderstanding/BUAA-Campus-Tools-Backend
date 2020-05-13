@@ -56,6 +56,8 @@ class TeacherCourseSpecific(models.Model):
 
 
 class TeacherCourse(models.Model):
+    # 点赞数
+    up = models.IntegerField(default=0)
     # 外键
     teacher_id = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
@@ -71,6 +73,10 @@ class CourseEvaluation(models.Model):
     created_time = models.TimeField(auto_now_add=True)
     # 最后修改时间
     updated_time = models.TimeField(auto_now=True)
+    # 点赞数
+    up = models.IntegerField(default=0)
+    # 被踩数
+    down = models.IntegerField(default=0)
     # 评价内容
     evaluation = models.TextField()
     # 外键

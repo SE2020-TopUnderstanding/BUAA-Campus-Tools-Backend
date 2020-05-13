@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Course, Student, StudentCourse, TeacherCourse, Teacher
+from .models import Course, Student, StudentCourse, TeacherCourse, Teacher, CourseEvaluation
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -38,7 +38,22 @@ class StudentCourseSerializer(serializers.ModelSerializer):
 class TeacherCourseSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source='course_id.name')
     teacher_name = serializers.CharField(source='teacher_id.name')
+    bid = serializers.CharField(source='course_id.bid')
 
     class Meta:
         model = TeacherCourse
-        fields = ('course_name', 'teacher_name')
+        fields = ('course_name', 'teacher_name', 'bid')
+
+
+class CourseEvaluationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseEvaluation
+        fields = ('student', 'score', 'updated_time', 'evaluation')
+
+
+class TeacherEvaluationSerializer(serializers.ModelSerializer):
+    teacher_name = serializers.CharField(source='teacher_id.name')
+
+    class Meta:
+        model = TeacherCourse
+        fields = ('teacher_name', 'up')

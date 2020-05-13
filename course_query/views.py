@@ -3,8 +3,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import HttpResponse
 from request_queue.models import RequestRecord
-from .serializers import StudentCourseSerializer, TeacherCourseSerializer
-from .models import Student, Course, StudentCourse, Teacher, TeacherCourse, TeacherCourseSpecific
+from .serializers import StudentCourseSerializer, TeacherCourseSerializer, CourseEvaluationSerializer, \
+    TeacherEvaluationSerializer
+from .models import Student, Course, StudentCourse, Teacher, TeacherCourse, TeacherCourseSpecific, CourseEvaluation, \
+    EvaluationUpRecord, EvaluationDownRecord, TeacherEvaluationRecord
 
 
 def split_week(week):
@@ -44,7 +46,7 @@ def split_time(time):
 
 
 def add_course(student, semester, info):
-    response = HttpResponse(status=500)
+    response = HttpResponse(status=201)
     if len(info) == 5:
         name = info[0].replace(' ', '')
         place = info[1].replace(' ', '')
@@ -90,23 +92,9 @@ def add_course(student, semester, info):
 
 
 class CourseList(APIView):
-    """
-    本类接收get, post请求
-    get方法给前端使用
-    post方法给爬虫使用
-    """
 
     @staticmethod
     def get(request):
-        """可使用的参数有：
-        student_id: 附带学生学号，查询指定学生课表;
-        week: 附带周数，查询指定周的课表;
-        date: 返回这周是第几周
-        例：127.0.0.1/timetable?student_id=17333333&week=3
-        查询学号为17373333 2020春季学期第三周课表;
-        没有提供参数，参数数量错误，返回400错误;
-        参数错误，返回404错误;
-        """
         start_day = '2020-2-24'
         req = request.query_params.dict()
         result = StudentCourse.objects.all()
@@ -190,7 +178,7 @@ class Search(APIView):
     def get(request):
         req = request.query_params.dict()
         result = TeacherCourse.objects.all()
-        if len(req) == 1 or len(req) == 2:
+        if 1 <= len(req) <= 3:
             for key in req.keys():
                 if key == 'course':
                     name = req['course']
@@ -198,6 +186,9 @@ class Search(APIView):
                 elif key == 'teacher':
                     name = req['teacher']
                     result = result.filter(teacher_id__name__icontains=name)
+                elif key == 'type':
+                    types = req['type']
+                    result = result.filter(course_id__type__icontains=types)
                 else:
                     message = "参数名称错误"
                     return HttpResponse(message, status=400)
@@ -206,20 +197,165 @@ class Search(APIView):
         return HttpResponse(message, status=400)
 
 
-class CourseEvaluation(APIView):
+class CourseEvaluations(APIView):
 
     @staticmethod
     def get(request):
-        pass
+        req = request.query_params.dict()
+        result = CourseEvaluation.objects.all()
+        teachers = TeacherCourse.objects.all()
+        if 'bid' in req.keys():
+            bid = req['bid']
+            try:
+                course = Course.objects.get(bid=bid)
+            except Course.DoesNotExist:
+                message = "没有这门课程"
+                return HttpResponse(message, status=404)
+            result = result.filter(course__bid=bid)
+            teachers = teachers.filter(course_id__bid=bid)
+            teacher_info = TeacherEvaluationSerializer(teachers, many=True).data
+            info = CourseEvaluationSerializer(result, many=True).data
+            total_score = 0.0
+            count = 0
+            for i in result:
+                total_score += i.score
+                count += 1
+            avg_score = total_score / count if count > 0 else 0
+            info.insert(0, {"course_name": course.name})
+            info.insert(1, {"avg_score": avg_score})
+            info.insert(2, teacher_info)
+            return Response(info)
+        message = "参数数量不正确"
+        return HttpResponse(message, status=400)
 
+    # 点赞/加踩
     @staticmethod
     def post(request):
-        pass
+        req = request.data
+        if len(req) == 3:
+            student_id = req['student_id']
+            bid = req['bid']
+            action = req['action']
+            try:
+                student = Student.objects.get(id=student_id)
+            except Student.DoesNotExist:
+                message = "没有这个学生"
+                return HttpResponse(message, status=401)
+            try:
+                course = Course.objects.get(bid=bid)
+            except Course.DoesNotExist:
+                message = "没有这门课程"
+                return HttpResponse(message, status=404)
+            try:
+                evaluation = CourseEvaluation.objects.get(student=student, course=course)
+            except CourseEvaluation.DoesNotExist:
+                message = "没有这条评价"
+                return HttpResponse(message, status=404)
+            # 点赞
+            if action == 'up':
+                try:
+                    # 已经赞过
+                    EvaluationUpRecord.objects.get(evaluation=evaluation, student=student)
+                    return HttpResponse(status=202)
+                except EvaluationUpRecord.DoesNotExist:
+                    up_record = EvaluationUpRecord(evaluation=evaluation, student=student)
+                    up_record.save()
+                    evaluation.up += 1
+                    evaluation.save()
+                    return HttpResponse(status=201)
+            # 加踩
+            if action == 'down':
+                try:
+                    # 已经踩过
+                    EvaluationDownRecord.objects.get(evaluation=evaluation, student=student)
+                    return HttpResponse(status=202)
+                except EvaluationDownRecord.DoesNotExist:
+                    down = EvaluationDownRecord(evaluation=evaluation, student=student)
+                    down.save()
+                    evaluation.down += 1
+                    evaluation.save()
+                    return HttpResponse(status=201)
+            # 取消点赞
+            if action == 'cancel_up':
+                try:
+                    up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=student)
+                    up_record.delete()
+                    evaluation.up -= 1
+                    evaluation.save()
+                    return HttpResponse(status=201)
+                except EvaluationUpRecord.DoesNotExist:
+                    message = "不存在这条点赞记录"
+                    return HttpResponse(message, status=404)
+            # 取消加踩
+            if action == 'cancel_down':
+                try:
+                    down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=student)
+                    down.delete()
+                    evaluation.down -= 1
+                    evaluation.save()
+                    return HttpResponse(status=201)
+                except EvaluationDownRecord.DoesNotExist:
+                    message = "不存在这条被踩记录"
+                    return HttpResponse(message, status=404)
+        message = "参数数量不正确"
+        return HttpResponse(message, status=400)
 
+    # 创建新评价/修改评价
     @staticmethod
     def put(request):
-        pass
+        req = request.data
+        if len(req) == 4:
+            bid = req['bid']
+            text = req['text']
+            score = req['score']
+            student_id = req['student_id']
+            if not 1 <= score <= 5:
+                message = "评分只能为1-5分"
+                return HttpResponse(message, status=400)
+            try:
+                student = Student.objects.get(id=student_id)
+            except Student.DoesNotExist:
+                message = "没有这个学生"
+                return HttpResponse(message, status=401)
+            try:
+                course = Course.objects.get(bid=bid)
+            except Course.DoesNotExist:
+                message = "没有这门课程"
+                return HttpResponse(message, status=404)
+            try:
+                evaluation = CourseEvaluation.objects.get(student=student, course=course)
+                evaluation.evaluation = text
+                evaluation.score = score
+            except CourseEvaluation.DoesNotExist:
+                evaluation = CourseEvaluation(student=student, course=course, score=score, evaluation=text)
+            evaluation.save()
+            return HttpResponse(status=201)
+        message = "参数数量不正确"
+        return HttpResponse(message, status=400)
 
+    # 删除评价
     @staticmethod
     def delete(request):
-        pass
+        req = request.data
+        if len(req) == 2:
+            bid = req['bid']
+            student_id = req['student_id']
+            try:
+                student = Student.objects.get(id=student_id)
+            except Student.DoesNotExist:
+                message = "没有这个学生"
+                return HttpResponse(message, status=401)
+            try:
+                course = Course.objects.get(bid=bid)
+            except Course.DoesNotExist:
+                message = "没有这门课程"
+                return HttpResponse(message, status=404)
+            try:
+                evaluation = CourseEvaluation.objects.get(student=student, course=course)
+                evaluation.delete()
+                return HttpResponse(status=204)
+            except CourseEvaluation.DoesNotExist:
+                message = "没有这条评价"
+                return HttpResponse(message, status=404)
+        message = "参数数量不正确"
+        return HttpResponse(message, status=400)

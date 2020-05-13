@@ -9,15 +9,15 @@ class EmptyRoomModelTests(TestCase):
         response = self.client.get('/classroom/?campus=学院路校区&date=2020-04-20&section=1,')
         self.assertEqual(response.status_code, 200)
 
-    def test_get_500(self):
+    def test_get_400(self):
         """
-        检测返回状态码为500的get请求
+        检测返回状态码为400的get请求
         """
         response = self.client.get('/classroom/?camus=学院路校区&date=2020-04-20&section=1,')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
         response = self.client.get('/classroom/')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def test_post_200(self):
         """
@@ -55,7 +55,7 @@ class EmptyRoomModelTests(TestCase):
         response = self.client.post('/classroom/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 200)
 
-    def test_post_500(self):
+    def test_post_400(self):
         """
         检测返回状态码为500的post请求
         """
@@ -71,4 +71,4 @@ class EmptyRoomModelTests(TestCase):
             ]
         }
         response = self.client.post('/classroom/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)

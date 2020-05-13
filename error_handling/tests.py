@@ -29,9 +29,9 @@ class ErrorHandlingTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["state"], 1)
 
-    def test_post_500(self):
+    def test_post_400(self):
         """
-        检测返回状态码为500的post请求
+        检测返回状态码为400的post请求
         1.参数数量不正确
         2.参数名称不正确
         """
@@ -40,10 +40,10 @@ class ErrorHandlingTests(TestCase):
             "password": "2020",
         }
         response = self.client.post('/delete/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
         data = {
             "password": "2020",
         }
         response = self.client.post('/delete/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)

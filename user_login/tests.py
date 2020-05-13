@@ -35,7 +35,7 @@ class UserLoginTests(TestCase):
         response = self.client.post('/login/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 200)
 
-    def test_post_500(self):
+    def test_post_400(self):
         """
         检测返回状态码为500的post请求
         1.参数数量错误
@@ -45,14 +45,14 @@ class UserLoginTests(TestCase):
             "usr_name": "mushan",
         }
         response = self.client.post('/login/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
         data = {
             "usr_name": "mushan",
             "usr_passwor": "zI4MS1ylntJ3TVE32dsImw=="
         }
         response = self.client.post('/login/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def test_post_401(self):
         """

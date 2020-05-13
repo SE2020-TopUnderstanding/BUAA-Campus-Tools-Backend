@@ -1,7 +1,8 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from course_query.models import Student
+from api_exception.exceptions import ArgumentError, UnAuthorizedError, NotFoundError
 
 REQ_ID = 0
 REQ_QUEUE = []
@@ -24,7 +25,7 @@ def add_request(req_type, student_id):
     try:
         student = Student.objects.get(id=student_id)
     except Student.DoesNotExist:
-        raise Http404
+        raise UnAuthorizedError()
     for item in REQ_QUEUE:
         if item['usr_name'] == student.usr_name \
                 and item['password'] == student.usr_password \
@@ -65,8 +66,7 @@ class Queue(APIView):
             return Response([{'status': int(req['id']) not in PENDING_WORK}])
 
         # 其他非法请求
-        message = '参数数量个数或名称错误，只能为0个，或1个且是\'id\''
-        return HttpResponse(message, status=400)
+        raise ArgumentError()
 
     @staticmethod
     def post(request):
@@ -77,8 +77,7 @@ class Queue(APIView):
             try:
                 PENDING_WORK.remove(cur_id)
             except ValueError:
-                message = '没有这个任务号'
-                return HttpResponse(message, status=404)
+                raise NotFoundError(detail='没有这个任务号')
             return HttpResponse(status=200)
         if len(req) == 4:
             REQ_QUEUE.append(req)
@@ -88,8 +87,7 @@ class Queue(APIView):
             log.write('\n')
             PENDING_WORK.append(req['req_id'])
             return HttpResponse(status=201)
-        message = '参数数量不正确，需要为4个或1个且只有\'req_id\'参数'
-        return HttpResponse(message, status=400)
+        raise ArgumentError()
 
 
 class CourseRequest(APIView):
@@ -99,8 +97,7 @@ class CourseRequest(APIView):
         if len(req) == 1 and 'student_id' in req.keys():
             request_id = add_request('s', req['student_id'])
             return Response([{"id": request_id}])
-        message = '参数数量或名称错误，只能为1个且为\'student_id\''
-        return HttpResponse(message, status=400)
+        raise ArgumentError()
 
 
 class DDLRequest(APIView):
@@ -110,8 +107,7 @@ class DDLRequest(APIView):
         if len(req) == 1 and 'student_id' in req.keys():
             request_id = add_request('d', req['student_id'])
             return Response([{"id": request_id}])
-        message = '参数数量或名称错误，只能为1个且为\'student_id\''
-        return HttpResponse(message, status=400)
+        raise ArgumentError()
 
 
 class ScoreRequest(APIView):
@@ -122,8 +118,7 @@ class ScoreRequest(APIView):
         if len(req) == 1 and 'student_id' in req.keys():
             request_id = add_request('g', req['student_id'])
             return Response([{"id": request_id}])
-        message = '参数数量或名称错误，只能为1个且为\'student_id\''
-        return HttpResponse(message, status=400)
+        raise ArgumentError()
 
 
 class TestsRequest(APIView):
@@ -134,5 +129,4 @@ class TestsRequest(APIView):
         if len(req) == 1 and 'student_id' in req.keys():
             request_id = add_request('t', req['student_id'])
             return Response([{"id": request_id}])
-        message = '参数数量或名称错误，只能为1个且为\'student_id\''
-        return HttpResponse(message, status=400)
+        raise ArgumentError()

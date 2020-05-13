@@ -2,10 +2,9 @@ import logging
 from itertools import chain
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import HttpResponse
 from django.db.models import Q
 
-
+from api_exception.exceptions import ArgumentError, UnAuthorizedError
 from course_query.models import Student
 from request_queue.models import RequestRecord
 from .models import DDL
@@ -76,10 +75,8 @@ class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，�
 
         req = request.query_params.dict()
 
-        if len(req) != 1:
-            return HttpResponse(status=400)
-        if "student_id" not in req:
-            return HttpResponse(status=400)
+        if (len(req) != 1) or ("student_id" not in req):
+            raise ArgumentError()
 
         student_id = req["student_id"]
         content = []
@@ -88,7 +85,7 @@ class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，�
             Student.objects.get(id=req['student_id'])
             req = DDL.objects.filter(student_id=student_id)
         except Student.DoesNotExist:
-            return HttpResponse(status=401)
+            raise UnAuthorizedError()
 
         course_re = req.values("course").distinct()
 
@@ -143,10 +140,10 @@ class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，�
             student = Student.objects.get(id=req['student_id'])
             DDL.objects.filter(student_id=req['student_id']).delete()
         except Student.DoesNotExist:
-            return HttpResponse(status=401)
+            raise UnAuthorizedError()
 
         if "ddl" not in req:
-            return HttpResponse(status=400)
+            raise ArgumentError()
         for key in req['ddl']:
             if len(key) == 2:
                 content = key["content"]
@@ -160,11 +157,11 @@ class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，�
                         except ValueError:
                             text = "ddl时间格式错误 " + i["ddl"]
                             logging.warning(text)
-                            return HttpResponse(status=400)
+                            raise ArgumentError()
                     DDL(student_id=student, ddl=time, homework=i["homework"],
                         state=i["state"], course=name).save()
             else:
-                return HttpResponse(status=400)
+                raise ArgumentError()
 
         content = {"state": 1}
         return Response(content)

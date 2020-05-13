@@ -1,6 +1,5 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import HttpResponse
 
 from course_query.models import Student
 from course_query.models import StudentCourse
@@ -9,6 +8,8 @@ from ddl_query.models import DDL
 from request_queue.models import RequestRecord
 from request_queue.views import add_request
 
+from api_exception.exceptions import ArgumentError, UnAuthorizedError, DatabasePasswordError, InternalServerError
+from api_exception.exceptions import IPBannedError, AccountLockedError
 from API.settings import PASSWORD_SPIDER
 from .login_request.password_utils import Aescrypt, KEY, MODEL, IV, ENCODE_
 from .login_request.login_judge import get_student_info
@@ -39,7 +40,7 @@ class Login(APIView):
                 end = quotient * number + min(remainder, number)
                 return Response(content[start:end])
             return Response(content)
-        return HttpResponse(status=462)
+        raise DatabasePasswordError()
 
     @staticmethod
     def post(request):
@@ -65,10 +66,8 @@ class Login(APIView):
 
         req = request.data
 
-        if len(req) != 2:
-            return Response(status=400, data={"state": "-3", "student_id": "", "name": ""})
-        if ("usr_name" not in req) | ("usr_password" not in req):
-            return Response(status=400, data={"state": "-3", "student_id": "", "name": ""})
+        if (len(req) != 2) | ("usr_name" not in req) | ("usr_password" not in req):
+            raise ArgumentError()
 
         usr_name = request.data["usr_name"]
         usr_password = request.data["usr_password"]
@@ -76,19 +75,19 @@ class Login(APIView):
 
         state = ans
         if (ans == 0) | (ans == -1) | (ans == -2)  | (ans == -3) | (ans == -4) | (ans == -5):
-            return Response(status=500, data={"state": state, "student_id": "", "name": ""})
+            raise InternalServerError()
 
         if ans == -6:  # IP is banned from the buaa
-            return Response(status=461, data={"state": state, "student_id": "", "name": ""})
+            raise IPBannedError()
 
         if (ans == -7) | (ans == -8):
-            return Response(status=401, data={"state": state, "student_id": "", "name": ""})
+            raise UnAuthorizedError()
 
         if ans == -9:
-            return Response(status=400, data={"state": state, "student_id": "", "name": ""})
+            raise ArgumentError()
 
         if ans == -10:
-            return Response(status=460, data={"state": state, "student_id": "", "name": ""})
+            raise AccountLockedError()
 
         state = 1
         student_id = str(ans[0])

@@ -48,7 +48,6 @@ def split_time(time):
 
 
 def add_course(student, semester, info):
-    response = HttpResponse(status=201)
     if len(info) == 5:
         name = info[0].replace(' ', '')
         place = info[1].replace(' ', '')
@@ -85,12 +84,9 @@ def add_course(student, semester, info):
             relation = TeacherCourseSpecific(student_course_id=new_student_course,
                                              teacher_id=teacher)
             relation.save()
-            response = HttpResponse(status=201)
+            return HttpResponse(status=201)
         # 不是5项表示数据有缺失
-    else:
-        message = 'info里的元素一定要为5项，请检查'
-        response = HttpResponse(message, status=400)
-    return response
+    raise ArgumentError()
 
 
 class CourseList(APIView):
@@ -114,16 +110,14 @@ class CourseList(APIView):
                     try:
                         Student.objects.get(id=req['student_id'])
                     except Student.DoesNotExist:
-                        message = "没有这个学生的信息"
-                        return HttpResponse(message, status=401)
+                        raise UnAuthorizedError()
                     result = result.filter(student_id__id=value)
                 elif key == 'week':
                     if value != 'all':
                         value += ','
                         result = result.filter(week__icontains=value)
                 else:
-                    message = '您附加的参数名有错误，只允许\'student_id\', \'week\''
-                    return HttpResponse(message, status=400)
+                    raise ArgumentError()
             course_serializer = StudentCourseSerializer(result, many=True)
             return Response(course_serializer.data)
         # 当前周查询请求
@@ -136,11 +130,9 @@ class CourseList(APIView):
                 value = str(total_week)
                 content.append({"week": value})
                 return Response(content)
-            message = '您附加参数有错误，请检查参数是否为date'
-            return HttpResponse(message, status=400)
+            raise ArgumentError()
         # 其他非法请求
-        message = '您附加参数数量有错误，请检查参数个数是否为1个或2个'
-        return HttpResponse(message, status=400)
+        raise ArgumentError()
 
     @staticmethod
     def post(request):
@@ -154,8 +146,7 @@ class CourseList(APIView):
         try:
             student = Student.objects.get(id=student_id)
         except Student.DoesNotExist:
-            message = '数据库中没有这个学生，数据库可能出现了问题'
-            return HttpResponse(message, status=401)
+            raise UnAuthorizedError()
         # 爬虫的数据库插入请求
         if len(req) == 2:
             response = HttpResponse(status=201)
@@ -165,13 +156,9 @@ class CourseList(APIView):
             # 将爬虫爬取的数据写入数据库
             for lists in req['info']:
                 for info in lists:
-                    response = add_course(student, semester, info)
-                    if response.status_code != 201:
-                        return response
-            return response
+                    return add_course(student, semester, info)
         # 其他非法请求
-        message = '参数数量不正确'
-        return HttpResponse(message, status=400)
+        raise ArgumentError()
 
 
 class Search(APIView):

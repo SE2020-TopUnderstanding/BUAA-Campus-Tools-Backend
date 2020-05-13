@@ -13,6 +13,12 @@ class Course(models.Model):
     bid = models.CharField(max_length=20)
     # the course's name, e.g. Software Engineering
     name = models.CharField(max_length=120)
+    # 开课院系
+    department = models.CharField(max_length=120)
+    # 学分
+    credit = models.FloatField(default=0.0)
+    # 总学时
+    hours = models.IntegerField(null=True)
     # 课程类别
     type = models.CharField(max_length=60)
     # many to many

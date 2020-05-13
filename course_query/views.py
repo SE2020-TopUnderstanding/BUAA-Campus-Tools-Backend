@@ -3,9 +3,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import HttpResponse
 from request_queue.models import RequestRecord
-from .serializers import StudentCourseSerializer, TeacherCourseSerializer, CourseEvaluationSerializer, \
+from course_query.serializers import StudentCourseSerializer, TeacherCourseSerializer, CourseEvaluationSerializer, \
     TeacherEvaluationSerializer
-from .models import Student, Course, StudentCourse, Teacher, TeacherCourse, TeacherCourseSpecific, CourseEvaluation, \
+from course_query.models import Student, Course, StudentCourse, Teacher, TeacherCourse, TeacherCourseSpecific, \
+    CourseEvaluation, \
     EvaluationUpRecord, EvaluationDownRecord, TeacherEvaluationRecord
 
 
@@ -280,7 +281,7 @@ class CourseEvaluations(APIView):
             # 取消点赞
             if action == 'cancel_up':
                 try:
-                    up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actort)
+                    up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
                     up_record.delete()
                     evaluation.up -= 1
                     evaluation.save()
@@ -401,15 +402,15 @@ class TeacherEvaluations(APIView):
                     return HttpResponse(status=202)
                 except TeacherEvaluationRecord.DoesNotExist:
                     # 没点过赞
-                    up = TeacherEvaluationRecord(teacher_course=teacher_course, student=student)
-                    up.save()
+                    up_record = TeacherEvaluationRecord(teacher_course=teacher_course, student=student)
+                    up_record.save()
                     teacher_course.up += 1
                     teacher_course.save()
                 return HttpResponse(status=201)
-            elif action == 'cancel_up':
+            if action == 'cancel_up':
                 try:
-                    up = TeacherEvaluationRecord.objects.get(teacher_course=teacher_course, student=student)
-                    up.delete()
+                    up_record = TeacherEvaluationRecord.objects.get(teacher_course=teacher_course, student=student)
+                    up_record.delete()
                     teacher_course.up -= 1
                     teacher_course.save()
                 except TeacherEvaluationRecord.DoesNotExist:

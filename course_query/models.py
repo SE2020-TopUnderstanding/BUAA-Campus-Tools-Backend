@@ -13,6 +13,8 @@ class Course(models.Model):
     bid = models.CharField(max_length=20)
     # the course's name, e.g. Software Engineering
     name = models.CharField(max_length=120)
+    # 课程类别
+    type = models.CharField(max_length=60)
     # many to many
     teacher_course = models.ManyToManyField(Teacher, through='TeacherCourse')
 

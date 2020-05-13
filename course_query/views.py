@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import HttpResponse
 from request_queue.models import RequestRecord
-from .serializers import StudentCourseSerializer
+from .serializers import StudentCourseSerializer, TeacherCourseSerializer
 from .models import Student, Course, StudentCourse, Teacher, TeacherCourse, TeacherCourseSpecific
 
 
@@ -182,3 +182,44 @@ class CourseList(APIView):
         # 其他非法请求
         message = '参数数量不正确'
         return HttpResponse(message, status=400)
+
+
+class Search(APIView):
+
+    @staticmethod
+    def get(request):
+        req = request.query_params.dict()
+        result = TeacherCourse.objects.all()
+        if len(req) == 1 or len(req) == 2:
+            for key in req.keys():
+                if key == 'course':
+                    name = req['course']
+                    result = result.filter(course_id__name__icontains=name)
+                elif key == 'teacher':
+                    name = req['teacher']
+                    result = result.filter(teacher_id__name__icontains=name)
+                else:
+                    message = "参数名称错误"
+                    return HttpResponse(message, status=400)
+            return Response(TeacherCourseSerializer(result, many=True).data)
+        message = "参数数量或名称不正确"
+        return HttpResponse(message, status=400)
+
+
+class CourseEvaluation(APIView):
+
+    @staticmethod
+    def get(request):
+        pass
+
+    @staticmethod
+    def post(request):
+        pass
+
+    @staticmethod
+    def put(request):
+        pass
+
+    @staticmethod
+    def delete(request):
+        pass

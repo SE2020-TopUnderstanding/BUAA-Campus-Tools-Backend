@@ -232,12 +232,14 @@ class CourseEvaluations(APIView):
     @staticmethod
     def post(request):
         req = request.data
-        if len(req) == 3:
+        if len(req) == 4:
             student_id = req['student_id']
+            actor = req['actor']
             bid = req['bid']
             action = req['action']
             try:
                 student = Student.objects.get(id=student_id)
+                actor = Student.objects.get(id=actor)
             except Student.DoesNotExist:
                 message = "没有这个学生"
                 return HttpResponse(message, status=401)
@@ -255,10 +257,10 @@ class CourseEvaluations(APIView):
             if action == 'up':
                 try:
                     # 已经赞过
-                    EvaluationUpRecord.objects.get(evaluation=evaluation, student=student)
+                    EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
                     return HttpResponse(status=202)
                 except EvaluationUpRecord.DoesNotExist:
-                    up_record = EvaluationUpRecord(evaluation=evaluation, student=student)
+                    up_record = EvaluationUpRecord(evaluation=evaluation, student=actor)
                     up_record.save()
                     evaluation.up += 1
                     evaluation.save()
@@ -267,10 +269,10 @@ class CourseEvaluations(APIView):
             if action == 'down':
                 try:
                     # 已经踩过
-                    EvaluationDownRecord.objects.get(evaluation=evaluation, student=student)
+                    EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
                     return HttpResponse(status=202)
                 except EvaluationDownRecord.DoesNotExist:
-                    down = EvaluationDownRecord(evaluation=evaluation, student=student)
+                    down = EvaluationDownRecord(evaluation=evaluation, student=actor)
                     down.save()
                     evaluation.down += 1
                     evaluation.save()
@@ -278,7 +280,7 @@ class CourseEvaluations(APIView):
             # 取消点赞
             if action == 'cancel_up':
                 try:
-                    up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=student)
+                    up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actort)
                     up_record.delete()
                     evaluation.up -= 1
                     evaluation.save()
@@ -289,7 +291,7 @@ class CourseEvaluations(APIView):
             # 取消加踩
             if action == 'cancel_down':
                 try:
-                    down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=student)
+                    down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
                     down.delete()
                     evaluation.down -= 1
                     evaluation.save()
@@ -358,4 +360,61 @@ class CourseEvaluations(APIView):
                 message = "没有这条评价"
                 return HttpResponse(message, status=404)
         message = "参数数量不正确"
+        return HttpResponse(message, status=400)
+
+
+class TeacherEvaluations(APIView):
+
+    # 点赞老师
+    @staticmethod
+    def post(request):
+        req = request.data
+        if len(req) == 4:
+            teacher_name = req['teacher']
+            bid = req['bid']
+            actor = req['actor']
+            action = req['action']
+            try:
+                teacher = Teacher.objects.get(name=teacher_name)
+            except Teacher.DoesNotExist:
+                message = "没有这个老师！"
+                return HttpResponse(message, status=404)
+            try:
+                course = Course.objects.get(bid=bid)
+            except Course.DoesNotExist:
+                message = "没有这门课程"
+                return HttpResponse(message, status=404)
+            try:
+                student = Student.objects.get(id=actor)
+            except Student.DoesNotExist:
+                message = "没有这个学生！"
+                return HttpResponse(message, status=401)
+            try:
+                teacher_course = TeacherCourse.objects.get(teacher_id=teacher, course_id=course)
+            except TeacherCourse.DoesNotExist:
+                message = "没有这个课程评价"
+                return HttpResponse(message, status=404)
+            if action == 'up':
+                try:
+                    # 已经点过赞
+                    TeacherEvaluationRecord.objects.get(teacher_course=teacher_course, student=student)
+                    return HttpResponse(status=202)
+                except TeacherEvaluationRecord.DoesNotExist:
+                    # 没点过赞
+                    up = TeacherEvaluationRecord(teacher_course=teacher_course, student=student)
+                    up.save()
+                    teacher_course.up += 1
+                    teacher_course.save()
+                return HttpResponse(status=201)
+            elif action == 'cancel_up':
+                try:
+                    up = TeacherEvaluationRecord.objects.get(teacher_course=teacher_course, student=student)
+                    up.delete()
+                    teacher_course.up -= 1
+                    teacher_course.save()
+                except TeacherEvaluationRecord.DoesNotExist:
+                    message = "不存在这个点赞记录"
+                    return HttpResponse(status=404)
+                return HttpResponse(status=201)
+        message = "参数数量错误"
         return HttpResponse(message, status=400)

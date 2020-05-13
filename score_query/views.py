@@ -56,7 +56,7 @@ def insert_score(student, semester, key):
         origin_score = key[4].replace(' ', '')
         score = key[5].replace(' ', '')
         if origin_score == '缓考':
-            return HttpResponse(status=201)
+            return
         try:
             old_score = Score.objects.get(student_id=student, bid=bid)
             if label == '补考':
@@ -72,7 +72,7 @@ def insert_score(student, semester, key):
             new_score = Score(student_id=student, semester=semester, course_name=course_name
                               , bid=bid, credit=credit, label=label, origin_score=origin_score, score=score)
             new_score.save()
-        return HttpResponse(status=201)
+        return
     raise ArgumentError()
 
 

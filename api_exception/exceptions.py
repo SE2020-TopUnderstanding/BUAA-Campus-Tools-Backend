@@ -19,6 +19,24 @@ class NotFoundError(APIException):
     default_code = "NotFound"
 
 
+class AccountLockedError(APIException):
+    status_code = 460
+    default_detail = "学生学生账号重复登录次数过多被锁定"
+    default_code = "AccountLocked"
+
+
+class IPBannedError(APIException):
+    status_code = 461
+    default_detail = "爬虫服务器ip被锁"
+    default_code = "IPIsBanned"
+
+
+class DatabasePasswordError(APIException):
+    status_code = 462
+    default_detail = "爬虫访问数据库密码错误"
+    default_code = "PasswordError"
+
+
 class InternalServerError(APIException):
     status_code = 500
     default_detail = "服务器内部错误"

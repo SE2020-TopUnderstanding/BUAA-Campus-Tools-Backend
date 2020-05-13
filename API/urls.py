@@ -28,4 +28,5 @@ urlpatterns = [
     path('request/', include('request_queue.urls')),
     path('version/', include('version_information.urls')),
     path('delete/', include('error_handling.urls')),
+    path('feedback/', include('user_feedback.urls')),
 ]

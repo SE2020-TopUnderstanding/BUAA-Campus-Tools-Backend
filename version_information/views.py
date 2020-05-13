@@ -17,7 +17,7 @@ class Version(APIView):
         req = request.query_params.dict()
 
         if len(req) != 0:
-            return HttpResponse(status=500)
+            return HttpResponse(status=400)
 
         data = VERSION.objects.all()
         length = data.count()

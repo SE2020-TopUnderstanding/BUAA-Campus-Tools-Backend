@@ -25,7 +25,7 @@ class Login(APIView):
         返回：所有用户姓名和密码
         http://127.0.0.1:8000/login/?password=123&number=1
         返回：第几台服务器所拥有的用户
-        错误：500
+        错误：462
         """
         req = request.query_params.dict()
         if req["password"] == PASSWORD_SPIDER:
@@ -39,7 +39,7 @@ class Login(APIView):
                 end = quotient * number + min(remainder, number)
                 return Response(content[start:end])
             return Response(content)
-        return HttpResponse(status=500)
+        return HttpResponse(status=462)
 
     @staticmethod
     def post(request):
@@ -47,23 +47,13 @@ class Login(APIView):
         输入：用户名，用户密码，输出：登录状态（1代表成功，2代表无该账号，3代表密码错误）
         参数1:用户名 e.g. mushan，用户密码 e.g. h1010
         例:http --form POST http://127.0.0.1:8000/login/ usr_name="mushan" usr_password="h1010"
-        返回:登录状态
-        0 -> request error when login the jiaowu web
-        -1 -> login error, unknown, please refer to the log
-        -2 -> login request status code is 2XX, but not 200
-        -3 -> jump to unknown page
-        -4 -> request exception, timeout or network error
-        -5 -> login request status code is 4XX or 5XX
-        -6 -> IP is banned from the buaa
-        -7 -> usr_name is wrong or there is a CAPTCHA
-        -8 -> password is wrong
-        -9 -> usr_name or password is empty
-        -10 -> account is locked
-        没有提供参数，参数数量错误，返回500错误;
-        参数错误，返回500错误;
-        账号被锁返回402
+        获取学生基本信息
+        返回: [state, student_id, name]
+        没有提供参数，参数数量错误，返回400错误;
+        参数错误，返回400错误;
         密码账号错误401
-        服务器ip返回403
+        账号被锁返回460
+        服务器ip返回461
         """
 
         try:  # 保存前端请求数据
@@ -76,9 +66,9 @@ class Login(APIView):
         req = request.data
 
         if len(req) != 2:
-            return Response(status=500, data={"state": "-3", "student_id": "", "name": ""})
+            return Response(status=400, data={"state": "-3", "student_id": "", "name": ""})
         if ("usr_name" not in req) | ("usr_password" not in req):
-            return Response(status=500, data={"state": "-3", "student_id": "", "name": ""})
+            return Response(status=400, data={"state": "-3", "student_id": "", "name": ""})
 
         usr_name = request.data["usr_name"]
         usr_password = request.data["usr_password"]
@@ -89,7 +79,7 @@ class Login(APIView):
             return Response(status=500, data={"state": state, "student_id": "", "name": ""})
 
         if ans == -6:  # IP is banned from the buaa
-            return Response(status=403, data={"state": state, "student_id": "", "name": ""})
+            return Response(status=461, data={"state": state, "student_id": "", "name": ""})
 
         if (ans == -7) | (ans == -8):
             return Response(status=401, data={"state": state, "student_id": "", "name": ""})
@@ -98,7 +88,7 @@ class Login(APIView):
             return Response(status=400, data={"state": state, "student_id": "", "name": ""})
 
         if ans == -10:
-            return Response(status=402, data={"state": state, "student_id": "", "name": ""})
+            return Response(status=460, data={"state": state, "student_id": "", "name": ""})
 
         state = 1
         student_id = str(ans[0])

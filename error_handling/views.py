@@ -20,9 +20,9 @@ class DeleteStudent(APIView):
 
         if len(req) != 2:
             print(len(req))
-            return HttpResponse(status=500)
+            return HttpResponse(status=400)
         if ("usr_name" not in req) | ("password" not in req):
-            return HttpResponse(status=500)
+            return HttpResponse(status=400)
 
         state = 0
         try:

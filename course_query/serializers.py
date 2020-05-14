@@ -48,7 +48,7 @@ class TeacherCourseSerializer(serializers.ModelSerializer):
 class CourseEvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseEvaluation
-        fields = ('student', 'score', 'updated_time', 'evaluation')
+        fields = ('student', 'score', 'updated_time', 'evaluation', 'up', 'down')
 
 
 class TeacherEvaluationSerializer(serializers.ModelSerializer):

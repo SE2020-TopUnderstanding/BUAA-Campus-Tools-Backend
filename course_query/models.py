@@ -76,9 +76,9 @@ class CourseEvaluation(models.Model):
     # 课程评价分
     score = models.IntegerField(default=0)
     # 创建时间
-    created_time = models.TimeField(auto_now_add=True)
+    created_time = models.DateTimeField(auto_now_add=True)
     # 最后修改时间
-    updated_time = models.TimeField(auto_now=True)
+    updated_time = models.DateTimeField(auto_now=True)
     # 点赞数
     up = models.IntegerField(default=0)
     # 被踩数

@@ -216,8 +216,7 @@ class Search(APIView):
                     types = req['type']
                     result = result.filter(course_id__type__icontains=types)
                 else:
-                    message = "参数名称错误"
-                    return HttpResponse(message, status=400)
+                    raise ArgumentError()
             return Response(TeacherCourseSerializer(result, many=True).data)
         raise ArgumentError()
 
@@ -234,8 +233,7 @@ class CourseEvaluations(APIView):
             try:
                 course = Course.objects.get(bid=bid)
             except Course.DoesNotExist:
-                message = "没有这门课程"
-                return HttpResponse(message, status=404)
+                raise NotFoundError(detail="没有这门课程")
             result = result.filter(course__bid=bid)
             teachers = teachers.filter(course_id__bid=bid)
             teacher_info = TeacherEvaluationSerializer(teachers, many=True).data

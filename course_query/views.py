@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from django.db.models import Avg
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import HttpResponse
@@ -88,6 +90,18 @@ def add_course(student, semester, info):
     raise ArgumentError()
 
 
+def up_count(evaluation):
+    return EvaluationUpRecord.objects.filter(evaluation=evaluation).count()
+
+
+def down_count(evaluation):
+    return EvaluationDownRecord.objects.filter(evaluation=evaluation).count()
+
+
+def up_count_teacher(teacher_course):
+    return TeacherEvaluationRecord.objects.filter(teacher_course=teacher_course).count()
+
+
 def up_action(evaluation, actor):
     try:
         # 已经赞过
@@ -97,12 +111,12 @@ def up_action(evaluation, actor):
         try:
             down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
             down.delete()
-            evaluation.down -= 1
         except EvaluationDownRecord.DoesNotExist:
             pass
         up_record = EvaluationUpRecord(evaluation=evaluation, student=actor)
         up_record.save()
-        evaluation.up += 1
+        evaluation.up = up_count(evaluation)
+        evaluation.down = down_count(evaluation)
         evaluation.save()
         return HttpResponse(status=201)
 
@@ -116,12 +130,12 @@ def down_action(evaluation, actor):
         try:
             up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
             up_record.delete()
-            evaluation.up -= 1
         except EvaluationUpRecord.DoesNotExist:
             pass
         down = EvaluationDownRecord(evaluation=evaluation, student=actor)
         down.save()
-        evaluation.down += 1
+        evaluation.up = up_count(evaluation)
+        evaluation.down = down_count(evaluation)
         evaluation.save()
         return HttpResponse(status=201)
 
@@ -238,12 +252,7 @@ class CourseEvaluations(APIView):
             teachers = teachers.filter(course_id__bid=bid)
             teacher_info = TeacherEvaluationSerializer(teachers, many=True).data
             info = CourseEvaluationSerializer(result, many=True).data
-            total_score = 0.0
-            count = 0
-            for i in result:
-                total_score += i.score
-                count += 1
-            avg_score = total_score / count if count > 0 else 0
+            avg_score = result.aggregate(Avg('score'))['score__avg']
             info.insert(0, {"course_name": course.name})
             info.insert(1, {"avg_score": avg_score})
             info.insert(2, teacher_info)
@@ -283,7 +292,7 @@ class CourseEvaluations(APIView):
                 try:
                     up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
                     up_record.delete()
-                    evaluation.up -= 1
+                    evaluation.up = up_count(evaluation)
                     evaluation.save()
                     return HttpResponse(status=201)
                 except EvaluationUpRecord.DoesNotExist:
@@ -293,7 +302,7 @@ class CourseEvaluations(APIView):
                 try:
                     down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
                     down.delete()
-                    evaluation.down -= 1
+                    evaluation.down = down_count(evaluation)
                     evaluation.save()
                     return HttpResponse(status=201)
                 except EvaluationDownRecord.DoesNotExist:
@@ -389,14 +398,14 @@ class TeacherEvaluations(APIView):
                     # 没点过赞
                     up_record = TeacherEvaluationRecord(teacher_course=teacher_course, student=student)
                     up_record.save()
-                    teacher_course.up += 1
+                    teacher_course.up = up_count_teacher(teacher_course)
                     teacher_course.save()
                 return HttpResponse(status=201)
             if action == 'cancel_up':
                 try:
                     up_record = TeacherEvaluationRecord.objects.get(teacher_course=teacher_course, student=student)
                     up_record.delete()
-                    teacher_course.up -= 1
+                    teacher_course.up = up_count_teacher(teacher_course)
                     teacher_course.save()
                 except TeacherEvaluationRecord.DoesNotExist:
                     raise NotFoundError(detail="不存在这个点赞记录")

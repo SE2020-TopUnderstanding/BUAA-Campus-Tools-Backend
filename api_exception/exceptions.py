@@ -37,6 +37,12 @@ class DatabasePasswordError(APIException):
     default_code = "PasswordError"
 
 
+class DatabaseNotExitError(APIException):
+    status_code = 463
+    default_detail = "数据库中无该学年数据"
+    default_code = "non-existent"
+
+
 class InternalServerError(APIException):
     status_code = 500
     default_detail = "服务器内部错误"

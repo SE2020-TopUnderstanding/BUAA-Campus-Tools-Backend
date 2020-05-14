@@ -90,6 +90,10 @@ def add_course(student, semester, info):
     raise ArgumentError()
 
 
+def evaluator_count(course):
+    return CourseEvaluation.objects.filter(course=course).count()
+
+
 def up_count(evaluation):
     return EvaluationUpRecord.objects.filter(evaluation=evaluation).count()
 
@@ -253,9 +257,11 @@ class CourseEvaluations(APIView):
             teacher_info = TeacherEvaluationSerializer(teachers, many=True).data
             info = CourseEvaluationSerializer(result, many=True).data
             avg_score = result.aggregate(Avg('score'))['score__avg']
+            evaluation_num = evaluator_count(course)
             info.insert(0, {"course_name": course.name})
-            info.insert(1, {"avg_score": avg_score})
-            info.insert(2, teacher_info)
+            info.insert(1, {"evaluation_num": evaluation_num})
+            info.insert(2, {"avg_score": avg_score})
+            info.insert(3, teacher_info)
             return Response(info)
         raise ArgumentError()
 

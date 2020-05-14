@@ -205,17 +205,15 @@ class QuerySchoolCalendar(APIView):
         except SchoolYear.DoesNotExist:
             raise DatabaseNotExitError
 
-        content = {}
-
         #节假日信息
         holiday = SchoolCalendar.objects.filter(Q(semester__contains=req["school_year"])
                                                 & ~Q(holiday__contains=req["school_year"]))
 
         content = {"school_year": req["school_year"], "first_semester": semester.first_semester,
                    "winter_semester": semester.winter_semester, "second_semester": semester.second_semester,
-                   "third_semester": semester.third_semester}
+                   "third_semester": semester.third_semester, "end_semester": semester.end_semester}
 
-        content.update({"holiday": holiday.values("semester", "date", "holiday"),
+        content.update({"holiday": holiday.values("year", "semester", "date", "holiday"),
                         "ddl": ddl})
 
         return Response(content)
@@ -231,17 +229,17 @@ class QuerySchoolCalendar(APIView):
         req = request.data
         if ("school_year" not in req) | ("first_semester" not in req)\
                 | ("winter_semester" not in req) | ("second_semester" not in req) \
-                | ("third_semester" not in req) | ("content" not in req):
+                | ("third_semester" not in req) | ("end_semester" not in req) \
+                | ("content" not in req):
             raise ArgumentError()
 
-        SchoolCalendar.objects.filter(semester__contains=req["school_year"]).delete()
         SchoolYear.objects.filter(school_year=req["school_year"]).delete()
 
         SchoolYear(school_year=req["school_year"], first_semester=req["first_semester"],
                    winter_semester=req["winter_semester"], second_semester=req["second_semester"],
-                   third_semester=req["third_semester"]).save()
-
+                   third_semester=req["third_semester"], end_semester=req["end_semester"]).save()
+        s_y = SchoolYear.objects.get(school_year=req["school_year"])
         for i in req["content"]:
-            SchoolCalendar(semester=i["semester"], date=i["date"], holiday=i["holiday"]).save()
+            SchoolCalendar(year=s_y, semester=i["semester"], date=i["date"], holiday=i["holiday"]).save()
 
         return Response({"state": "成功"})

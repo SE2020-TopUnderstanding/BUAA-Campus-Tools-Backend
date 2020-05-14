@@ -4,10 +4,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Q
 
-from api_exception.exceptions import ArgumentError, UnAuthorizedError
+from api_exception.exceptions import ArgumentError, UnAuthorizedError, DatabaseNotExitError
 from course_query.models import Student
 from request_queue.models import RequestRecord
-from .models import DDL, SchoolCalendar
+from .models import DDL, SchoolCalendar, SchoolYear
 
 
 def add_0(time):
@@ -201,24 +201,22 @@ class QuerySchoolCalendar(APIView):
 
         # 第一学期开始日期+寒假开始日期+第二学期开始日期+第三学期开始日期
         try:
-            first_semester = SchoolCalendar.objects.get(holiday__contains=(req["school_year"] + "第一"))
-            winter_semester = SchoolCalendar.objects.get(holiday__contains=(req["school_year"] + "寒假"))
-            second_semester = SchoolCalendar.objects.get(holiday__contains=(req["school_year"] + "第二"))
-            third_semester = SchoolCalendar.objects.get(holiday__contains=(req["school_year"] + "第三"))
-        except SchoolCalendar.DoesNotExist:
-            return UnAuthorizedError
+            semester = SchoolYear.objects.get(school_year=req["school_year"])
+        except SchoolYear.DoesNotExist:
+            raise DatabaseNotExitError
+
         content = {}
 
         #节假日信息
         holiday = SchoolCalendar.objects.filter(Q(semester__contains=req["school_year"])
                                                 & ~Q(holiday__contains=req["school_year"]))
 
-        content = {"school_year": req["school_year"], "first_semester": first_semester.date,
-                   "winter_semester": winter_semester.date, "second_semester": second_semester.date,
-                   "third_semester": third_semester.date}
+        content = {"school_year": req["school_year"], "first_semester": semester.first_semester,
+                   "winter_semester": semester.winter_semester, "second_semester": semester.second_semester,
+                   "third_semester": semester.third_semester}
 
         content.update({"holiday": holiday.values("semester", "date", "holiday"),
-                        "ddl": ddl.values("course", "homework", "ddl")})
+                        "ddl": ddl})
 
         return Response(content)
 
@@ -231,19 +229,17 @@ class QuerySchoolCalendar(APIView):
         :return:
         """
         req = request.data
-        if ("school_year" not in req) | ("semester" not in req) | ("content" not in req):
+        if ("school_year" not in req) | ("first_semester" not in req)\
+                | ("winter_semester" not in req) | ("second_semester" not in req) \
+                | ("third_semester" not in req) | ("content" not in req):
             raise ArgumentError()
 
         SchoolCalendar.objects.filter(semester__contains=req["school_year"]).delete()
+        SchoolYear.objects.filter(school_year=req["school_year"]).delete()
 
-        for i in req["semester"]:
-            if (i["holiday"] == (req["school_year"] + "第一学期开始日期")) \
-                    | (i["holiday"] == (req["school_year"] + "寒假开始日期")) \
-                    | (i["holiday"] == (req["school_year"] + "第二学期开始日期")) \
-                    | (i["holiday"] == (req["school_year"] + "第三学期开始日期")):
-                SchoolCalendar(semester=i["semester"], date=i["date"], holiday=i["holiday"]).save()
-            else:
-                return Response({"state": "失败,学期开始日期格式错误"})
+        SchoolYear(school_year=req["school_year"], first_semester=req["first_semester"],
+                   winter_semester=req["winter_semester"], second_semester=req["second_semester"],
+                   third_semester=req["third_semester"]).save()
 
         for i in req["content"]:
             SchoolCalendar(semester=i["semester"], date=i["date"], holiday=i["holiday"]).save()

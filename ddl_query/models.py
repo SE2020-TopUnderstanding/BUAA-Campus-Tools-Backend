@@ -19,3 +19,17 @@ class SchoolCalendar(models.Model):
     date = models.CharField(max_length=50)
     #节假日
     holiday = models.CharField(max_length=50)
+
+
+class SchoolYear(models.Model):
+    objects = models.Manager()
+    #学年
+    school_year = models.CharField(max_length=50, unique=True)
+    #第一学期开始日期
+    first_semester = models.CharField(max_length=50)
+    #寒假开始日期
+    winter_semester = models.CharField(max_length=50)
+    # 第二学期开始日期
+    second_semester = models.CharField(max_length=50)
+    # 第三学期开始日期
+    third_semester = models.CharField(max_length=50)

@@ -7,7 +7,7 @@ from django.db.models import Q
 from api_exception.exceptions import ArgumentError, UnAuthorizedError
 from course_query.models import Student
 from request_queue.models import RequestRecord
-from .models import DDL
+from .models import DDL, SchoolCalendar
 
 
 def add_0(time):
@@ -165,3 +165,87 @@ class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，�
 
         content = {"state": 1}
         return Response(content)
+
+
+class QuerySchoolCalendar(APIView):
+    @staticmethod
+    def get(request):
+        """
+        功能：前端获取校历和该学生未完成的ddl
+        调用方法：http://127.0.0.1:8000/ddl/Calendar/?student_id=17373349&school_year=2019-2020
+        返回参数：具体学期，日期，节假日，ddl事件
+        具体json格式见接口文档，两个列表，一个ddl，一个节假日
+        :param request:
+        :return:
+        """
+        try:  # 保存前端请求数据
+            record = RequestRecord.objects.get(name="SchoolCalendar")
+            record.count = record.count + 1
+            record.save()
+        except RequestRecord.DoesNotExist:
+            RequestRecord(name="SchoolCalendar", count=1).save()
+
+        req = request.query_params.dict()
+
+        if (len(req) != 2) or ("student_id" not in req) or ("school_year" not in req):
+            raise ArgumentError()
+
+        try:
+            Student.objects.get(id=req['student_id'])
+            ddl_req = DDL.objects.filter(student_id=req['student_id'])
+        except Student.DoesNotExist:
+            raise UnAuthorizedError()
+
+        #该学生未完成的ddl
+        ddl = ddl_req.filter((Q(state="尚未提交") | Q(state="草稿 - 进行中"))).values("course", "homework", "ddl")
+
+        # 第一学期开始日期+寒假开始日期+第二学期开始日期+第三学期开始日期
+        try:
+            first_semester = SchoolCalendar.objects.get(holiday__contains=(req["school_year"] + "第一"))
+            winter_semester = SchoolCalendar.objects.get(holiday__contains=(req["school_year"] + "寒假"))
+            second_semester = SchoolCalendar.objects.get(holiday__contains=(req["school_year"] + "第二"))
+            third_semester = SchoolCalendar.objects.get(holiday__contains=(req["school_year"] + "第三"))
+        except SchoolCalendar.DoesNotExist:
+            return UnAuthorizedError
+        content = {}
+
+        #节假日信息
+        holiday = SchoolCalendar.objects.filter(Q(semester__contains=req["school_year"])
+                                                & ~Q(holiday__contains=req["school_year"]))
+
+        content = {"school_year": req["school_year"], "first_semester": first_semester.date,
+                   "winter_semester": winter_semester.date, "second_semester": second_semester.date,
+                   "third_semester": third_semester.date}
+
+        content.update({"holiday": holiday.values("semester", "date", "holiday"),
+                        "ddl": ddl.values("course", "homework", "ddl")})
+
+        return Response(content)
+
+    @staticmethod
+    def post(request):
+        """
+        插入某一学年的所有数据，若该学年已被录入，则之前的被删除
+        http://127.0.0.1:8000/ddl/Calendar/
+        :param request:
+        :return:
+        """
+        req = request.data
+        if ("school_year" not in req) | ("semester" not in req) | ("content" not in req):
+            raise ArgumentError()
+
+        SchoolCalendar.objects.filter(semester__contains=req["school_year"]).delete()
+
+        for i in req["semester"]:
+            if (i["holiday"] == (req["school_year"] + "第一学期开始日期")) \
+                    | (i["holiday"] == (req["school_year"] + "寒假开始日期")) \
+                    | (i["holiday"] == (req["school_year"] + "第二学期开始日期")) \
+                    | (i["holiday"] == (req["school_year"] + "第三学期开始日期")):
+                SchoolCalendar(semester=i["semester"], date=i["date"], holiday=i["holiday"]).save()
+            else:
+                return Response({"state": "失败,学期开始日期格式错误"})
+
+        for i in req["content"]:
+            SchoolCalendar(semester=i["semester"], date=i["date"], holiday=i["holiday"]).save()
+
+        return Response({"state": "成功"})

@@ -1,9 +1,9 @@
 from datetime import datetime
 
 from django.db.models import Avg
+from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import HttpResponse
 from request_queue.models import RequestRecord
 from course_query.serializers import StudentCourseSerializer, TeacherCourseSerializer, CourseEvaluationSerializer, \
     TeacherEvaluationSerializer

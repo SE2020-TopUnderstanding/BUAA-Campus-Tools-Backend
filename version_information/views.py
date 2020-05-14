@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import HttpResponse
 
+from api_exception.exceptions import ArgumentError
 from .models import VERSION
 
 
@@ -17,7 +17,7 @@ class Version(APIView):
         req = request.query_params.dict()
 
         if len(req) != 0:
-            return HttpResponse(status=400)
+            raise ArgumentError()
 
         data = VERSION.objects.all()
         length = data.count()
@@ -36,14 +36,12 @@ class Version(APIView):
         """
 
         req = request.data
-        if len(req) != 4:
-            return Response(status=400, data={"state": "参数数量不正确"})
-        if (("version_number" not in req) | ("update_date" not in req)
-                | ("announcement" not in req) | ("download_address" not in req)):
-            return Response(status=400, data={"state": "参数错误"})
+        if (len(req) != 4) | (("version_number" not in req) | ("update_date" not in req) |
+                              ("announcement" not in req) | ("download_address" not in req)):
+            raise ArgumentError()
 
         if len(VERSION.objects.filter(version_number=req["version_number"])) > 0:
-            return Response(status=400, data={"state": "新版本号已有"})
+            raise ArgumentError()
 
         VERSION(version_number=req["version_number"], update_date=req["update_date"],
                 announcement=req["announcement"],

@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import HttpResponse
 
+from api_exception.exceptions import ArgumentError
 from request_queue.models import RequestRecord
 from .models import Classroom
 
@@ -28,10 +28,8 @@ class QueryClassroom(APIView):
             RequestRecord(name="classroom", count=1).save()
         req = request.query_params.dict()
 
-        if len(req) != 3:
-            return HttpResponse(status=400)
-        if ("campus" not in req) | ("date" not in req) | ("section" not in req):
-            return HttpResponse(status=400)
+        if (len(req) != 3) | ("campus" not in req) | ("date" not in req) | ("section" not in req):
+            raise ArgumentError()
 
         campus = req["campus"]
         date = req["date"]
@@ -69,7 +67,7 @@ class QueryClassroom(APIView):
         Classroom.objects.filter(date=req['date']).delete()
 
         if "classroom" not in req:
-            return HttpResponse(status=400)
+            raise ArgumentError()
         for key in req["classroom"]:
             Classroom(campus=key["campus"], teaching_building=key["teaching_building"],
                       classroom=key["classroom"], date=req["date"], section=key["section"]).save()

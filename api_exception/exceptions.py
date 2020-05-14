@@ -9,7 +9,7 @@ class ArgumentError(APIException):
 
 class UnAuthorizedError(APIException):
     status_code = 401
-    default_detail = "数据库中没有这个学生的信息"
+    default_detail = "数据库中没有这个学生的信息或账号密码错误"
     default_code = 'UnAuthorized'
 
 

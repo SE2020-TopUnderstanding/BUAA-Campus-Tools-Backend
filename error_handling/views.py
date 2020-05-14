@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import HttpResponse
+
+from api_exception.exceptions import ArgumentError
 from course_query.models import Student
 from request_queue.views import delete_request
 
@@ -18,11 +19,9 @@ class DeleteStudent(APIView):
         """
         req = request.data
 
-        if len(req) != 2:
+        if (len(req) != 2) | ("usr_name" not in req) | ("password" not in req):
             print(len(req))
-            return HttpResponse(status=400)
-        if ("usr_name" not in req) | ("password" not in req):
-            return HttpResponse(status=400)
+            raise ArgumentError()
 
         state = 0
         try:

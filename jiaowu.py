@@ -1,9 +1,12 @@
 import time
+import requests
+from bs4 import BeautifulSoup
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from vpn import VpnLogin
+from web import WebLogin
 
 
 class JiaoWuReq:
@@ -11,6 +14,7 @@ class JiaoWuReq:
     本类将从 jiaowu.buaa.edu.cn 网站获取信息
     """
     def __init__(self, usr_name, pw):
+        # """
         self.status = 0
         vpn = ''
         for i in range(3):
@@ -37,23 +41,57 @@ class JiaoWuReq:
             self.status = -11
             return
         self.browser = vpn.get_browser()     # 获取浏览器.
+        # """
+
+        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
+                          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
+        self.schedule_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kbcx/queryGrkb'
+        self.headers_jw = {
+            'Referer': 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome',
+            'User-Agent': self.user_agent
+        }
+
+        self.status = 1
+        self.now = ''
+        login = ''
+        for i in range(3):
+            login = WebLogin(usr_name, pw)  # 登录
+            success = login.switch_to_jiaowu()      # 切换到教务
+            # 错误处理
+            if success == -4:
+                if i == 2:
+                    self.status = -4
+                    break
+            elif success == 1:
+                self.now = login.get_session()
+                break
+            else:
+                self.status = success
+                break
+        if login == '':
+            self.status = -11
+            return
 
         # self.getEmptyClassroom()           # debug用
         # self.getGrade()                    # debug用
-        # self.getSchedule()                 # debug用
+        self.get_schedule()                 # debug用
 
     def get_status(self):
         """
         初始化的结果
-        status =  0 : 成功
-        status = -1 : 登陆错误
-        status = -2 : 超时3次
-        status = -3 : 未知错误
-        status = -5 : IP被封
-        status = -6 : 用户名错误或者网站要求输入验证码
-        status = -7 : 密码错误
-        status = -8 : 用户名或密码为空
-        status = -9 : 账号被锁
+        status =  1 : 成功
+        status =  0 : 登录教务网站出现未知错误
+        status = -1 : 登陆时出现未知错误，请参考log信息
+        status = -2 : 登录状态码是2XX，但不是200
+        status = -3 : 跳转到未知网页
+        status = -4 : 超时3次
+        status = -5 : 登陆或访问教务状态码是4XX或5XX
+        status = -6 : IP被封
+        status = -7 : 用户名错误或者网站要求输入验证码
+        status = -8 : 密码错误
+        status = -9 : 用户名或密码为空
+        status =-10 : 账号被锁
+        status =-11 : 账号被锁
         """
         return self.status
 
@@ -223,8 +261,6 @@ class JiaoWuReq:
             ['课程1', '课程2', '课程3', '课程4', '课程5', '课程6', '课程7']
             ...
             ['课程'] （其他课程）
-        ]
-        """
         if self.status != 0:
             return self.status
         # 这个按钮不能直接按，需要使用js来按
@@ -253,7 +289,43 @@ class JiaoWuReq:
         # print(table.find_elements_by_tag_name('tr')[-1].find_elements_by_tag_name('td')[0].text)    # 其他课程（博雅等）
         other = [table.find_elements_by_tag_name('tr')[-1].find_elements_by_tag_name('td')[0].text]
         schedules.append(other)
+        """
+        if self.status != 1:
+            return self.status
+        schedule = ''
+        i = 0
+        while i < 3:
+            try:
+                schedule = self.now.get(url=self.schedule_url, headers=self.headers_jw)
+                break
+            except requests.exceptions.RequestException as err:
+                print(err)
+                i += 1
+                if i == 3:
+                    return 0
+        soup = BeautifulSoup(schedule.text, 'lxml')
+        table = soup.select('table[class="addlist_01"] > tr > td')
+        # print(table)
+        schedules = []
+        schedule = []
+        for each in table:
+            strs = each.get_text()
+            print(strs)
+            if strs in ('上午', '下午', '晚上'):
+                continue
+            if strs.find('其它课程：') != -1:
+                continue
+            if strs[0] == '第' and strs[2] == '，':
+                if len(schedule) != 0:
+                    schedules.append(schedule.copy())
+                schedule.clear()
+                continue
+            if strs[0] == '&':
+                schedule.append('')
+                continue
+            schedule.append(strs)
 
+        print(schedules)
         return schedules
 
     def get_id(self):

@@ -107,12 +107,12 @@ class WebLogin:
         """
             登录请求
             返回：  1 -> 成功
-                   0 -> 登录教务网站出现错误
+                   0 -> 登录教务网站出现未知错误
                   -1 -> 不可预知的错误，请参考log信息
                   -2 -> 登录状态码是2XX，但不是200
                   -3 -> 跳转到未知网页
                   -4 -> 请求错误，超时或网络错误
-                  -5 -> 登陆状态码是4XX或5XX
+                  -5 -> 登陆或访问教务状态码是4XX或5XX
                   -6 -> IP被北航屏蔽
                   -7 -> 用户名错误，或者出现验证码
                   -8 -> 密码错误
@@ -132,12 +132,21 @@ class WebLogin:
                 print(err)
                 i += 1
                 if i == 3:
-                    return 0
+                    return -4
         # print(web.text)
         aim_web = 'https://jwxt-7001.e2.buaa.edu.cn:443/ieas2.1/welcome'
-        if web != '' and web.status_code == 200 and web.url.split(';')[0] == aim_web:
-            return 1
-        return 0
+        if web == '':
+            return 0
+        try:
+            web.raise_for_status()
+        except requests.exceptions.RequestException as err:
+            print(err)
+            return -5
+        if web.status_code != 200:
+            return -2
+        if web.url.split(';')[0] != aim_web:
+            return -3
+        return 1
 
     def switch_to_course(self):
         """

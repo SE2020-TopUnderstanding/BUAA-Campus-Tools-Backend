@@ -276,8 +276,11 @@ class CourseEvaluations(APIView):
         result = CourseEvaluation.objects.all()
         teachers = TeacherCourse.objects.all()
         if len(req) == 2:
-            bid = req['bid']
-            student_id = req['student_id']
+            try:
+                bid = req['bid']
+                student_id = req['student_id']
+            except KeyError:
+                raise ArgumentError()
             try:
                 student = Student.objects.get(id=student_id)
             except Student.DoesNotExist:

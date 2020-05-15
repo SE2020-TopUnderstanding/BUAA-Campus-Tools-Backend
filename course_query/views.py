@@ -106,6 +106,35 @@ def up_count_teacher(teacher_course):
     return TeacherEvaluationRecord.objects.filter(teacher_course=teacher_course).count()
 
 
+def up_check(student, evaluation):
+    return EvaluationUpRecord.objects.filter(student=student, evaluation=evaluation).count() == 1
+
+
+def down_check(student, evaluation):
+    return EvaluationDownRecord.objects.filter(student=student, evaluation=evaluation).count() == 1
+
+
+def format_serializer(result, student):
+    for dicts in result:
+        evaluation_id = dicts['id']
+        evaluation = CourseEvaluation.objects.get(id=evaluation_id)
+        dicts['has_up'] = up_check(student, evaluation)
+        dicts['has_down'] = down_check(student, evaluation)
+    return result
+
+
+def up_check_teacher(student, evaluation):
+    return TeacherEvaluationRecord.objects.filter(student=student, teacher_course=evaluation).count() == 1
+
+
+def format_serializer_teacher(result, student):
+    for dicts in result:
+        evaluation_id = dicts['id']
+        evaluation = TeacherCourse.objects.get(id=evaluation_id)
+        dicts['has_up'] = up_check_teacher(student, evaluation)
+    return result
+
+
 def up_action(evaluation, actor):
     try:
         # 已经赞过
@@ -246,8 +275,13 @@ class CourseEvaluations(APIView):
         req = request.query_params.dict()
         result = CourseEvaluation.objects.all()
         teachers = TeacherCourse.objects.all()
-        if 'bid' in req.keys():
+        if len(req) == 2:
             bid = req['bid']
+            student_id = req['student_id']
+            try:
+                student = Student.objects.get(id=student_id)
+            except Student.DoesNotExist:
+                raise UnAuthorizedError()
             try:
                 course = Course.objects.get(bid=bid)
             except Course.DoesNotExist:
@@ -255,7 +289,9 @@ class CourseEvaluations(APIView):
             result = result.filter(course__bid=bid)
             teachers = teachers.filter(course_id__bid=bid)
             teacher_info = TeacherEvaluationSerializer(teachers, many=True).data
+            teacher_info = format_serializer_teacher(teacher_info, student)
             info = CourseEvaluationSerializer(result, many=True).data
+            info = format_serializer(info, student)
             avg_score = result.aggregate(Avg('score'))['score__avg']
             evaluation_num = evaluator_count(course)
             info.insert(0, {"course_name": course.name})

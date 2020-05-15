@@ -309,10 +309,13 @@ class CourseEvaluations(APIView):
     def post(request):
         req = request.data
         if len(req) == 4:
-            student_id = req['student_id']
-            actor = req['actor']
-            bid = req['bid']
-            action = req['action']
+            try:
+                student_id = req['student_id']
+                actor = req['actor']
+                bid = req['bid']
+                action = req['action']
+            except KeyError:
+                raise ArgumentError()
             try:
                 student = Student.objects.get(id=student_id)
                 actor = Student.objects.get(id=actor)
@@ -359,10 +362,13 @@ class CourseEvaluations(APIView):
     def put(request):
         req = request.data
         if len(req) == 4:
-            bid = req['bid']
-            text = req['text']
-            score = req['score']
-            student_id = req['student_id']
+            try:
+                bid = req['bid']
+                text = req['text']
+                score = req['score']
+                student_id = req['student_id']
+            except KeyError:
+                raise ArgumentError()
             if not 1 <= score <= 5:
                 raise ArgumentError(detail="评分只能为1-5分")
             try:
@@ -388,8 +394,11 @@ class CourseEvaluations(APIView):
     def delete(request):
         req = request.data
         if len(req) == 2:
-            bid = req['bid']
-            student_id = req['student_id']
+            try:
+                bid = req['bid']
+                student_id = req['student_id']
+            except KeyError:
+                raise ArgumentError()
             try:
                 student = Student.objects.get(id=student_id)
             except Student.DoesNotExist:

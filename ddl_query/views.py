@@ -11,7 +11,7 @@ from .models import DDL, SchoolCalendar, SchoolYear
 
 
 def add_0(time):
-    if (int(time) < 10) & (time != "00"):
+    if (int(time) < 10) & (time != "00") & (len(time) < 2):
         time = "0" + time
     return time
 

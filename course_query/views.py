@@ -387,7 +387,7 @@ class CourseEvaluations(APIView):
                 evaluation = CourseEvaluation(student=student, course=course, score=score, evaluation=text)
             evaluation.save()
             return HttpResponse(status=201)
-        raise ArgumentError
+        raise ArgumentError()
 
     # 删除评价
     @staticmethod

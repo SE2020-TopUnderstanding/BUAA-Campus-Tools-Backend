@@ -69,6 +69,23 @@ def add_course(info):
     return course
 
 
+def add_teacher(key):
+    try:
+        teacher = Teacher.objects.get(name=key)
+    except Teacher.DoesNotExist:
+        teacher = Teacher(name=key)
+        teacher.save()
+    return teacher
+
+
+def add_teacher_relation(teacher, course):
+    try:
+        course.get(teachercourse__teacher_id__name=teacher.name)
+    except Course.DoesNotExist:
+        new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
+        new_teacher_course.save()
+
+
 def add_student_course(student, semester, info):
     if len(info) == 10:
         place = info[6].replace(' ', '')
@@ -86,17 +103,9 @@ def add_student_course(student, semester, info):
         teachers = teacher.split('，')
         # 一门课程可能有多个教师
         for key in teachers:
-            try:
-                teacher = Teacher.objects.get(name=key)
-            except Teacher.DoesNotExist:
-                teacher = Teacher(name=key)
-                teacher.save()
+            teacher = add_teacher(key)
             # 增加总课的关联关系
-            try:
-                course.get(teachercourse__teacher_id__name=teacher.name)
-            except Course.DoesNotExist:
-                new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
-                new_teacher_course.save()
+            add_teacher_relation(teacher, course)
             # 增加这节课的关联关系
             relation = TeacherCourseSpecific(student_course_id=new_student_course,
                                              teacher_id=teacher)

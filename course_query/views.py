@@ -49,19 +49,34 @@ def split_time(time):
     return day + '_' + time_list[0] + '_' + time_list[-1]
 
 
-def add_course(student, semester, info):
-    if len(info) == 5:
-        name = info[0].replace(' ', '')
-        place = info[1].replace(' ', '')
-        teacher = info[2].replace(' ', '')
-        week = info[3].replace(' ', '')
-        time = info[4]
+def check_sports():
+    pass
+
+
+def add_course(info):
+    # 增加课程信息
+    name = info[0].replace(' ', '')
+    bid = info[1].replace(' ', '')
+    credit = float(info[2].replace(' ', ''))
+    hours = int(info[3].replace(' ', ''))
+    department = info[4].replace(' ', '')
+    types = info[5].replace(' ', '')
+    try:
+        course = Course.objects.get(bid=bid)
+    except Course.DoesNotExist:
+        course = Course(bid=bid, name=name, credit=credit, hours=hours, department=department, type=types)
+        course.save()
+    return course
+
+
+def add_student_course(student, semester, info):
+    if len(info) == 10:
+        place = info[6].replace(' ', '')
+        teacher = info[7].replace(' ', '')
+        week = info[8].replace(' ', '')
+        time = info[9]
         # 增加课程信息
-        try:
-            course = Course.objects.get(name=name)
-        except Course.DoesNotExist:
-            course = Course(name=name)
-            course.save()
+        course = add_course(info[0:5])
         # 保存信息
         new_student_course = StudentCourse(student_id=student, course_id=course
                                            , week=split_week(week), time=split_time(time), place=place,
@@ -78,7 +93,7 @@ def add_course(student, semester, info):
                 teacher.save()
             # 增加总课的关联关系
             try:
-                course = Course.objects.get(name=name, teachercourse__teacher_id__name=teacher.name)
+                course.get(teachercourse__teacher_id__name=teacher.name)
             except Course.DoesNotExist:
                 new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
                 new_teacher_course.save()
@@ -86,7 +101,7 @@ def add_course(student, semester, info):
             relation = TeacherCourseSpecific(student_course_id=new_student_course,
                                              teacher_id=teacher)
             relation.save()
-    # 不是5项表示数据有缺失
+    # 不是10项表示数据有缺失
     raise ArgumentError()
 
 
@@ -239,7 +254,7 @@ class CourseList(APIView):
             # 将爬虫爬取的数据写入数据库
             for lists in req['info']:
                 for info in lists:
-                    add_course(student, semester, info)
+                    add_student_course(student, semester, info)
             return HttpResponse(status=201)
         # 其他非法请求
         raise ArgumentError()

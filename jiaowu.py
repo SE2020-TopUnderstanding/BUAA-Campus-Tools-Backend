@@ -51,6 +51,7 @@ class JiaoWuReq:
             'User-Agent': self.user_agent
         }
 
+        self.empty_classroom_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kjscx/queryKjs'
         self.status = 1
         self.now = ''
         login = ''
@@ -72,9 +73,9 @@ class JiaoWuReq:
             self.status = -11
             return
 
-        # self.getEmptyClassroom()           # debug用
+        self.get_empty_classroom()           # debug用
         # self.getGrade()                    # debug用
-        self.get_schedule()                 # debug用
+        # self.get_schedule()                 # debug用
 
     def get_status(self):
         """
@@ -181,7 +182,6 @@ class JiaoWuReq:
             }
             ...
         ]
-        """
         if self.status != 0:
             return self.status
         # 这个按钮不能直接按，需要使用js来按
@@ -251,6 +251,44 @@ class JiaoWuReq:
             select_date2 = Select(self.browser.find_element_by_xpath('//*[@id="pageZc2"]'))      # 重新选择选项
             all_empty_classrooms.append(classrooms)
         return all_empty_classrooms
+        """
+        if self.status != 1:
+            return self.status
+        for k in range(2):
+            for j in range(2):
+                empty_classroom = ''
+                i = 0
+                params = {
+                    'pageNo': j,
+                    'pageSize': 20,
+                    'pageCount': 9,
+                    'pageXnxq': '2019 - 20202',
+                    'pageZc1': k,
+                    'pageZc2': k
+                }
+                headers_ec = {
+                    'User-Agent': self.user_agent
+                }
+                while i < 3:
+                    try:
+                        empty_classroom = self.now.get(url=self.empty_classroom_url, headers=headers_ec,
+                                                       params=params)
+                        break
+                    except requests.exceptions.RequestException as err:
+                        print(err)
+                        i += 1
+                        if i == 3:
+                            return 0
+                soup = BeautifulSoup(empty_classroom.text, 'lxml')
+                print(soup.text)
+                table = soup.select('table[class="dataTable"] > tr > td')
+                # print(table)
+                for each in table:
+                    strs = each.get_text()
+                    print(strs)
+
+        # print(schedules)
+        return ''
 
     def get_schedule(self):
         """
@@ -260,35 +298,7 @@ class JiaoWuReq:
         [
             ['课程1', '课程2', '课程3', '课程4', '课程5', '课程6', '课程7']
             ...
-            ['课程'] （其他课程）
-        if self.status != 0:
-            return self.status
-        # 这个按钮不能直接按，需要使用js来按
-        schedule_label = self.browser.find_element_by_xpath('/html/body/div[2]/div[2]/div/div[6]/div/a[6]')
-        self.browser.execute_script("arguments[0].click();", schedule_label)
-        # time.sleep(0.5)
-        self.browser.switch_to.frame('iframename')
-        locator = (By.XPATH, '/html/body/div[1]/div/div[8]/div[2]/table')
-        # noinspection PyBroadException
-        try:
-            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))
-        except Exception:
-            print('timeout or switch to an unknown page')
-            return -4
-
-        table = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[8]/div[2]/table')
-        table_rows = table.find_elements_by_tag_name('tr')[1:-1]
-        schedules = []
-        for row in table_rows:                                                                       # 浏览表格
-            schedule = []
-            lessons = row.find_elements_by_tag_name('td')[2:]                                        # 查找所有课程
-            for each in lessons:
-                # print(each.text)
-                schedule.append(each.text)
-            schedules.append(schedule)
-        # print(table.find_elements_by_tag_name('tr')[-1].find_elements_by_tag_name('td')[0].text)    # 其他课程（博雅等）
-        other = [table.find_elements_by_tag_name('tr')[-1].find_elements_by_tag_name('td')[0].text]
-        schedules.append(other)
+        ]
         """
         if self.status != 1:
             return self.status
@@ -310,12 +320,12 @@ class JiaoWuReq:
         schedule = []
         for each in table:
             strs = each.get_text()
-            print(strs)
+            # print(strs)
             if strs in ('上午', '下午', '晚上'):
                 continue
             if strs.find('其它课程：') != -1:
                 continue
-            if strs[0] == '第' and strs[2] == '，':
+            if strs[0] == '第' and (strs[2] == '，' or strs[3] == '，'):
                 if len(schedule) != 0:
                     schedules.append(schedule.copy())
                 schedule.clear()
@@ -324,8 +334,8 @@ class JiaoWuReq:
                 schedule.append('')
                 continue
             schedule.append(strs)
-
-        print(schedules)
+        schedules.append((schedule.copy()))
+        # print(schedules)
         return schedules
 
     def get_id(self):

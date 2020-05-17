@@ -1,7 +1,6 @@
 import time
 import requests
 from bs4 import BeautifulSoup
-from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -52,6 +51,7 @@ class JiaoWuReq:
         }
 
         self.empty_classroom_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kjscx/queryKjs'
+        # self.final_exam_grade_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/cjcx/queryTyQmcj'
         self.status = 1
         self.now = ''
         login = ''
@@ -73,15 +73,15 @@ class JiaoWuReq:
             self.status = -11
             return
 
-        self.get_empty_classroom()           # debug用
-        # self.getGrade()                    # debug用
+        # self.get_empty_classroom()           # debug用
+        self.get_grade()                    # debug用
         # self.get_schedule()                 # debug用
 
     def get_status(self):
         """
         初始化的结果
         status =  1 : 成功
-        status =  0 : 登录教务网站出现未知错误
+        status =  0 : 登录教务网站出现未知错误，通常是超时问题
         status = -1 : 登陆时出现未知错误，请参考log信息
         status = -2 : 登录状态码是2XX，但不是200
         status = -3 : 跳转到未知网页
@@ -93,8 +93,21 @@ class JiaoWuReq:
         status = -9 : 用户名或密码为空
         status =-10 : 账号被锁
         status =-11 : 账号被锁
+        status =-12 : 在教务网站请求失败
         """
         return self.status
+
+    @ staticmethod
+    def check_status(html):
+        try:
+            if html != '':
+                html.raise_for_status()
+            else:
+                return -1
+        except requests.exceptions.RequestException as err:
+            print(err)
+            return -1
+        return 0
 
     def get_grade(self):
         """
@@ -112,63 +125,75 @@ class JiaoWuReq:
             ...
         ]
         """
-        if self.status != 0:
+        final_exam_grade_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/cjcx/queryTyQmcj'
+        if self.status != 1:
             return self.status
-        # 这个按钮不能直接按，需要使用js来按
-        person_grade_label = self.browser.find_element_by_xpath('/html/body/div[2]/div[2]/div/div[8]/div/a[1]/span[2]')
-        self.browser.execute_script("arguments[0].click();", person_grade_label)
-        time.sleep(0.5)
-
-        self.browser.switch_to.frame('iframename')                                              # 切换到另一个frame获取数据
-        locator = (By.XPATH, '/html/body/div/div/div[3]/div[2]/a')
-        # noinspection PyBroadException
-        try:
-            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))
-        except Exception:
-            print('timeout or switch to an unknown page')
-            return -4
-        end_grage = self.browser.find_element_by_xpath('/html/body/div/div/div[3]/div[2]/a')     # 搜索期末成绩
-        end_grage.click()
-        locator = (By.XPATH, '//*[@id="xnxqid"]')
-        # noinspection PyBroadException
-        try:
-            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))
-        except Exception:
-            print('timeout or switch to an unknown page')
-            return -4
-        select_date = Select(self.browser.find_element_by_xpath('//*[@id="xnxqid"]'))
-        all_grades = []
-        for i in range(len(select_date.options)):                                            # 第一个选项不能用
-            if i == len(select_date.options) - 1:
-                continue
-            each = select_date.options[i + 1]
-            print(str(each.text))
-            select_date.select_by_visible_text(each.text)
-            time.sleep(2)
-            search_button = self.browser.find_element_by_xpath('//*[@id="queryform"]/div/table/tbody/tr[1]/td[9]/div/a')
-            search_button.click()
-            locator = (By.XPATH, '/html/body/div[1]/div/div[4]/table')
-            # noinspection PyBroadException
+        grade = ''
+        i = 0
+        while i < 3:
             try:
-                WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))
-            except Exception:
-                print('timeout or switch to an unknown page')
-                return -4
-            table = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[4]/table')
-            table_rows = table.find_elements_by_tag_name('tr')[1:]
-            grades = []
-            for row in table_rows:                                                               # 浏览表格
-                grade = []
-                datas = row.find_elements_by_tag_name('td')
-                for data in datas:
-                    # print(data.text)                                                           # debug用
-                    grade.append(data.text)
-                # print()
-                grades.append(grade)
-            # print()
-            all_grades.append(grades)
-            select_date = Select(self.browser.find_element_by_xpath('//*[@id="xnxqid"]'))        # 重新选择选项
-        return all_grades
+                grade = self.now.get(url=final_exam_grade_url, headers=self.headers_jw)
+                break
+            except requests.exceptions.RequestException as err:
+                print(err)
+                i += 1
+                if i == 3:
+                    return 0
+
+        if self.check_status(grade) == -1:
+            return -12
+
+        search_list = []
+        soup = BeautifulSoup(grade.text, 'lxml')
+        table = soup.select('table > tr > td > select[class="XNXQ_CON"] > option')
+        for each in table:
+            # print(each.get_text())
+            # print(each.attrs['value'])
+            if each.attrs['value'] != '':
+                search_list.append(each.attrs['value'])
+
+        for k in range(19):
+            print('cur_year: ' + search_list[k])
+            grade = ''
+            i = 0
+            params = {
+                'pageXnxq': search_list[k],
+                'pageBkcxbj': '',
+                'pageSfjg': '',
+                'pageKcmc': ''
+            }
+            headers_grades = {
+                'User-Agent': self.user_agent,
+                'Referer': 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/cjcx/queryTyQmcj'
+            }
+            while i < 3:
+                try:
+                    grade = self.now.post(url=final_exam_grade_url, headers=headers_grades,
+                                          params=params)
+                    break
+                except requests.exceptions.RequestException as err:
+                    print(err)
+                    i += 1
+                    if i == 3:
+                        return 0
+
+            if self.check_status(grade) == -1:
+                return -12
+            time.sleep(1)
+            soup = BeautifulSoup(grade.text, 'lxml')
+            table = soup.select('table[class="bot_line"] > tr > td')
+            iterator = 0
+            texts = []
+            for each in table:
+                iterator += 1
+                strs = each.get_text()
+                # print(strs)
+                texts.append(strs)
+                if iterator == 14:
+                    print(texts)
+                    iterator = 0
+                    texts.clear()
+        return ''
 
     def get_empty_classroom(self):
         """
@@ -182,113 +207,91 @@ class JiaoWuReq:
             }
             ...
         ]
-        if self.status != 0:
-            return self.status
-        # 这个按钮不能直接按，需要使用js来按
-        empty_classroom_label = self.browser.find_element_by_xpath('/html/body/div[2]/div[2]/div/div[2]/div/a[3]')
-        self.browser.execute_script("arguments[0].click();", empty_classroom_label)
-        time.sleep(0.5)
-        self.browser.switch_to.frame('iframename')                                              # 切换到另一个frame获取数据
-        locator = (By.XPATH, '//*[@id="pageZc1"]')
-        # noinspection PyBroadException
-        try:
-            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))
-        except Exception:
-            print('timeout or switch to an unknown page')
-            return -4
-        select_date1 = Select(self.browser.find_element_by_xpath('//*[@id="pageZc1"]'))          # 设定起始周
-        select_date2 = Select(self.browser.find_element_by_xpath('//*[@id="pageZc2"]'))          # 设定末尾周
-        all_empty_classrooms = []
-        for i in range(len(select_date1.options) - 1):                                           # 第一个选项不能用
-            each1 = select_date1.options[i + 1]
-            each2 = select_date2.options[i + 1]
-            print(each1.text)
-            select_date1.select_by_visible_text(each1.text)
-            select_date2.select_by_visible_text(each2.text)
-            time.sleep(0.5)
-            search_button = self.browser.find_element_by_xpath('//*[@id="queryform"]/table/tbody/tr/td[11]/div/a')
-            search_button.click()
-            locator = (By.XPATH, '/html/body/div/div/div[5]/table')
-            # noinspection PyBroadException
-            try:
-                WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))
-            except Exception:
-                print('timeout or switch to an unknown page')
-                return -4
-            classrooms = {}
-            while True:                                                                         # 浏览所有页面
-
-                table = self.browser.find_element_by_xpath('/html/body/div/div/div[5]/table')
-                table_rows = table.find_elements_by_tag_name('tr')[2:]
-
-                for row in table_rows:                                                           # 浏览表格
-                    classroom = []
-                    rooms = row.find_elements_by_tag_name('td')[1:]
-                    # print(row.find_elements_by_tag_name('td')[0].text)
-                    for room in rooms:
-                        sstr = room.get_attribute('innerHTML')                                     # 检查是否为空
-                        if sstr == '\n\t\t\t\t\t      \t \n\t\t\t\t\t      \t <div class=""></div>\n\t\t\t\t\t      \t':
-                            classroom.append(1)
-                        else:
-                            classroom.append(0)
-                    # print()                                                                    # debug用
-                    classrooms[row.find_elements_by_tag_name('td')[0].text] = classroom
-                # noinspection PyBroadException
-                try:                                                                            # 切到下一页
-                    next_page = self.browser.find_element_by_xpath('/html/body/div/div/div[6]/ul/li[12]/a')
-                except Exception:
-                    break                                                                       # 如果是最后一页
-                next_page.click()
-                locator = (By.XPATH, '/html/body/div/div/div[5]/table')
-                # noinspection PyBroadException
-                try:
-                    WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))
-                except Exception:
-                    print('timeout or switch to an unknown page')
-                    return -4
-                time.sleep(0.5)
-            select_date1 = Select(self.browser.find_element_by_xpath('//*[@id="pageZc1"]'))      # 重新选择选项
-            select_date2 = Select(self.browser.find_element_by_xpath('//*[@id="pageZc2"]'))      # 重新选择选项
-            all_empty_classrooms.append(classrooms)
-        return all_empty_classrooms
         """
         if self.status != 1:
             return self.status
-        for k in range(2):
-            for j in range(2):
+        empty_classroom = ''
+        i = 0
+        while i < 3:
+            try:
+                empty_classroom = self.now.get(url=self.empty_classroom_url, headers=self.headers_jw)
+                break
+            except requests.exceptions.RequestException as err:
+                print(err)
+                i += 1
+                if i == 3:
+                    return 0
+
+        if self.check_status(empty_classroom) == -1:
+            return -12
+
+        empty_classrooms = []
+        for k in range(19):
+            print('week: ' + str(k + 1))
+            cur_dict = {}
+            for j in range(9):
+                print('page: ' + str(j + 1))
                 empty_classroom = ''
                 i = 0
                 params = {
-                    'pageNo': j,
-                    'pageSize': 20,
-                    'pageCount': 9,
-                    'pageXnxq': '2019 - 20202',
-                    'pageZc1': k,
-                    'pageZc2': k
+                    'pageNo': str(j + 1),
+                    'pageSize': str(20),
+                    'pageCount': str(9),
+                    'pageXnxq': '2019-20202',
+                    'pageZc1': str(k + 1),
+                    'pageZc2': str(k + 1),
+                    'pageXiaoqu': '',
+                    'pageLhdm': '',
+                    'pageCddm': ''
                 }
                 headers_ec = {
-                    'User-Agent': self.user_agent
+                    'User-Agent': self.user_agent,
+                    'Referer': 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kjscx/queryKjs'
                 }
                 while i < 3:
                     try:
-                        empty_classroom = self.now.get(url=self.empty_classroom_url, headers=headers_ec,
-                                                       params=params)
+                        empty_classroom = self.now.post(url=self.empty_classroom_url, headers=headers_ec,
+                                                        params=params)
                         break
                     except requests.exceptions.RequestException as err:
                         print(err)
                         i += 1
                         if i == 3:
                             return 0
+
+                if self.check_status(empty_classroom) == -1:
+                    return -12
+
+                time.sleep(1)
                 soup = BeautifulSoup(empty_classroom.text, 'lxml')
-                print(soup.text)
                 table = soup.select('table[class="dataTable"] > tr > td')
-                # print(table)
+                occupied = []
+                last_strs = ''
                 for each in table:
                     strs = each.get_text()
-                    print(strs)
+                    if strs == '\n\n':
+                        icon = each.contents[1].attrs
+                        if len(icon['class']) == 2:
+                            occupied.append(0)
+                        else:
+                            occupied.append(1)
+                    else:
 
-        # print(schedules)
-        return ''
+                        if last_strs == '':
+                            last_strs = strs
+                            continue
+                        # print(last_strs)
+                        cur_dict[last_strs] = occupied.copy()
+                        # print(occupied)
+                        occupied.clear()
+                        last_strs = strs
+                # print(last_strs)
+                cur_dict[last_strs] = occupied.copy()
+                # print(occupied)
+                occupied.clear()
+            empty_classrooms.append(cur_dict)
+        # print(empty_classrooms)
+        return empty_classrooms
 
     def get_schedule(self):
         """
@@ -313,9 +316,12 @@ class JiaoWuReq:
                 i += 1
                 if i == 3:
                     return 0
+
+        if self.check_status(schedule) == -1:
+            return -12
+
         soup = BeautifulSoup(schedule.text, 'lxml')
         table = soup.select('table[class="addlist_01"] > tr > td')
-        # print(table)
         schedules = []
         schedule = []
         for each in table:

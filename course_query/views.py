@@ -163,7 +163,9 @@ def up_action(evaluation, actor):
     try:
         # 已经赞过
         EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
-        return HttpResponse(status=202)
+        up_cnt = evaluation.up
+        down_cnt = evaluation.down
+        return Response({"up": up_cnt, "down": down_cnt}, status=202)
     except EvaluationUpRecord.DoesNotExist:
         try:
             down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
@@ -175,14 +177,18 @@ def up_action(evaluation, actor):
         evaluation.up = up_count(evaluation)
         evaluation.down = down_count(evaluation)
         evaluation.save()
-        return HttpResponse(status=201)
+        up_cnt = evaluation.up
+        down_cnt = evaluation.down
+        return Response({"up": up_cnt, "down": down_cnt}, status=201)
 
 
 def down_action(evaluation, actor):
     try:
         # 已经踩过
         EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
-        return HttpResponse(status=202)
+        up_cnt = evaluation.up
+        down_cnt = evaluation.down
+        return Response({"up": up_cnt, "down": down_cnt}, status=202)
     except EvaluationDownRecord.DoesNotExist:
         try:
             up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
@@ -194,7 +200,9 @@ def down_action(evaluation, actor):
         evaluation.up = up_count(evaluation)
         evaluation.down = down_count(evaluation)
         evaluation.save()
-        return HttpResponse(status=201)
+        up_cnt = evaluation.up
+        down_cnt = evaluation.down
+        return Response({"up": up_cnt, "down": down_cnt}, status=201)
 
 
 class CourseList(APIView):
@@ -366,7 +374,9 @@ class CourseEvaluations(APIView):
                     up_record.delete()
                     evaluation.up = up_count(evaluation)
                     evaluation.save()
-                    return HttpResponse(status=201)
+                    up_cnt = evaluation.up
+                    down_cnt = evaluation.down
+                    return Response({"up": up_cnt, "down": down_cnt}, status=201)
                 except EvaluationUpRecord.DoesNotExist:
                     raise NotFoundError(detail="不存在这条点赞记录")
             # 取消加踩
@@ -376,7 +386,9 @@ class CourseEvaluations(APIView):
                     down.delete()
                     evaluation.down = down_count(evaluation)
                     evaluation.save()
-                    return HttpResponse(status=201)
+                    up_cnt = evaluation.up
+                    down_cnt = evaluation.down
+                    return Response({"up": up_cnt, "down": down_cnt}, status=201)
                 except EvaluationDownRecord.DoesNotExist:
                     raise NotFoundError(detail="不存在这条被踩记录")
         raise ArgumentError()
@@ -471,14 +483,14 @@ class TeacherEvaluations(APIView):
                 try:
                     # 已经点过赞
                     TeacherEvaluationRecord.objects.get(teacher_course=teacher_course, student=student)
-                    return HttpResponse(status=202)
+                    return Response({"up": teacher_course.up}, status=202)
                 except TeacherEvaluationRecord.DoesNotExist:
                     # 没点过赞
                     up_record = TeacherEvaluationRecord(teacher_course=teacher_course, student=student)
                     up_record.save()
                     teacher_course.up = up_count_teacher(teacher_course)
                     teacher_course.save()
-                return HttpResponse(status=201)
+                return Response({"up": teacher_course.up}, status=202)
             if action == 'cancel_up':
                 try:
                     up_record = TeacherEvaluationRecord.objects.get(teacher_course=teacher_course, student=student)
@@ -487,5 +499,5 @@ class TeacherEvaluations(APIView):
                     teacher_course.save()
                 except TeacherEvaluationRecord.DoesNotExist:
                     raise NotFoundError(detail="不存在这个点赞记录")
-                return HttpResponse(status=201)
+                return Response({"up": teacher_course.up}, status=202)
         raise ArgumentError()

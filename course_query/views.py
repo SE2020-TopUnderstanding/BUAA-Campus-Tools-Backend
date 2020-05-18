@@ -307,6 +307,7 @@ class CourseEvaluations(APIView):
         req = request.query_params.dict()
         result = CourseEvaluation.objects.all()
         teachers = TeacherCourse.objects.all()
+        info_dict = {}
         if len(req) == 2:
             try:
                 bid = req['bid']
@@ -329,11 +330,12 @@ class CourseEvaluations(APIView):
             info = format_serializer(info, student)
             avg_score = result.aggregate(Avg('score'))['score__avg']
             evaluation_num = evaluator_count(course)
-            info.insert(0, {"course_name": course.name})
-            info.insert(1, {"evaluation_num": evaluation_num})
-            info.insert(2, {"avg_score": avg_score})
-            info.insert(3, teacher_info)
-            return Response(info)
+            info_dict["course_name"] = course.name
+            info_dict["evaluation_num"] = evaluation_num
+            info_dict["avg_score"] = avg_score
+            info_dict["teacher_info"] = teacher_info
+            info_dict["info"] = info
+            return Response(info_dict)
         raise ArgumentError()
 
     # 点赞/加踩

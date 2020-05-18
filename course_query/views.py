@@ -159,6 +159,21 @@ def format_serializer_teacher(result, student):
     return result
 
 
+def format_search(result):
+    exist_bid = []
+    result_list = []
+    for dicts in result:
+        if dicts['bid'] in exist_bid:
+            continue
+        course = Course.objects.get(bid=dicts['bid'])
+        exist_bid.append(dicts['bid'])
+        evaluations = CourseEvaluation.objects.filter(course=course)
+        avg_score = evaluations.aggregate(Avg('score'))['score__avg']
+        dicts['avg_score'] = avg_score
+        result_list.append(dicts)
+    return result_list
+
+
 def up_action(evaluation, actor):
     try:
         # 已经赞过
@@ -296,7 +311,8 @@ class Search(APIView):
                     result = result.filter(course_id__type__icontains=types)
                 else:
                     raise ArgumentError()
-            return Response(TeacherCourseSerializer(result, many=True).data)
+                results = TeacherCourseSerializer(result, many=True).data
+            return Response(format_search(results))
         raise ArgumentError()
 
 

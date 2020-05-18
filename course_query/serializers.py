@@ -35,14 +35,25 @@ class StudentCourseSerializer(serializers.ModelSerializer):
         exclude = ('student_id', 'course_id', 'id', 'course_teacher',)
 
 
+class CourseEvaluationSerializerHome(serializers.ModelSerializer):
+    course_name = serializers.CharField(source='course.name')
+    credit = serializers.CharField(source='course.credit')
+    department = serializers.CharField(source='course.department')
+
+    class Meta:
+        model = CourseEvaluation
+        fields = ('course_name', 'credit', 'score', 'department')
+
+
 class TeacherCourseSerializer(serializers.ModelSerializer):
-    course_name = serializers.CharField(source='course_id.name')
-    teacher_name = serializers.CharField(source='teacher_id.name')
     bid = serializers.CharField(source='course_id.bid')
+    course_name = serializers.CharField(source='course_id.name')
+    credit = serializers.CharField(source='course_id.credit')
+    department = serializers.CharField(source='course_id.department')
 
     class Meta:
         model = TeacherCourse
-        fields = ('course_name', 'teacher_name', 'bid')
+        fields = ('bid', 'course_name', 'credit', 'department')
 
 
 class CourseEvaluationSerializer(serializers.ModelSerializer):

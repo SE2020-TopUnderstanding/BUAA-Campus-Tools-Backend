@@ -11,6 +11,7 @@ from request_queue.views import add_request
 from api_exception.exceptions import ArgumentError, UnAuthorizedError, DatabasePasswordError, InternalServerError
 from api_exception.exceptions import IPBannedError, AccountLockedError
 from API.settings import PASSWORD_SPIDER
+from post_web_spider.models import PostRecord
 from .login_request.password_utils import Aescrypt, KEY, MODEL, IV, ENCODE_
 from .login_request.login_judge import get_student_info
 
@@ -64,6 +65,7 @@ class Login(APIView):
         except RequestRecord.DoesNotExist:
             RequestRecord(name="login", count=1).save()
 
+
         req = request.data
 
         if (len(req) != 2) | ("usr_name" not in req) | ("usr_password" not in req):
@@ -97,6 +99,14 @@ class Login(APIView):
         grade = ans[3]
 
         Student(usr_name=usr_name, usr_password=usr_password, id=student_id, name=name, grade=grade).save()
+
+        try:  # 学生更新数据最新时间
+            student = Student.objects.get(id=student_id)
+            PostRecord.objects.get(student_id=student, name="login").delete()
+            PostRecord.objects.get(student_id=student, name="login").save()
+        except PostRecord.DoesNotExist:
+            PostRecord(student_id=student, name="login").save()
+
         if len(StudentCourse.objects.filter(student_id_id=student_id)) == 0:
             add_request('s', student_id)
         if len(Score.objects.filter(student_id_id=student_id)) == 0:

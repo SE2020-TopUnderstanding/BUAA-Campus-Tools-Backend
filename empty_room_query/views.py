@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 
 from api_exception.exceptions import ArgumentError
 from request_queue.models import RequestRecord
+from post_web_spider.models import PostRecord
 from .models import Classroom
 
 
@@ -65,6 +66,12 @@ class QueryClassroom(APIView):
         """
         req = request.data
         Classroom.objects.filter(date=req['date']).delete()
+
+        try:  # 学生更新数据最新时间
+            PostRecord.objects.get(name="empty_room").delete()
+            PostRecord.objects.get(name="empty_room").save()
+        except PostRecord.DoesNotExist:
+            PostRecord(name="empty_room").save()
 
         if "classroom" not in req:
             raise ArgumentError()

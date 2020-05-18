@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'ping',
     'request_queue',
     'version_information',
-    'error_handling',
+    'post_web_spider',
     'user_feedback',
 ]
 

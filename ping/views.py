@@ -11,8 +11,7 @@ class Ping(APIView):
         with open("/root/BUAA-Campus-Tools-Backend/nohup.out", "r") as file:
             info = file.readlines()
         return Response(status=200, data={
-            "后端更新时间": "2020-04-29",
-            "后端所在PR": "#136 与爬虫新login的结合",
+            "后端更新时间": "2020-05-15",
             "后端注册用户数": len(Student.objects.all()),
             "各项功能访问次数": RequestRecord.objects.values(),
             "最新的调试信息（显示最新的100条）": info[-100:]

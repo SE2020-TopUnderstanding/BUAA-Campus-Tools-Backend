@@ -1,7 +1,9 @@
 from datetime import datetime
+
+from django.db.models import Avg
+from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import HttpResponse
 from request_queue.models import RequestRecord
 from course_query.serializers import StudentCourseSerializer, TeacherCourseSerializer, CourseEvaluationSerializer, \
     TeacherEvaluationSerializer
@@ -47,19 +49,51 @@ def split_time(time):
     return day + '_' + time_list[0] + '_' + time_list[-1]
 
 
-def add_course(student, semester, info):
-    if len(info) == 5:
-        name = info[0].replace(' ', '')
-        place = info[1].replace(' ', '')
-        teacher = info[2].replace(' ', '')
-        week = info[3].replace(' ', '')
-        time = info[4]
+def check_sports():
+    pass
+
+
+def add_course(info):
+    # 增加课程信息
+    name = info[0].replace(' ', '')
+    bid = info[1].replace(' ', '')
+    credit = float(info[2].replace(' ', ''))
+    hours = int(info[3].replace(' ', ''))
+    department = info[4].replace(' ', '')
+    types = info[5].replace(' ', '')
+    try:
+        course = Course.objects.get(bid=bid)
+    except Course.DoesNotExist:
+        course = Course(bid=bid, name=name, credit=credit, hours=hours, department=department, type=types)
+        course.save()
+    return course
+
+
+def add_teacher(key):
+    try:
+        teacher = Teacher.objects.get(name=key)
+    except Teacher.DoesNotExist:
+        teacher = Teacher(name=key)
+        teacher.save()
+    return teacher
+
+
+def add_teacher_relation(teacher, course):
+    try:
+        course.get(teachercourse__teacher_id__name=teacher.name)
+    except Course.DoesNotExist:
+        new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
+        new_teacher_course.save()
+
+
+def add_student_course(student, semester, info):
+    if len(info) == 10:
+        place = info[6].replace(' ', '')
+        teacher = info[7].replace(' ', '')
+        week = info[8].replace(' ', '')
+        time = info[9]
         # 增加课程信息
-        try:
-            course = Course.objects.get(name=name)
-        except Course.DoesNotExist:
-            course = Course(name=name)
-            course.save()
+        course = add_course(info[0:5])
         # 保存信息
         new_student_course = StudentCourse(student_id=student, course_id=course
                                            , week=split_week(week), time=split_time(time), place=place,
@@ -69,61 +103,106 @@ def add_course(student, semester, info):
         teachers = teacher.split('，')
         # 一门课程可能有多个教师
         for key in teachers:
-            try:
-                teacher = Teacher.objects.get(name=key)
-            except Teacher.DoesNotExist:
-                teacher = Teacher(name=key)
-                teacher.save()
+            teacher = add_teacher(key)
             # 增加总课的关联关系
-            try:
-                course = Course.objects.get(name=name, teachercourse__teacher_id__name=teacher.name)
-            except Course.DoesNotExist:
-                new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
-                new_teacher_course.save()
+            add_teacher_relation(teacher, course)
             # 增加这节课的关联关系
             relation = TeacherCourseSpecific(student_course_id=new_student_course,
                                              teacher_id=teacher)
             relation.save()
-    # 不是5项表示数据有缺失
+    # 不是10项表示数据有缺失
     raise ArgumentError()
+
+
+def evaluator_count(course):
+    return CourseEvaluation.objects.filter(course=course).count()
+
+
+def up_count(evaluation):
+    return EvaluationUpRecord.objects.filter(evaluation=evaluation).count()
+
+
+def down_count(evaluation):
+    return EvaluationDownRecord.objects.filter(evaluation=evaluation).count()
+
+
+def up_count_teacher(teacher_course):
+    return TeacherEvaluationRecord.objects.filter(teacher_course=teacher_course).count()
+
+
+def up_check(student, evaluation):
+    return EvaluationUpRecord.objects.filter(student=student, evaluation=evaluation).count() == 1
+
+
+def down_check(student, evaluation):
+    return EvaluationDownRecord.objects.filter(student=student, evaluation=evaluation).count() == 1
+
+
+def format_serializer(result, student):
+    for dicts in result:
+        evaluation_id = dicts['id']
+        evaluation = CourseEvaluation.objects.get(id=evaluation_id)
+        dicts['has_up'] = up_check(student, evaluation)
+        dicts['has_down'] = down_check(student, evaluation)
+    return result
+
+
+def up_check_teacher(student, evaluation):
+    return TeacherEvaluationRecord.objects.filter(student=student, teacher_course=evaluation).count() == 1
+
+
+def format_serializer_teacher(result, student):
+    for dicts in result:
+        evaluation_id = dicts['id']
+        evaluation = TeacherCourse.objects.get(id=evaluation_id)
+        dicts['has_up'] = up_check_teacher(student, evaluation)
+    return result
 
 
 def up_action(evaluation, actor):
     try:
         # 已经赞过
         EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
-        return HttpResponse(status=202)
+        up_cnt = evaluation.up
+        down_cnt = evaluation.down
+        return Response({"up": up_cnt, "down": down_cnt}, status=202)
     except EvaluationUpRecord.DoesNotExist:
         try:
             down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
             down.delete()
-            evaluation.down -= 1
         except EvaluationDownRecord.DoesNotExist:
             pass
         up_record = EvaluationUpRecord(evaluation=evaluation, student=actor)
         up_record.save()
-        evaluation.up += 1
+        evaluation.up = up_count(evaluation)
+        evaluation.down = down_count(evaluation)
         evaluation.save()
-        return HttpResponse(status=201)
+        up_cnt = evaluation.up
+        down_cnt = evaluation.down
+        return Response({"up": up_cnt, "down": down_cnt}, status=201)
 
 
 def down_action(evaluation, actor):
     try:
         # 已经踩过
         EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
-        return HttpResponse(status=202)
+        up_cnt = evaluation.up
+        down_cnt = evaluation.down
+        return Response({"up": up_cnt, "down": down_cnt}, status=202)
     except EvaluationDownRecord.DoesNotExist:
         try:
             up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
             up_record.delete()
-            evaluation.up -= 1
         except EvaluationUpRecord.DoesNotExist:
             pass
         down = EvaluationDownRecord(evaluation=evaluation, student=actor)
         down.save()
-        evaluation.down += 1
+        evaluation.up = up_count(evaluation)
+        evaluation.down = down_count(evaluation)
         evaluation.save()
-        return HttpResponse(status=201)
+        up_cnt = evaluation.up
+        down_cnt = evaluation.down
+        return Response({"up": up_cnt, "down": down_cnt}, status=201)
 
 
 class CourseList(APIView):
@@ -192,7 +271,7 @@ class CourseList(APIView):
             # 将爬虫爬取的数据写入数据库
             for lists in req['info']:
                 for info in lists:
-                    add_course(student, semester, info)
+                    add_student_course(student, semester, info)
             return HttpResponse(status=201)
         # 其他非法请求
         raise ArgumentError()
@@ -216,8 +295,7 @@ class Search(APIView):
                     types = req['type']
                     result = result.filter(course_id__type__icontains=types)
                 else:
-                    message = "参数名称错误"
-                    return HttpResponse(message, status=400)
+                    raise ArgumentError()
             return Response(TeacherCourseSerializer(result, many=True).data)
         raise ArgumentError()
 
@@ -229,27 +307,35 @@ class CourseEvaluations(APIView):
         req = request.query_params.dict()
         result = CourseEvaluation.objects.all()
         teachers = TeacherCourse.objects.all()
-        if 'bid' in req.keys():
-            bid = req['bid']
+        info_dict = {}
+        if len(req) == 2:
+            try:
+                bid = req['bid']
+                student_id = req['student_id']
+            except KeyError:
+                raise ArgumentError()
+            try:
+                student = Student.objects.get(id=student_id)
+            except Student.DoesNotExist:
+                raise UnAuthorizedError()
             try:
                 course = Course.objects.get(bid=bid)
             except Course.DoesNotExist:
-                message = "没有这门课程"
-                return HttpResponse(message, status=404)
+                raise NotFoundError(detail="没有这门课程")
             result = result.filter(course__bid=bid)
             teachers = teachers.filter(course_id__bid=bid)
             teacher_info = TeacherEvaluationSerializer(teachers, many=True).data
+            teacher_info = format_serializer_teacher(teacher_info, student)
             info = CourseEvaluationSerializer(result, many=True).data
-            total_score = 0.0
-            count = 0
-            for i in result:
-                total_score += i.score
-                count += 1
-            avg_score = total_score / count if count > 0 else 0
-            info.insert(0, {"course_name": course.name})
-            info.insert(1, {"avg_score": avg_score})
-            info.insert(2, teacher_info)
-            return Response(info)
+            info = format_serializer(info, student)
+            avg_score = result.aggregate(Avg('score'))['score__avg']
+            evaluation_num = evaluator_count(course)
+            info_dict["course_name"] = course.name
+            info_dict["evaluation_num"] = evaluation_num
+            info_dict["avg_score"] = avg_score
+            info_dict["teacher_info"] = teacher_info
+            info_dict["info"] = info
+            return Response(info_dict)
         raise ArgumentError()
 
     # 点赞/加踩
@@ -257,10 +343,13 @@ class CourseEvaluations(APIView):
     def post(request):
         req = request.data
         if len(req) == 4:
-            student_id = req['student_id']
-            actor = req['actor']
-            bid = req['bid']
-            action = req['action']
+            try:
+                student_id = req['student_id']
+                actor = req['actor']
+                bid = req['bid']
+                action = req['action']
+            except KeyError:
+                raise ArgumentError()
             try:
                 student = Student.objects.get(id=student_id)
                 actor = Student.objects.get(id=actor)
@@ -285,9 +374,11 @@ class CourseEvaluations(APIView):
                 try:
                     up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
                     up_record.delete()
-                    evaluation.up -= 1
+                    evaluation.up = up_count(evaluation)
                     evaluation.save()
-                    return HttpResponse(status=201)
+                    up_cnt = evaluation.up
+                    down_cnt = evaluation.down
+                    return Response({"up": up_cnt, "down": down_cnt}, status=201)
                 except EvaluationUpRecord.DoesNotExist:
                     raise NotFoundError(detail="不存在这条点赞记录")
             # 取消加踩
@@ -295,9 +386,11 @@ class CourseEvaluations(APIView):
                 try:
                     down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
                     down.delete()
-                    evaluation.down -= 1
+                    evaluation.down = down_count(evaluation)
                     evaluation.save()
-                    return HttpResponse(status=201)
+                    up_cnt = evaluation.up
+                    down_cnt = evaluation.down
+                    return Response({"up": up_cnt, "down": down_cnt}, status=201)
                 except EvaluationDownRecord.DoesNotExist:
                     raise NotFoundError(detail="不存在这条被踩记录")
         raise ArgumentError()
@@ -307,10 +400,13 @@ class CourseEvaluations(APIView):
     def put(request):
         req = request.data
         if len(req) == 4:
-            bid = req['bid']
-            text = req['text']
-            score = req['score']
-            student_id = req['student_id']
+            try:
+                bid = req['bid']
+                text = req['text']
+                score = req['score']
+                student_id = req['student_id']
+            except KeyError:
+                raise ArgumentError()
             if not 1 <= score <= 5:
                 raise ArgumentError(detail="评分只能为1-5分")
             try:
@@ -329,15 +425,18 @@ class CourseEvaluations(APIView):
                 evaluation = CourseEvaluation(student=student, course=course, score=score, evaluation=text)
             evaluation.save()
             return HttpResponse(status=201)
-        raise ArgumentError
+        raise ArgumentError()
 
     # 删除评价
     @staticmethod
     def delete(request):
         req = request.data
         if len(req) == 2:
-            bid = req['bid']
-            student_id = req['student_id']
+            try:
+                bid = req['bid']
+                student_id = req['student_id']
+            except KeyError:
+                raise ArgumentError()
             try:
                 student = Student.objects.get(id=student_id)
             except Student.DoesNotExist:
@@ -386,21 +485,21 @@ class TeacherEvaluations(APIView):
                 try:
                     # 已经点过赞
                     TeacherEvaluationRecord.objects.get(teacher_course=teacher_course, student=student)
-                    return HttpResponse(status=202)
+                    return Response({"up": teacher_course.up}, status=202)
                 except TeacherEvaluationRecord.DoesNotExist:
                     # 没点过赞
                     up_record = TeacherEvaluationRecord(teacher_course=teacher_course, student=student)
                     up_record.save()
-                    teacher_course.up += 1
+                    teacher_course.up = up_count_teacher(teacher_course)
                     teacher_course.save()
-                return HttpResponse(status=201)
+                return Response({"up": teacher_course.up}, status=201)
             if action == 'cancel_up':
                 try:
                     up_record = TeacherEvaluationRecord.objects.get(teacher_course=teacher_course, student=student)
                     up_record.delete()
-                    teacher_course.up -= 1
+                    teacher_course.up = up_count_teacher(teacher_course)
                     teacher_course.save()
                 except TeacherEvaluationRecord.DoesNotExist:
                     raise NotFoundError(detail="不存在这个点赞记录")
-                return HttpResponse(status=201)
+                return Response({"up": teacher_course.up}, status=201)
         raise ArgumentError()

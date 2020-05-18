@@ -1,11 +1,10 @@
 import time
 import requests
 from bs4 import BeautifulSoup
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from vpn import VpnLogin
 from web import WebLogin
+
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
+             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
 
 
 class JiaoWuReq:
@@ -13,51 +12,22 @@ class JiaoWuReq:
     本类将从 jiaowu.buaa.edu.cn 网站获取信息
     """
     def __init__(self, usr_name, pw):
-        # """
-        self.status = 0
-        vpn = ''
-        for i in range(3):
-            vpn = VpnLogin(usr_name, pw)  # 登录
-            success = vpn.switch_to_jiao_wu()      # 切换到教务
-            # 错误处理
-            if success == -1:
-                self.status = -1
-                break
-            if success in (-2, -5):
-                if i == 2:
-                    self.status = -2
-                    break
-                vpn.get_browser().quit()
-            if success in (-3, -4):
-                self.status = -3
-                break
-            if -6 >= success >= -10:
-                self.status = success + 1
-                break
-            if success == 0:
-                break
-        if vpn == '':
-            self.status = -11
-            return
-        self.browser = vpn.get_browser()     # 获取浏览器.
-        # """
-
-        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
-                          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
+        # 登陆用的网页地址、user_agent、header等
         self.schedule_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kbcx/queryGrkb'
         self.headers_jw = {
             'Referer': 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/welcome',
-            'User-Agent': self.user_agent
+            'User-Agent': USER_AGENT
         }
-
         self.empty_classroom_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kjscx/queryKjs'
-        # self.final_exam_grade_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/cjcx/queryTyQmcj'
+        self.final_exam_grade_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/cjcx/queryTyQmcj'
+        self.all_lesson_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kbcx/queryXsxkXq'
+
         self.status = 1
-        self.now = ''
+        self.now = ''                                                                       # 整个爬取过程的session
         login = ''
         for i in range(3):
-            login = WebLogin(usr_name, pw)  # 登录
-            success = login.switch_to_jiaowu()      # 切换到教务
+            login = WebLogin(usr_name, pw)                                                  # 登录
+            success = login.switch_to_jiaowu()                                              # 切换到教务
             # 错误处理
             if success == -4:
                 if i == 2:
@@ -73,9 +43,11 @@ class JiaoWuReq:
             self.status = -11
             return
 
-        # self.get_empty_classroom()           # debug用
-        self.get_grade()                    # debug用
+        # self.get_empty_classroom()          # debug用
+        # self.get_grade()                    # debug用
         # self.get_schedule()                 # debug用
+        # self.get_id()                       # debug用
+        # self.get_all_lessons()              # debug用
 
     def get_status(self):
         """
@@ -99,6 +71,11 @@ class JiaoWuReq:
 
     @ staticmethod
     def check_status(html):
+        """
+        用于检查登录是否成功
+        成功返回  0
+        失败返回 -1
+        """
         try:
             if html != '':
                 html.raise_for_status()
@@ -125,14 +102,13 @@ class JiaoWuReq:
             ...
         ]
         """
-        final_exam_grade_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/cjcx/queryTyQmcj'
         if self.status != 1:
             return self.status
         grade = ''
         i = 0
         while i < 3:
             try:
-                grade = self.now.get(url=final_exam_grade_url, headers=self.headers_jw)
+                grade = self.now.get(url=self.final_exam_grade_url, headers=self.headers_jw)    # 先获取完整网页
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -145,30 +121,31 @@ class JiaoWuReq:
 
         search_list = []
         soup = BeautifulSoup(grade.text, 'lxml')
-        table = soup.select('table > tr > td > select[class="XNXQ_CON"] > option')
+        table = soup.select('table > tr > td > select[class="XNXQ_CON"] > option')              # 获取选项的值
         for each in table:
             # print(each.get_text())
             # print(each.attrs['value'])
             if each.attrs['value'] != '':
                 search_list.append(each.attrs['value'])
-
-        for k in range(19):
+        grades = []
+        for k in range(len(search_list)):
+            semester = []
             print('cur_year: ' + search_list[k])
             grade = ''
             i = 0
             params = {
-                'pageXnxq': search_list[k],
+                'pageXnxq': search_list[k],                                                     # 借助params进行requests
                 'pageBkcxbj': '',
                 'pageSfjg': '',
                 'pageKcmc': ''
             }
             headers_grades = {
-                'User-Agent': self.user_agent,
+                'User-Agent': USER_AGENT,
                 'Referer': 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/cjcx/queryTyQmcj'
             }
             while i < 3:
                 try:
-                    grade = self.now.post(url=final_exam_grade_url, headers=headers_grades,
+                    grade = self.now.post(url=self.final_exam_grade_url, headers=headers_grades,
                                           params=params)
                     break
                 except requests.exceptions.RequestException as err:
@@ -181,19 +158,28 @@ class JiaoWuReq:
                 return -12
             time.sleep(1)
             soup = BeautifulSoup(grade.text, 'lxml')
-            table = soup.select('table[class="bot_line"] > tr > td')
+            table = soup.select('table[class="bot_line"] > tr > td')                            # 借助bs4分析网页，获取信息
             iterator = 0
             texts = []
             for each in table:
                 iterator += 1
                 strs = each.get_text()
                 # print(strs)
+
+                strs = strs.replace('\t', '')
+                strs = strs.replace('\n', '')
+                strs = strs.replace('\r', '')
+                strs = strs.replace(' ', '')
+
                 texts.append(strs)
                 if iterator == 14:
-                    print(texts)
+                    # print(texts)
+                    semester.append((texts.copy()))
                     iterator = 0
                     texts.clear()
-        return ''
+            grades.append(semester)
+        # print(grades)
+        return grades
 
     def get_empty_classroom(self):
         """
@@ -214,7 +200,7 @@ class JiaoWuReq:
         i = 0
         while i < 3:
             try:
-                empty_classroom = self.now.get(url=self.empty_classroom_url, headers=self.headers_jw)
+                empty_classroom = self.now.get(url=self.empty_classroom_url, headers=self.headers_jw)   # 先获取完整网页
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -223,6 +209,18 @@ class JiaoWuReq:
                     return 0
 
         if self.check_status(empty_classroom) == -1:
+            return -12
+
+        soup = BeautifulSoup(empty_classroom.text, 'lxml')
+        table = soup.select('table > tr > td > select[class="XNXQ_CON"] > option')
+        semester = ''
+        for each in table:
+            # print(each.get_text())
+            # print(each.attrs['value'])
+            if each.attrs['value'] != '' and 'selected' in each.attrs.keys():                   # 获取当前学期选项
+                semester = each.attrs['value']
+
+        if semester == '':
             return -12
 
         empty_classrooms = []
@@ -237,7 +235,7 @@ class JiaoWuReq:
                     'pageNo': str(j + 1),
                     'pageSize': str(20),
                     'pageCount': str(9),
-                    'pageXnxq': '2019-20202',
+                    'pageXnxq': semester,                                                       # 借助params进行requests
                     'pageZc1': str(k + 1),
                     'pageZc2': str(k + 1),
                     'pageXiaoqu': '',
@@ -245,7 +243,7 @@ class JiaoWuReq:
                     'pageCddm': ''
                 }
                 headers_ec = {
-                    'User-Agent': self.user_agent,
+                    'User-Agent': USER_AGENT,
                     'Referer': 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kjscx/queryKjs'
                 }
                 while i < 3:
@@ -264,7 +262,7 @@ class JiaoWuReq:
 
                 time.sleep(1)
                 soup = BeautifulSoup(empty_classroom.text, 'lxml')
-                table = soup.select('table[class="dataTable"] > tr > td')
+                table = soup.select('table[class="dataTable"] > tr > td')                       # 通过BeautifulSoup分析
                 occupied = []
                 last_strs = ''
                 for each in table:
@@ -309,7 +307,7 @@ class JiaoWuReq:
         i = 0
         while i < 3:
             try:
-                schedule = self.now.get(url=self.schedule_url, headers=self.headers_jw)
+                schedule = self.now.get(url=self.schedule_url, headers=self.headers_jw)     # 先获取完整网页
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -321,7 +319,7 @@ class JiaoWuReq:
             return -12
 
         soup = BeautifulSoup(schedule.text, 'lxml')
-        table = soup.select('table[class="addlist_01"] > tr > td')
+        table = soup.select('table[class="addlist_01"] > tr > td')                          # 使用BeautifulSoup分析网页
         schedules = []
         schedule = []
         for each in table:
@@ -345,30 +343,138 @@ class JiaoWuReq:
         return schedules
 
     def get_id(self):
-        if self.status != 0:
+        """
+        该函数返回该学生的学号
+        """
+        if self.status != 1:
             return self.status
-        # 这个按钮不能直接按，需要使用js来按
-        schedule_label = self.browser.find_element_by_xpath('/html/body/div[2]/div[2]/div/div[6]/div/a[6]')
-        self.browser.execute_script("arguments[0].click();", schedule_label)
-        # time.sleep(0.5)
-        self.browser.switch_to.frame('iframename')
-        locator = (By.XPATH, '/html/body/div[1]/div/div[8]/div[2]/table')
-        # noinspection PyBroadException
-        try:
-            WebDriverWait(self.browser, 5).until(EC.presence_of_element_located(locator))
-        except Exception:
-            print('timeout or switch to an unknown page')
-            return -4
+        schedule = ''
+        i = 0
+        while i < 3:
+            try:
+                schedule = self.now.get(url=self.schedule_url, headers=self.headers_jw)     # 获取完整网页
+                break
+            except requests.exceptions.RequestException as err:
+                print(err)
+                i += 1
+                if i == 3:
+                    return 0
 
-        id_place = self.browser.find_element_by_xpath('/html/body/div[1]/div/div[8]/div[1]/span')
-        student_id = id_place.text
-        student_id = student_id.split('(')[1]
-        student_id = student_id.split(')')[0]
-        self.browser.switch_to.default_content()
-        return student_id
+        if self.check_status(schedule) == -1:
+            return -12
+
+        soup = BeautifulSoup(schedule.text, 'lxml')
+        table = soup.select('span[class="ml10 bold"]')                                      # 使用BeautifulSoup分析网页
+        stu_id = '10000000'
+        for each in table:
+            stu_id = each.get_text()
+            left = stu_id.find('(')
+            right = stu_id.find(')', left)
+            stu_id = stu_id[left + 1:right]
+        # print(stu_id)
+        return stu_id
+
+    def get_all_lessons(self):
+        """
+        该函数返回该学生的所有已选课程
+        将返回一个列表
+        列表数据格式:
+        [
+            # 按照学期排列
+            [
+                [学年学期, 课程代码, 课程名称, 课序号, 课程类别, 课程性质, 开课院系, 上课老师, 上课地点, 学分, 总学时, 教参数量, 备注]
+                [学年学期, 课程代码, 课程名称, 课序号, 课程类别, 课程性质, 开课院系, 上课老师, 上课地点, 学分, 总学时, 教参数量, 备注]
+                ...
+                ...
+            ]
+            ...
+        ]
+        """
+        if self.status != 1:
+            return self.status
+        lesson = ''
+        i = 0
+        while i < 3:
+            try:
+                lesson = self.now.get(url=self.all_lesson_url, headers=self.headers_jw)         # 先获取完整网页
+                break
+            except requests.exceptions.RequestException as err:
+                print(err)
+                i += 1
+                if i == 3:
+                    return 0
+
+        if self.check_status(lesson) == -1:
+            return -12
+        soup = BeautifulSoup(lesson.text, 'lxml')
+        search_list = []
+        table = soup.select('table > tr > td > select[class="XNXQ_CON"] > option')              # 获取所有选项的值
+        for each in table:
+            # print(each.get_text())
+            # print(each.attrs['value'])
+            if each.attrs['value'] != '':
+                search_list.append(each.attrs['value'])
+
+        lessons = []
+        for k in range(len(search_list)):
+            semester = []
+            print('cur_year: ' + search_list[k])
+            lesson = ''
+            i = 0
+            params = {
+                'fhlj': 'kbcx/queryXsxkXq',
+                'pageRwh': '',
+                'xnxq': search_list[k]                                                          # 借助params进行requests
+            }
+            headers_grades = {
+                'User-Agent': USER_AGENT,
+                'Referer': 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/cjcx/queryTyQmcj'
+            }
+            while i < 3:
+                try:
+                    lesson = self.now.post(url=self.all_lesson_url, headers=headers_grades,
+                                           params=params)
+                    break
+                except requests.exceptions.RequestException as err:
+                    print(err)
+                    i += 1
+                    if i == 3:
+                        return 0
+
+            if self.check_status(lesson) == -1:
+                return -12
+            time.sleep(1)
+            if lesson.text.find("alert('课程查询暂未开放！');") != -1:
+                continue
+            soup = BeautifulSoup(lesson.text, 'lxml')
+            table = soup.select('table[class="bot_line"] > tr > td')                        # 使用BeautifulSoup分析网页
+            iterator = 0
+            texts = []
+            for each in table:
+                iterator += 1
+                strs = each.get_text()
+                # print(strs)
+
+                strs = strs.replace('\t', '')
+                strs = strs.replace('\n', '')
+                strs = strs.replace('\r', '')
+                strs = strs.replace(' ', '')
+
+                texts.append(strs)
+                if iterator == 13:
+                    # print(texts)
+                    semester.append((texts.copy()))
+                    iterator = 0
+                    texts.clear()
+            lessons.append(semester)
+        # print(lessons)
+        return lessons
 
     def quit(self):
-        self.browser.quit()
+        """
+        该函数结束整个session访问过程
+        """
+        self.now.close()
 
 
 # 测试用

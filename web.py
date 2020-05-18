@@ -8,7 +8,10 @@ COURSE_URL = 'https://course.e2.buaa.edu.cn/portal/login'
 
 
 class WebLogin:
-
+    """
+    这个类将创建一个session并登录BUAA vpn页面，切换至教务或者课程中心
+    IP地址为当前IP不改变，因此可能会被封IP，但是为了不使用受污染的IP访问北航，我们暂时不使用IP池
+    """
     def __init__(self, usr_name, pw):
         self.usr_name = usr_name
         self.password = pw
@@ -51,6 +54,7 @@ class WebLogin:
                 if i == 3:
                     return -4
 
+        # 通过get获取authenticity_token的值，通过authenticity_token构筑params，从而post提交用户名密码登录
         text = page.text
         code_start = text.find('csrf-token') + 21
         code_end = text.find('" />', code_start)
@@ -81,7 +85,7 @@ class WebLogin:
             return -5
 
         error_dict = {'此IP': -6, '验证码': -7, '超过五次': -8, '不能为空': -9, '已被锁定': -10}
-
+        # 登录过程可能出现的问题的分析
         if page.status_code == 200:
             if page.url == LIST_URL:
                 return 0
@@ -185,6 +189,7 @@ class WebLogin:
         return 0
 
 
+# 测试用
 if __name__ == "__main__":
     USR_NAME = input('Your username: ')
     PW = input('Your password: ')

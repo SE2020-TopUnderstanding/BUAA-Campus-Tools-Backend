@@ -490,7 +490,7 @@ class TeacherEvaluations(APIView):
                     up_record.save()
                     teacher_course.up = up_count_teacher(teacher_course)
                     teacher_course.save()
-                return Response({"up": teacher_course.up}, status=202)
+                return Response({"up": teacher_course.up}, status=201)
             if action == 'cancel_up':
                 try:
                     up_record = TeacherEvaluationRecord.objects.get(teacher_course=teacher_course, student=student)
@@ -499,5 +499,5 @@ class TeacherEvaluations(APIView):
                     teacher_course.save()
                 except TeacherEvaluationRecord.DoesNotExist:
                     raise NotFoundError(detail="不存在这个点赞记录")
-                return Response({"up": teacher_course.up}, status=202)
+                return Response({"up": teacher_course.up}, status=201)
         raise ArgumentError()

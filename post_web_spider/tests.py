@@ -15,17 +15,17 @@ class ErrorHandlingTests(TestCase):
             "usr_name": "mushan",
             "password": "2020",
         }
-        response = self.client.post('/delete/', content_type='application/json', data=data)
+        response = self.client.post('/spider/delete/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["state"], 0)
 
         Student(usr_name="mushan", usr_password="123", id="17373349", name="hbb", grade=3).save()
-        response = self.client.post('/delete/', content_type='application/json', data=data)
+        response = self.client.post('/spider/delete/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["state"], -1)
 
         Student(usr_name="mushan", usr_password="2020", id="17373349", name="hbb", grade=3).save()
-        response = self.client.post('/delete/', content_type='application/json', data=data)
+        response = self.client.post('/spider/delete/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["state"], 1)
 
@@ -39,11 +39,11 @@ class ErrorHandlingTests(TestCase):
             "usr_nam": "mushan",
             "password": "2020",
         }
-        response = self.client.post('/delete/', content_type='application/json', data=data)
+        response = self.client.post('/spider/delete/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 400)
 
         data = {
             "password": "2020",
         }
-        response = self.client.post('/delete/', content_type='application/json', data=data)
+        response = self.client.post('/spider/delete/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 400)

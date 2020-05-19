@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db.models import Avg
 from django.http import HttpResponse
+from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from request_queue.models import RequestRecord
@@ -174,6 +175,29 @@ def format_search(result):
     return result_list
 
 
+def get_evaluation(req):
+    try:
+        student_id = req['student_id']
+        actor = req['actor']
+        bid = req['bid']
+    except KeyError:
+        raise ArgumentError()
+    try:
+        student = Student.objects.get(id=student_id)
+        actor = Student.objects.get(id=actor)
+    except Student.DoesNotExist:
+        raise UnAuthorizedError()
+    try:
+        course = Course.objects.get(bid=bid)
+    except Course.DoesNotExist:
+        raise NotFoundError(detail="没有这门课程")
+    try:
+        evaluation = CourseEvaluation.objects.get(student=student, course=course)
+    except CourseEvaluation.DoesNotExist:
+        raise NotFoundError(detail="没有这条评价")
+    return actor, evaluation
+
+
 def up_action(evaluation, actor):
     try:
         # 已经赞过
@@ -299,6 +323,7 @@ class Search(APIView):
         req = request.query_params.dict()
         result = TeacherCourse.objects.all()
         if 1 <= len(req) <= 3:
+            results = []
             for key in req.keys():
                 if key == 'course':
                     name = req['course']
@@ -352,63 +377,6 @@ class CourseEvaluations(APIView):
             info_dict["teacher_info"] = teacher_info
             info_dict["info"] = info
             return Response(info_dict)
-        raise ArgumentError()
-
-    # 点赞/加踩
-    @staticmethod
-    def post(request):
-        req = request.data
-        if len(req) == 4:
-            try:
-                student_id = req['student_id']
-                actor = req['actor']
-                bid = req['bid']
-                action = req['action']
-            except KeyError:
-                raise ArgumentError()
-            try:
-                student = Student.objects.get(id=student_id)
-                actor = Student.objects.get(id=actor)
-            except Student.DoesNotExist:
-                raise UnAuthorizedError()
-            try:
-                course = Course.objects.get(bid=bid)
-            except Course.DoesNotExist:
-                raise NotFoundError(detail="没有这门课程")
-            try:
-                evaluation = CourseEvaluation.objects.get(student=student, course=course)
-            except CourseEvaluation.DoesNotExist:
-                raise NotFoundError(detail="没有这条评价")
-            # 点赞
-            if action == 'up':
-                return up_action(evaluation, actor)
-            # 加踩
-            if action == 'down':
-                return down_action(evaluation, actor)
-            # 取消点赞
-            if action == 'cancel_up':
-                try:
-                    up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
-                    up_record.delete()
-                    evaluation.up = up_count(evaluation)
-                    evaluation.save()
-                    up_cnt = evaluation.up
-                    down_cnt = evaluation.down
-                    return Response({"up": up_cnt, "down": down_cnt}, status=201)
-                except EvaluationUpRecord.DoesNotExist:
-                    raise NotFoundError(detail="不存在这条点赞记录")
-            # 取消加踩
-            if action == 'cancel_down':
-                try:
-                    down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
-                    down.delete()
-                    evaluation.down = down_count(evaluation)
-                    evaluation.save()
-                    up_cnt = evaluation.up
-                    down_cnt = evaluation.down
-                    return Response({"up": up_cnt, "down": down_cnt}, status=201)
-                except EvaluationDownRecord.DoesNotExist:
-                    raise NotFoundError(detail="不存在这条被踩记录")
         raise ArgumentError()
 
     # 创建新评价/修改评价
@@ -467,6 +435,58 @@ class CourseEvaluations(APIView):
                 return HttpResponse(status=204)
             except CourseEvaluation.DoesNotExist:
                 raise NotFoundError(detail="没有这条评价")
+        raise ArgumentError()
+
+
+class CourseEvaluationAction(viewsets.ViewSet):
+    @staticmethod
+    def up_action(request):
+        req = request.data
+        if len(req) == 3:
+            actor, evaluation = get_evaluation(req)
+            return up_action(evaluation, actor)
+        raise ArgumentError()
+
+    @staticmethod
+    def cancel_up_action(request):
+        req = request.data
+        if len(req) == 3:
+            actor, evaluation = get_evaluation(req)
+            try:
+                up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
+                up_record.delete()
+                evaluation.up = up_count(evaluation)
+                evaluation.save()
+                up_cnt = evaluation.up
+                down_cnt = evaluation.down
+                return Response({"up": up_cnt, "down": down_cnt}, status=201)
+            except EvaluationUpRecord.DoesNotExist:
+                raise NotFoundError(detail="不存在这条点赞记录")
+        raise ArgumentError()
+
+    @staticmethod
+    def down_action(request):
+        req = request.data
+        if len(req) == 3:
+            actor, evaluation = get_evaluation(req)
+            return down_action(evaluation, actor)
+        raise ArgumentError()
+
+    @staticmethod
+    def cancel_down_action(request):
+        req = request.data
+        if len(req) == 3:
+            actor, evaluation = get_evaluation(req)
+            try:
+                down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
+                down.delete()
+                evaluation.down = down_count(evaluation)
+                evaluation.save()
+                up_cnt = evaluation.up
+                down_cnt = evaluation.down
+                return Response({"up": up_cnt, "down": down_cnt}, status=201)
+            except EvaluationDownRecord.DoesNotExist:
+                raise NotFoundError(detail="不存在这条被踩记录")
         raise ArgumentError()
 
 

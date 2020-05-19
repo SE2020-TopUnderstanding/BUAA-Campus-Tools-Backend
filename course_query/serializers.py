@@ -50,10 +50,11 @@ class TeacherCourseSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source='course_id.name')
     credit = serializers.CharField(source='course_id.credit')
     department = serializers.CharField(source='course_id.department')
+    teacher = serializers.CharField(source='teacher_id.name')
 
     class Meta:
         model = TeacherCourse
-        fields = ('bid', 'course_name', 'credit', 'department')
+        fields = ('bid', 'course_name', 'teacher', 'credit', 'department')
 
 
 class CourseEvaluationSerializer(serializers.ModelSerializer):

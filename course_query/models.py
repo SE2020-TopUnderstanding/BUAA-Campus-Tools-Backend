@@ -25,6 +25,10 @@ class Course(models.Model):
     teacher_course = models.ManyToManyField(Teacher, through='TeacherCourse')
 
 
+class PublicCourse(models.Model):
+    name = models.CharField(max_length=90)
+
+
 class Student(models.Model):
     objects = models.Manager()
     # student's id, e.g. 17373000

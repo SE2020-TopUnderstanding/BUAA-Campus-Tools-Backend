@@ -10,7 +10,7 @@ class Teacher(models.Model):
 
 class Course(models.Model):
     # course's bid, e.g.B2F020550
-    bid = models.CharField(max_length=20)
+    bid = models.CharField(max_length=20, primary_key=True)
     # the course's name, e.g. Software Engineering
     name = models.CharField(max_length=120)
     # 开课院系

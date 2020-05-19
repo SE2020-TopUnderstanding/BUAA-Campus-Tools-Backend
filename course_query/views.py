@@ -325,13 +325,13 @@ class CourseList(APIView):
         raise ArgumentError()
 
 
-class Search(APIView):
+class Search(viewsets.ViewSet):
 
     @staticmethod
     def get(request):
         req = request.query_params.dict()
         result = TeacherCourse.objects.all()
-        if 1 <= len(req) <= 3:
+        if 1 <= len(req) <= 4:
             results = []
             for key in req.keys():
                 if key == 'course':
@@ -343,10 +343,32 @@ class Search(APIView):
                 elif key == 'type':
                     types = req['type']
                     result = result.filter(course_id__type__icontains=types)
+                elif key == 'department':
+                    department = req['department']
+                    result = result.filter(course_id__department__icontains=department)
                 else:
                     raise ArgumentError()
                 results = TeacherCourseSerializer(result, many=True).data
             return Response(format_search(results))
+        raise ArgumentError()
+
+    @staticmethod
+    def default(request):
+        req = request.query_params.dict()
+        teacher_courses = []
+        if 'student_id' in req.keys():
+            student_id = req['student_id']
+            try:
+                student = Student.objects.get(id=student_id)
+            except Student.DoesNotExist:
+                raise UnAuthorizedError()
+            courses = StudentCourse.objects.filter(student_id=student)
+            for course in courses:
+                select_course = course.course_id
+                teacher_course = TeacherCourse.objects.filter(course_id=select_course)[0]
+                teacher_courses.append(teacher_course)
+            result = TeacherCourseSerializer(teacher_courses, many=True).data
+            return Response(format_search(result))
         raise ArgumentError()
 
 

@@ -3,7 +3,8 @@ from . import views
 
 urlpatterns = [
     path('', views.CourseList.as_view()),
-    path('search/', views.Search.as_view()),
+    path('search/', views.Search.as_view({'get': 'get'})),
+    path('search/default/', views.Search.as_view({'get': 'default'})),
     path('evaluation/student/', views.CourseEvaluations.as_view()),
     path('evaluation/teacher/', views.TeacherEvaluations.as_view()),
     path('evaluation/student/up/', views.CourseEvaluationAction.as_view({'post': 'up_action'})),

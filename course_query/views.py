@@ -65,7 +65,8 @@ def check_public(course_name, bid):
 def add_course(info):
     # 增加课程信息
     name = info[0].replace(' ', '')
-    bid = check_public(info[1].replace(' ', ''))
+    bid = info[1].replace(' ', '')
+    bid = check_public(name, bid)
     credit = float(info[2].replace(' ', ''))
     hours = int(info[3].replace(' ', ''))
     department = info[4].replace(' ', '')

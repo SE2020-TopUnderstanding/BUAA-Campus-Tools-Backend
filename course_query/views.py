@@ -253,7 +253,7 @@ def down_action(evaluation, actor):
         return Response({"up": up_cnt, "down": down_cnt}, status=201)
 
 
-class CourseList(APIView):
+class CourseList(viewsets.ViewSet):
 
     @staticmethod
     def get(request):
@@ -322,6 +322,14 @@ class CourseList(APIView):
                     add_student_course(student, semester, info)
             return HttpResponse(status=201)
         # 其他非法请求
+        raise ArgumentError()
+
+    @staticmethod
+    def add_course(request):
+        req = request.data
+        if 'info' in req.keys():
+            for info in req['info']:
+                add_course(info)
         raise ArgumentError()
 
 

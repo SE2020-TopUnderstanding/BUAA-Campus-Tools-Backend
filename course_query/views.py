@@ -9,7 +9,7 @@ from request_queue.models import RequestRecord
 from course_query.serializers import StudentCourseSerializer, TeacherCourseSerializer, CourseEvaluationSerializer, \
     TeacherEvaluationSerializer
 from course_query.models import Student, Course, StudentCourse, Teacher, TeacherCourse, TeacherCourseSpecific, \
-    CourseEvaluation, \
+    CourseEvaluation, PublicCourse, \
     EvaluationUpRecord, EvaluationDownRecord, TeacherEvaluationRecord
 from api_exception.exceptions import ArgumentError, UnAuthorizedError, NotFoundError
 
@@ -50,14 +50,22 @@ def split_time(time):
     return day + '_' + time_list[0] + '_' + time_list[-1]
 
 
-def check_sports():
-    pass
+def check_public(course_name, bid):
+    # 体育课
+    if course_name.find('体育') != -1:
+        try:
+            public_course = PublicCourse.objects.get(name=course_name)
+        except PublicCourse.DoesNotExist:
+            public_course = PublicCourse(name=course_name)
+            public_course.save()
+        return bid + str(public_course.id)
+    return bid
 
 
 def add_course(info):
     # 增加课程信息
     name = info[0].replace(' ', '')
-    bid = info[1].replace(' ', '')
+    bid = check_public(info[1].replace(' ', ''))
     credit = float(info[2].replace(' ', ''))
     hours = int(info[3].replace(' ', ''))
     department = info[4].replace(' ', '')

@@ -329,7 +329,12 @@ class CourseList(viewsets.ViewSet):
         req = request.data
         if 'info' in req.keys():
             for info in req['info']:
-                add_course(info)
+                course = add_course(info)
+                teacher_list = info[7]
+                teachers = teacher_list.split('，')
+                for teacher_name in teachers:
+                    teacher = add_teacher(teacher_name)
+                    add_teacher_relation(teacher, course)
         raise ArgumentError()
 
 
@@ -341,19 +346,19 @@ class Search(viewsets.ViewSet):
         result = TeacherCourse.objects.all()
         if 1 <= len(req) <= 4:
             results = []
-            for key in req.keys():
-                if key == 'course':
+            for key, value in req.items():
+                if key == 'course' and value != "":
                     name = req['course']
                     result = result.filter(course_id__name__icontains=name)
-                elif key == 'teacher':
+                elif key == 'teacher' and value != "":
                     name = req['teacher']
                     result = result.filter(teacher_id__name__icontains=name)
-                elif key == 'type':
+                elif key == 'type' and value != "":
                     types = req['type']
-                    result = result.filter(course_id__type__icontains=types)
-                elif key == 'department':
+                    result = result.filter(course_id__type=types)
+                elif key == 'department' and value != "":
                     department = req['department']
-                    result = result.filter(course_id__department__icontains=department)
+                    result = result.filter(course_id__department=department)
                 else:
                     raise ArgumentError()
                 results = TeacherCourseSerializer(result, many=True).data

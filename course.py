@@ -2,7 +2,7 @@ import time
 import requests
 from bs4 import BeautifulSoup
 from web import WebLogin
-
+from log import Log
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
              'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
@@ -39,28 +39,30 @@ class CourseRequest:
                 break
         if login == '':
             self.status = -11
+            Log('课程中心登陆失败，login == '', usr_name = ' + user_name)
             return
 
-        # self.get_ddl()                        # debug用
+        self.get_ddl()                        # debug用
         # self.get_id()                         # debug用
 
     def get_status(self):
         """
         初始化的结果
-        status =  1 : 成功
-        status =  0 : 登录课程中心出现未知错误，通常是超时问题
-        status = -1 : 登陆时出现未知错误，请参考log信息
-        status = -2 : 登录状态码是2XX，但不是200
-        status = -3 : 跳转到未知网页
-        status = -4 : 超时3次
-        status = -5 : 登陆或访问教务状态码是4XX或5XX
-        status = -6 : IP被封
-        status = -7 : 用户名错误或者网站要求输入验证码
-        status = -8 : 密码错误
-        status = -9 : 用户名或密码为空
-        status =-10 : 账号被锁
-        status =-11 : 账号被锁
-        status =-12 : 在课程中心请求失败
+        status =   1 : 成功
+        status =   0 : 登录教务网站出现未知错误，通常是超时问题
+        status =  -1 : 登陆时出现未知错误，请参考log信息
+        status =  -2 : 登录状态码是2XX，但不是200
+        status =  -3 : 跳转到未知网页
+        status =  -4 : 超时3次
+        status =  -5 : 登陆或访问教务状态码是4XX或5XX
+        status =  -6 : IP被封
+        status =  -7 : 用户名错误或者网站要求输入验证码
+        status =  -8 : 密码错误
+        status =  -9 : 用户名或密码为空
+        status = -10 : 账号被锁
+        status = -11 : 极度奇怪的错误（可以认为不可能发生）
+        status = -12 : 在教务网站请求失败
+        status = -13 : 该学生课程中心设置有问题
         """
         return self.status
 
@@ -112,6 +114,10 @@ class CourseRequest:
         soup = BeautifulSoup(page.text, 'lxml')
         table = soup.select('div #otherSitesCategorWrap > ul')                         # 获取所有课程的名称和网址
         lessons = {}
+
+        if len(table) < 1:                                                             # 站点不存在其他站点标签
+            return -13
+
         for each in table[0].contents:
             if each == '\n':
                 continue

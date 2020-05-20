@@ -1,5 +1,5 @@
 import requests
-
+from log import Log
 
 URL = 'https://e2.buaa.edu.cn/users/sign_in'
 LIST_URL = 'https://e2.buaa.edu.cn/'
@@ -97,7 +97,9 @@ class WebLogin:
                 for key, value in error_dict.items():
                     if error_text.find(key) != -1:
                         return value
+                Log('错误信息未知： ' + error_text)
                 return -1
+            Log('跳转至未知网页： ' + page.url)
             return -3
         return -2
 

@@ -9,6 +9,7 @@ from Crypto.Cipher import AES
 # 编码方式gbk
 
 KEY = b'2020042820200428'  # 公钥 注意公钥只能为16的长度
+SERVER_PW = '123'          # 访问后端密钥
 
 MODEL = 'ECB'
 IV = ''

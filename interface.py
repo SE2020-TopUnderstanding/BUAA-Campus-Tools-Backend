@@ -5,7 +5,8 @@ import time
 from datetime import datetime
 import requests
 from data import DataReq
-from password_utils import Aescrypt, KEY, MODEL, ENCODE_
+from password_utils import Aescrypt, KEY, MODEL, ENCODE_, SERVER_PW
+from log import Log
 
 HOST = 'http://114.115.208.32:8000/'
 HEADERS = {'Content-Type': 'application/json'}
@@ -46,7 +47,7 @@ def get_all_stu(insect_id):
     返回 -1 -> 请求失败
     """
     url = HOST + 'login/'
-    params = {'password': '123', 'number': insect_id}
+    params = {'password': SERVER_PW, 'number': insect_id}
     # noinspection PyBroadException
     try:
         req = requests.get(url, verify=False, params=params)
@@ -479,6 +480,7 @@ if __name__ == '__main__':
                 insect_ddl(int(sys.argv[2]))
             except Exception as err:
                 print(traceback.format_exc())
+                Log('运行过程中出现问题，错误信息: ' + traceback.format_exc())
     elif sys.argv[1] == '-o':                   # 获取课表和成绩信息
         while True:
             # noinspection PyBroadException
@@ -486,6 +488,7 @@ if __name__ == '__main__':
                 insect_other(int(sys.argv[2]))
             except Exception as err:
                 print(traceback.format_exc())
+                Log('运行过程中出现问题，错误信息: ' + traceback.format_exc())
     elif sys.argv[1] == '-r':                   # 处理后端的临时请求
         while True:
             # noinspection PyBroadException
@@ -493,5 +496,6 @@ if __name__ == '__main__':
                 insect_req()
             except Exception as err:
                 print(traceback.format_exc())
+                Log('运行过程中出现问题，错误信息: ' + traceback.format_exc())
     else:
         print('请输入正确参数，-d：启动ddl爬虫，-o：启动其他爬虫, -r 整数：启动消息队列')

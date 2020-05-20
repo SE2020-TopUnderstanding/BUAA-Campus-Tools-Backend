@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from jiaowu import JiaoWuReq
 from course import CourseRequest
 from password_utils import Aescrypt, KEY, MODEL, ENCODE_
+from log import Log
 
 
 def encrypt_string(message):
@@ -24,76 +25,59 @@ class DataReq:
         """
         获取所有的查询请求
         爬取信息
-        请求格式: {'d':'ddl查询', 'g':'成绩查询', 'e':'空教室查询', 's':'课表查询'}
+        请求格式: {'d':'ddl查询', 'j':'成绩课表查询', 'e':'空教室查询', 'l':'已选课程查询'}
         """
         print('start to get the data, usr_name: ' + self.usr_name)
         print('requestType: ' + request_type)
 
         if request_type == 'd':
-            get_stu_id = CourseRequest(self.usr_name, self.password)      # 获取该学生的学号
-            stu_id = get_stu_id.get_id()
+            session = CourseRequest(self.usr_name, self.password)      # 获取该学生的学号
+            stu_id = session.get_id()
         else:
-            get_stu_id = JiaoWuReq(self.usr_name, self.password)          # 获取该学生的学号
-            stu_id = get_stu_id.get_id()
+            session = JiaoWuReq(self.usr_name, self.password)          # 获取该学生的学号
+            stu_id = session.get_id()
         print('studentId: ' + str(stu_id))
-        get_stu_id.quit()
 
-        if stu_id == -5:
-            print('something wrong')
-            print('IP is banned')
-            return stu_id
-        if stu_id in (-1, -2, -3, -4, ''):                                # 如果出现错误
-            print('something wrong')
+        wrong_message = [
+            '登录课程中心出现未知错误，通常是超时问题',
+            '登陆时出现未知错误，请参考log信息',
+            '登录状态码是2XX，但不是200',
+            '跳转到未知网页',
+            '超时3次',
+            '登陆或访问教务状态码是4XX或5XX',
+            'IP被封',
+            '用户名错误或者网站要求输入验证码',
+            '密码错误',
+            '用户名或密码为空',
+            '账号被锁',
+            '账号被锁',
+            '在课程中心请求失败'
+        ]
+
+        if stu_id == '':
+            print('错误!!!')
             print('usr_name: ' + self.usr_name)
-            print('requestType: ' + 'getStuId')
+            print(wrong_message[-1 * stu_id])
             return stu_id
-        if stu_id == -6:
-            print('something wrong')
-            print('usr_name is wrong or there is a CAPTCHA')
+
+        if isinstance(stu_id, int) and -12 <= int(stu_id) <= 0:
+            print('错误!!!')
+            print('usr_name: ' + self.usr_name)
+            print(wrong_message[-1 * stu_id])
             return stu_id
-        if stu_id == -7:
-            print('something wrong')
-            print('password is wrong')
-            return stu_id
-        if stu_id == -8:
-            print('something wrong')
-            print('usr_name or password is empty')
-            return stu_id
-        if stu_id == -9:
-            print('something wrong')
-            print('account is locked')
-            return stu_id
+
         stu_id = encrypt_string(stu_id)
+
         if request_type == 'd':                                          # 获取ddl信息
-            course = CourseRequest(self.usr_name, self.password)
-            ddls = course.get_ddl()
-            course.quit()
-            if ddls in (-1, -2, -3, -4):    # 如果出现错误
-                print('something wrong')
+            ddls = session.get_ddl()
+            session.quit()
+            if isinstance(ddls, int) and -12 <= int(ddls) <= 0:
+                print('错误!!!')
                 print('usr_name: ' + self.usr_name)
                 print('requestType: ddl')
+                print(wrong_message[-1 * stu_id])
                 return ddls
-            if ddls == -5:
-                print('something wrong')
-                print('IP is banned')
-                return ddls
-            if ddls == -6:
-                print('something wrong')
-                print('usr_name is wrong or there is a CAPTCHA')
-                return ddls
-            if ddls == -7:
-                print('something wrong')
-                print('password is wrong')
-                return ddls
-            if ddls == -8:
-                print('something wrong')
-                print('usr_name or password is empty')
-                return ddls
-            if ddls == -9:
-                print('something wrong')
-                print('account is locked')
-                return ddls
-            if ddls == -10:
+            if isinstance(ddls, int) and ddls == -13:
                 ddls = {'student_id': stu_id}
                 wrong_list = []
                 wrong_dict = {}
@@ -111,96 +95,69 @@ class DataReq:
                 ddls = json.dumps(ddls, ensure_ascii=False)            # 使用json打包
                 return ddls
             return self.deal_with_ddl(ddls, stu_id)
-        if request_type == 'g':                                        # 获取成绩信息
-            jiaowu = JiaoWuReq(self.usr_name, self.password)
-            grades = jiaowu.get_grade()
-            jiaowu.quit()
-            if grades in (-1, -2, -3, -4):
-                print('something wrong')
+
+        if request_type == 'j':                                        # 获取成绩及课表信息
+            grades = session.get_grade()
+            if isinstance(grades, int) and -12 <= int(grades) <= 0:
+                print('错误!!!')
                 print('usr_name: ' + self.usr_name)
-                print('requestType: grades')
+                print('requestType: jiaowu')
+                print(wrong_message[-1 * stu_id])
                 return grades
-            if grades == -5:
-                print('something wrong')
-                print('IP is banned')
-                return grades
-            if grades == -6:
-                print('something wrong')
-                print('usr_name is wrong or there is a CAPTCHA')
-                return grades
-            if grades == -7:
-                print('something wrong')
-                print('password is wrong')
-                return grades
-            if grades == -8:
-                print('something wrong')
-                print('usr_name or password is empty')
-                return grades
-            if grades == -9:
-                print('something wrong')
-                print('account is locked')
-                return grades
-            return self.deal_with_grades(grades, stu_id)
+            schedules = session.get_schedule()
+            session.quit()
+            if isinstance(schedules, int) and -12 <= int(schedules) <= 0:
+                print('错误!!!')
+                print('usr_name: ' + self.usr_name)
+                print('requestType: jiaowu')
+                print(wrong_message[-1 * stu_id])
+                return schedules
+            sorted_grades = self.deal_with_grades(grades, stu_id)
+            sorted_schedules = self.deal_with_schedules(schedules, stu_id)
+            return sorted_grades, sorted_schedules
+
         if request_type == 'e':                                        # 获取空教室信息
-            jiaowu = JiaoWuReq(self.usr_name, self.password)
-            empty_classroom = jiaowu.get_empty_classroom()
-            jiaowu.quit()
-            if empty_classroom in (-1, -2, -3, -4):
-                print('something wrong')
+            empty_classroom = session.get_empty_classroom()
+            session.quit()
+            if isinstance(empty_classroom, int) and -12 <= empty_classroom <= 0:
+                print('错误!!!')
                 print('usr_name: ' + self.usr_name)
-                print('requestType: empty calssroom')
-                return empty_classroom
-            if empty_classroom == -5:
-                print('something wrong')
-                print('IP is banned')
-                return empty_classroom
-            if empty_classroom == -6:
-                print('something wrong')
-                print('usr_name is wrong or there is a CAPTCHA')
-                return empty_classroom
-            if empty_classroom == -7:
-                print('something wrong')
-                print('password is wrong')
-                return empty_classroom
-            if empty_classroom == -8:
-                print('something wrong')
-                print('usr_name or password is empty')
-                return empty_classroom
-            if empty_classroom == -9:
-                print('something wrong')
-                print('account is locked')
+                print('requestType: empty_classroom')
+                print(wrong_message[-1 * stu_id])
                 return empty_classroom
             return self.deal_with_empty_classroom(empty_classroom)
-        if request_type == 's':                                        # 获取课表信息
-            jiaowu = JiaoWuReq(self.usr_name, self.password)
-            schedules = jiaowu.get_schedule()
-            jiaowu.quit()
-            if schedules in (-1, -2, -3, -4):
-                print('something wrong')
+
+        if request_type == 'l':                                        # 获取课表信息
+            lessons = session.get_all_lessons()
+            session.quit()
+            if isinstance(lessons, int) and -12 <= lessons <= 0:
+                print('错误!!!')
                 print('usr_name: ' + self.usr_name)
-                print('requestType: schedule')
-                return schedules
-            if schedules == -5:
-                print('something wrong')
-                print('IP is banned')
-                return schedules
-            if schedules == -6:
-                print('something wrong')
-                print('usr_name is wrong or there is a CAPTCHA')
-                return schedules
-            if schedules == -7:
-                print('something wrong')
-                print('password is wrong')
-                return schedules
-            if schedules == -8:
-                print('something wrong')
-                print('usr_name or password is empty')
-                return schedules
-            if schedules == -9:
-                print('something wrong')
-                print('account is locked')
-                return schedules
-            return self.deal_with_schedules(schedules, stu_id)
+                print('requestType: empty_classroom')
+                print(wrong_message[-1 * stu_id])
+                return lessons
+            return self.deal_with_lessons(lessons)
+
+    @staticmethod
+    def deal_with_lessons(lessons):
+        """
+        进行已选课程信息的数据整理
+        """
+        info = []
+        for sememter in lessons:
+            for lesson in sememter:
+                cur_lesson = [lesson[2], lesson[1], lesson[9], lesson[10], lesson[6], lesson[4], lesson[7]]
+                info.append(cur_lesson)
+        aim_json = {'info': info}
+        return_json = json.dumps(aim_json, ensure_ascii=False)  # 使用json打包
+
+        # 测试用
+        # f = open('ddl.txt', 'a', encoding='utf-8')
+        # f.write(returnJson)
+        # f.close()
+        # print(return_json)
+
+        return return_json
 
     @staticmethod
     def deal_with_ddl(ddls, student_id):
@@ -240,7 +197,7 @@ class DataReq:
         """
         data sort for grades
         """
-        jsons = []
+        aim_jsons = []
         for i in range(len(ori_grades)):
             aim_grades = []
             semember = ''
@@ -265,8 +222,8 @@ class DataReq:
             # f.close()
             # print(returnJson)
 
-            jsons.append(return_json)
-        return jsons
+            aim_jsons.append(return_json)
+        return aim_jsons
 
     @staticmethod
     def deal_with_empty_classroom(empty_classroom):
@@ -482,6 +439,8 @@ class DataReq:
                 except Exception:
                     print(traceback.format_exc())
                     print('解析课表信息出错')
+                    Log('解析课表信息出错')
+                    Log(traceback.format_exc())
                     cur_str = schedules[i][j]
                     cur_infos = []
                     cur_info = [cur_str.split('\n')[0], '未知', '未知', '1-16']
@@ -505,7 +464,7 @@ class DataReq:
 if __name__ == "__main__":
     USR_NAME = input('Your username: ')
     PW = input('Your password: ')
-    # DataReq(userName, password).request('d')
-    # DataReq(userName, password).request('g')
-    # DataReq(userName, password).request('e')
-    # DataReq(userName, password).request('s')
+    # DataReq(USR_NAME, PW).request('d')
+    # DataReq(USR_NAME, PW).request('j')
+    # DataReq(USR_NAME, PW).request('e')
+    # DataReq(USR_NAME, PW).request('l')

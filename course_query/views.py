@@ -68,7 +68,8 @@ def add_course(info):
     bid = info[1].replace(' ', '')
     bid = check_public(name, bid)
     credit = float(info[2].replace(' ', ''))
-    hours = int(info[3].replace(' ', ''))
+    hours = info[3].replace(' ', '')
+    hours = None if hours == "" else int(float(hours))
     department = info[4].replace(' ', '')
     types = info[5].replace(' ', '')
     try:
@@ -90,7 +91,7 @@ def add_teacher(key):
 
 def add_teacher_relation(teacher, course):
     try:
-        course.get(teachercourse__teacher_id__name=teacher.name)
+        Course.objects.get(teachercourse__teacher_id__name=teacher.name)
     except Course.DoesNotExist:
         new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
         new_teacher_course.save()
@@ -330,11 +331,14 @@ class CourseList(viewsets.ViewSet):
         if 'info' in req.keys():
             for info in req['info']:
                 course = add_course(info)
-                teacher_list = info[7]
+                teacher_list = info[6]
                 teachers = teacher_list.split('，')
                 for teacher_name in teachers:
+                    if teacher_name == "":
+                        continue
                     teacher = add_teacher(teacher_name)
                     add_teacher_relation(teacher, course)
+            return HttpResponse(status=201)
         raise ArgumentError()
 
 

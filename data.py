@@ -350,7 +350,7 @@ class DataReq:
                 # noinspection PyBroadException
                 try:
                     cur_str = schedules[i][j]
-                    if cur_str == ' ':
+                    if cur_str in ('', ' '):
                         continue
 
                     cur_strs = cur_str.split('节')                            # 使用‘节’来划分不同的课

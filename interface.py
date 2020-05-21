@@ -32,7 +32,8 @@ def send_error(error_id, usr, passw):
     print('send error ' + str(error_id))
     # noinspection PyBroadException
     try:
-        requests.post(url=url, headers=HEADERS, data=err_json.encode('utf-8'))
+        req = requests.post(url=url, headers=HEADERS, data=err_json.encode('utf-8'))
+        req.raise_for_status()
     except Exception:
         print('send error req fail')
         print(traceback.format_exc())
@@ -93,16 +94,18 @@ def req_jiaowu_msg(data_req):
     schedule_url = HOST + 'timetable/'
     # noinspection PyBroadException
     try:
-        requests.post(url=schedule_url, headers=HEADERS, data=schedule.encode('utf-8'))
+        req = requests.post(url=schedule_url, headers=HEADERS, data=schedule.encode('utf-8'))
+        req.raise_for_status()
     except Exception:
         print('req fail')
         print(traceback.format_exc())
-        return -5
+        return -8
     grades_url = HOST + 'score/'
     for each in grades:
         # noinspection PyBroadException
         try:
-            requests.post(url=grades_url, headers=HEADERS, data=each.encode('utf-8'))
+            req = requests.post(url=grades_url, headers=HEADERS, data=each.encode('utf-8'))
+            req.raise_for_status()
         except Exception:
             print('req fail')
             print(traceback.format_exc())
@@ -142,7 +145,8 @@ def req_ddl(data_req):
     ddl_url = HOST + 'ddl/'
     # noinspection PyBroadException
     try:
-        requests.post(url=ddl_url, headers=HEADERS, data=ddl.encode('utf-8'))
+        req = requests.post(url=ddl_url, headers=HEADERS, data=ddl.encode('utf-8'))
+        req.raise_for_status()
     except Exception:
         print('req fail')
         print(traceback.format_exc())
@@ -182,7 +186,8 @@ def req_lessons(data_req):
     lessons_url = HOST + 'timetable/add_course/'
     # noinspection PyBroadException
     try:
-        requests.post(url=lessons_url, headers=HEADERS, data=lessons_url.encode('utf-8'))
+        req = requests.post(url=lessons_url, headers=HEADERS, data=lessons.encode('utf-8'))
+        req.raise_for_status()
     except Exception:
         print('req fail')
         print(traceback.format_exc())
@@ -224,7 +229,8 @@ def req_empty_classroom(data_req):
         return_json = json.dumps(each, ensure_ascii=False)
         # noinspection PyBroadException
         try:
-            requests.post(url=empty_classroom_url, headers=HEADERS, data=return_json.encode('utf-8'))
+            req = requests.post(url=empty_classroom_url, headers=HEADERS, data=return_json.encode('utf-8'))
+            req.raise_for_status()
         except Exception:
             print(traceback.format_exc())
             print('req fail')
@@ -329,11 +335,13 @@ def deal_reqs():
     try:
         if return_id < 0:
             jsons = json.dumps(jsons, ensure_ascii=False)
-            requests.post(url=ask_url, headers=HEADERS, data=jsons.encode('utf-8'))
+            req = requests.post(url=ask_url, headers=HEADERS, data=jsons.encode('utf-8'))
+            req.raise_for_status()
         else:
             new_json = {'req_id': jsons['req_id']}
             jsons = json.dumps(new_json, ensure_ascii=False)
-            requests.post(url=ask_url, headers=HEADERS, data=jsons.encode('utf-8'))
+            req = requests.post(url=ask_url, headers=HEADERS, data=jsons.encode('utf-8'))
+            req.raise_for_status()
     except Exception:
         print('req post fail')
         print(traceback.format_exc())
@@ -453,8 +461,9 @@ def insect_all_lessons():
             i += 1
         if success != 1:
             failed.append(usr)
-    print('获取失败的用户名列表：')
-    print(failed)
+    if len(failed) != 0:
+        print('爬取失败的用户名如下：')
+        print(failed)
     return failed
 
 

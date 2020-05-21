@@ -230,7 +230,7 @@ class JiaoWuReq:
             print('week: ' + str(k + 1))
             cur_dict = {}
             for j in range(9):
-                print('page: ' + str(j + 1))
+                # print('page: ' + str(j + 1))
                 empty_classroom = ''
                 i = 0
                 params = {
@@ -320,7 +320,7 @@ class JiaoWuReq:
         if self.check_status(schedule) == -1:
             return -12
 
-        soup = BeautifulSoup(schedule.text, 'lxml')
+        soup = BeautifulSoup(schedule.text.replace('</br>', '\n'), 'lxml')                  # 这里相当关键
         table = soup.select('table[class="addlist_01"] > tr > td')                          # 使用BeautifulSoup分析网页
         schedules = []
         schedule = []

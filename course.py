@@ -42,7 +42,7 @@ class CourseRequest:
             Log('课程中心登陆失败，login == '', usr_name = ' + user_name)
             return
 
-        self.get_ddl()                        # debug用
+        # self.get_ddl()                        # debug用
         # self.get_id()                         # debug用
 
     def get_status(self):
@@ -211,8 +211,8 @@ class CourseRequest:
                 this_ddls.append(work_ddls)
             ddls[lesson_title] = this_ddls
             time.sleep(1)
-        print(ddls)
-        return ''
+        # print(ddls)
+        return ddls
 
     def get_id(self):
         """
@@ -239,7 +239,7 @@ class CourseRequest:
         table = soup.select('a[class="toolMenuLink"]')                                  # 获取个人信息的网址
         info_url = ''
         for each in table:
-            print(each.attrs['title'])
+            # print(each.attrs['title'])
             if each.attrs['title'].find('查看和修改我的个人信息') != -1:
                 info_url = each.attrs['href']
                 break
@@ -287,7 +287,7 @@ class CourseRequest:
         table = soup.select('div[class="shorttext"]')                                   # 获取学号
         stu_id = ''
         for each in table:
-            print(each.get_text())
+            # print(each.get_text())
             strs = each.get_text()
             label = strs.split('\n')[1]
             stu_id = strs.split('\n')[2].replace(' ', '')

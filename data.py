@@ -58,13 +58,13 @@ class DataReq:
             print('错误!!!')
             print('usr_name: ' + self.usr_name)
             print(wrong_message[-1 * stu_id])
-            return stu_id
+            return stu_id, ''
 
         if isinstance(stu_id, int) and -12 <= int(stu_id) <= 0:
             print('错误!!!')
             print('usr_name: ' + self.usr_name)
             print(wrong_message[-1 * stu_id])
-            return stu_id
+            return stu_id, ''
 
         stu_id = encrypt_string(stu_id)
 
@@ -76,7 +76,7 @@ class DataReq:
                 print('usr_name: ' + self.usr_name)
                 print('requestType: ddl')
                 print(wrong_message[-1 * stu_id])
-                return ddls
+                return ddls, ''
             if isinstance(ddls, int) and ddls == -13:
                 ddls = {'student_id': stu_id}
                 wrong_list = []
@@ -93,8 +93,8 @@ class DataReq:
                 wrong_list.append(wrong_dict)
                 ddls['ddl'] = wrong_list
                 ddls = json.dumps(ddls, ensure_ascii=False)            # 使用json打包
-                return ddls
-            return self.deal_with_ddl(ddls, stu_id)
+                return ddls, ''
+            return self.deal_with_ddl(ddls, stu_id), ''
 
         if request_type == 'j':                                        # 获取成绩及课表信息
             grades = session.get_grade()
@@ -103,7 +103,7 @@ class DataReq:
                 print('usr_name: ' + self.usr_name)
                 print('requestType: jiaowu')
                 print(wrong_message[-1 * stu_id])
-                return grades
+                return grades, ''
             schedules = session.get_schedule()
             session.quit()
             if isinstance(schedules, int) and -12 <= int(schedules) <= 0:
@@ -111,7 +111,7 @@ class DataReq:
                 print('usr_name: ' + self.usr_name)
                 print('requestType: jiaowu')
                 print(wrong_message[-1 * stu_id])
-                return schedules
+                return schedules, ''
             sorted_grades = self.deal_with_grades(grades, stu_id)
             sorted_schedules = self.deal_with_schedules(schedules, stu_id)
             return sorted_grades, sorted_schedules
@@ -124,8 +124,8 @@ class DataReq:
                 print('usr_name: ' + self.usr_name)
                 print('requestType: empty_classroom')
                 print(wrong_message[-1 * stu_id])
-                return empty_classroom
-            return self.deal_with_empty_classroom(empty_classroom)
+                return empty_classroom, ''
+            return self.deal_with_empty_classroom(empty_classroom), ''
 
         if request_type == 'l':                                        # 获取课表信息
             lessons = session.get_all_lessons()
@@ -135,14 +135,15 @@ class DataReq:
                 print('usr_name: ' + self.usr_name)
                 print('requestType: empty_classroom')
                 print(wrong_message[-1 * stu_id])
-                return lessons
-            return self.deal_with_lessons(lessons)
+                return lessons, ''
+            return self.deal_with_lessons(lessons), ''
 
     @staticmethod
     def deal_with_lessons(lessons):
         """
         进行已选课程信息的数据整理
         """
+        # TOD O 老师信息补充
         info = []
         for sememter in lessons:
             for lesson in sememter:
@@ -188,7 +189,7 @@ class DataReq:
         # f = open('ddl.txt', 'a', encoding='utf-8')
         # f.write(returnJson)
         # f.close()
-        # print(returnJson)
+        # print(return_json)
 
         return return_json
 
@@ -220,7 +221,7 @@ class DataReq:
             # f = open('grade.txt', 'a', encoding='utf-8')
             # f.write(returnJson)
             # f.close()
-            # print(returnJson)
+            # print(return_json)
 
             aim_jsons.append(return_json)
         return aim_jsons

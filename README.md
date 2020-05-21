@@ -24,11 +24,17 @@ Python 3.7
 
 #### **模块运行方法**
 
-`python interface.py -d 整数` 启动ddl的更新爬虫程序，输入的整数为爬虫的id
+`python interface.py -j 整数` 启动课表、成绩的更新爬虫程序，输入的整数为爬虫的id，输入-1处理全部学生信息，无限循环
 
-`python interface.py -o 整数` 启动课表、空教室、成绩的更新爬虫程序，输入的整数为爬虫的id
+`python interface.py -d 整数` 启动ddl的更新爬虫程序，输入的整数为爬虫的id，输入-1处理全部学生信息，无限循环
 
-`python interface.py -r 整数` 启动ddl、课表、成绩的消息队列处理程序，输入的整数为爬虫的id
+`python interface.py -l 整数` 启动已选课程的更新爬虫程序，输入的整数暂时无意义，只跑一轮
+
+`python interface.py -e 整数` 启动空教室的更新爬虫程序，输入的整数暂时无意义，只跑一轮
+
+`python interface.py -r 整数` 启动ddl、课表、成绩、已选课程的消息队列处理程序，输入的整数暂时无意义，无限循环
+
+`python interface.py -t 整数` 启动时间计量程序，输入的整数暂时无意义，只跑一轮
 
 #### 代码风格测试
 

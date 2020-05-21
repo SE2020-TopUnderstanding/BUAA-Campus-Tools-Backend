@@ -8,7 +8,7 @@ from data import DataReq
 from password_utils import Aescrypt, KEY, MODEL, ENCODE_, SERVER_PW
 from log import Log
 
-HOST = 'http://114.115.208.32:8000/'
+HOST = 'http://hangxu.sharinka.top:8000/'
 HEADERS = {'Content-Type': 'application/json'}
 
 
@@ -26,13 +26,13 @@ def encrypt_string(message):
 
 def send_error(error_id, usr, passw):
     encode_result = encrypt_string(passw)
-    url = HOST + 'delete/'
-    jsons = {'usr_name': usr, 'password': encode_result}
-    jsons = json.dumps(jsons, ensure_ascii=False)      # 获取json包
+    url = HOST + 'spider/delete/'
+    err_json = {'usr_name': usr, 'password': encode_result}
+    err_json = json.dumps(err_json, ensure_ascii=False)      # 获取json包
     print('send error ' + str(error_id))
     # noinspection PyBroadException
     try:
-        requests.post(url=url, headers=HEADERS, data=jsons.encode('utf-8'))
+        requests.post(url=url, headers=HEADERS, data=err_json.encode('utf-8'))
     except Exception:
         print('send error req fail')
         print(traceback.format_exc())
@@ -43,51 +43,53 @@ def send_error(error_id, usr, passw):
 def get_all_stu(insect_id):
     """
     获取所有需要爬取的学生的账号密码
-    返回 jsons -> 成功
+    返回 stu_json -> 成功
     返回 -1 -> 请求失败
     """
     url = HOST + 'login/'
-    params = {'password': SERVER_PW, 'number': insect_id}
+    if insect_id == -1:
+        params = {'password': SERVER_PW}
+    else:
+        params = {'password': SERVER_PW, 'number': insect_id}
     # noinspection PyBroadException
     try:
         req = requests.get(url, verify=False, params=params)
     except Exception:
         print('req fail')
         return -1
-    jsons = req.json()
-    return jsons
+    stu_json = req.json()
+    return stu_json
 
 
-def req_schedule(data_req):
+def req_jiaowu_msg(data_req):
     """
-    获取学生课表并post给后端
-    返回  1 -> 成功
-    返回  0 -> 网络错误
-    返回 -5 -> post错误
-    返回 -6 -> ip被封
-    返回 -7 -> 用户名错误或者网站要求输入验证码
-    返回 -8 -> 密码错误
-    返回 -9 -> 用户名或密码为空
-    返回-10 -> 账号被锁
+    获取学生课表以及成绩并post给后端
+    返回 =  1 : 成功
+    返回 =  0 : 登录被拒绝，错误信息已传至log
+    返回 = -1 : 访问超时
+    返回 = -2 : 访问失败，网络可能存在问题
+    返回 = -3 : IP被封
+    返回 = -4 : 用户名错误或者网站要求输入验证码
+    返回 = -5 : 密码错误
+    返回 = -6 : 用户名或密码为空
+    返回 = -7 : 账号被锁
+    返回 = -8 : 服务器请求出错
     """
-    schedule = data_req.request('s')
+    grades, schedule = data_req.request('j')
+
     # 错误处理
-    if schedule == -1:
-        print('usr_name or password is wrong\n')
+    if grades == -1:
+        print('登录被拒绝，错误信息已传至log\n')
         return 0
-    if schedule == -2:
-        print('there is something wrong on network\n')
-        return 0
-    if schedule == -3:
-        print('unknown errors\n')
-        return 0
-    if schedule == -4:
-        print('error on the jiaowu web\n')
-        return 0
-    if schedule == -5:
-        return -6
-    if schedule in (-6, -7, -8, -9):
-        return schedule - 1
+    if grades in (0, -4):
+        print('访问超时')
+        return -1
+    if grades in (-2, -3, -5, -11, -12):
+        print('访问失败，网络可能存在问题')
+        return -2
+    if grades in (-6, -7, -8, -9, -10):
+        return grades + 3
+
     schedule_url = HOST + 'timetable/'
     # noinspection PyBroadException
     try:
@@ -96,39 +98,6 @@ def req_schedule(data_req):
         print('req fail')
         print(traceback.format_exc())
         return -5
-    return 1
-
-
-def req_grades(data_req):
-    """
-    获取学生成绩并post给后端
-    返回  1 -> 成功
-    返回  0 -> 网络错误
-    返回 -5 -> post错误
-    返回 -6 -> ip被封
-    返回 -7 -> 用户名错误或者网站要求输入验证码
-    返回 -8 -> 密码错误
-    返回 -9 -> 用户名或密码为空
-    返回-10 -> 账号被锁
-    """
-    grades = data_req.request('g')
-    # 错误处理
-    if grades == -1:
-        print('usr_name or password is wrong\n')
-        return 0
-    if grades == -2:
-        print('there is something wrong on network\n')
-        return 0
-    if grades == -3:
-        print('unknown errors\n')
-        return 0
-    if grades == -4:
-        print('error on the jiaowu web\n')
-        return 0
-    if grades == -5:
-        return -6
-    if grades in (-6, -7, -8, -9):
-        return grades - 1
     grades_url = HOST + 'score/'
     for each in grades:
         # noinspection PyBroadException
@@ -137,82 +106,119 @@ def req_grades(data_req):
         except Exception:
             print('req fail')
             print(traceback.format_exc())
-            return -5
+            return -8
     return 1
 
 
 def req_ddl(data_req):
     """
     获取学生ddl信息并post给后端
-    返回  1 -> 成功
-    返回  0 -> 网络错误
-    返回 -5 -> post错误
-    返回 -6 -> ip被封
-    返回 -7 -> 用户名错误或者网站要求输入验证码
-    返回 -8 -> 密码错误
-    返回 -9 -> 用户名或密码为空
-    返回-10 -> 账号被锁
+    返回 =  1 : 成功
+    返回 =  0 : 登录被拒绝，错误信息已传至log
+    返回 = -1 : 访问超时
+    返回 = -2 : 访问失败，网络可能存在问题
+    返回 = -3 : IP被封
+    返回 = -4 : 用户名错误或者网站要求输入验证码
+    返回 = -5 : 密码错误
+    返回 = -6 : 用户名或密码为空
+    返回 = -7 : 账号被锁
+    返回 = -8 : 服务器请求出错
     """
-    ddl = data_req.request('d')
+    ddl = data_req.request('d')[0]
+
     # 错误处理
     if ddl == -1:
-        print('usr_name or password is wrong\n')
+        print('登录被拒绝，错误信息已传至log\n')
         return 0
-    if ddl == -2:
-        print('there is something wrong on network\n')
-        return 0
-    if ddl == -3:
-        print('unknown errors\n')
-        return 0
-    if ddl == -4:
-        print('error on the course web\n')
-        return 0
-    if ddl == -5:
-        return -6
-    if ddl in (-6, -7, -8, -9):
-        return ddl - 1
+    if ddl in (0, -4):
+        print('访问超时')
+        return -1
+    if ddl in (-2, -3, -5, -11, -12):
+        print('访问失败，网络可能存在问题')
+        return -2
+    if ddl in (-6, -7, -8, -9, -10):
+        return ddl + 3
+
     ddl_url = HOST + 'ddl/'
     # noinspection PyBroadException
     try:
         requests.post(url=ddl_url, headers=HEADERS, data=ddl.encode('utf-8'))
-        # ddlUrl = ddlUrl
     except Exception:
         print('req fail')
         print(traceback.format_exc())
-        return -5
+        return -8
+    return 1
+
+
+def req_lessons(data_req):
+    """
+    获取学生已选课程信息并post给后端
+    返回 =  1 : 成功
+    返回 =  0 : 登录被拒绝，错误信息已传至log
+    返回 = -1 : 访问超时
+    返回 = -2 : 访问失败，网络可能存在问题
+    返回 = -3 : IP被封
+    返回 = -4 : 用户名错误或者网站要求输入验证码
+    返回 = -5 : 密码错误
+    返回 = -6 : 用户名或密码为空
+    返回 = -7 : 账号被锁
+    返回 = -8 : 服务器请求出错
+    """
+    lessons = data_req.request('l')[0]
+
+    # 错误处理
+    if lessons == -1:
+        print('登录被拒绝，错误信息已传至log\n')
+        return 0
+    if lessons in (0, -4):
+        print('访问超时')
+        return -1
+    if lessons in (-2, -3, -5, -11, -12):
+        print('访问失败，网络可能存在问题')
+        return -2
+    if lessons in (-6, -7, -8, -9, -10):
+        return lessons + 3
+
+    lessons_url = HOST + 'timetable/add_course/'
+    # noinspection PyBroadException
+    try:
+        requests.post(url=lessons_url, headers=HEADERS, data=lessons_url.encode('utf-8'))
+    except Exception:
+        print('req fail')
+        print(traceback.format_exc())
+        return -8
     return 1
 
 
 def req_empty_classroom(data_req):
     """
     获取空教室信息并post给后端
-    返回  1 -> 成功
-    返回  0 -> 网络错误
-    返回 -5 -> post错误
-    返回 -6 -> ip被封
-    返回 -7 -> 用户名错误或者网站要求输入验证码
-    返回 -8 -> 密码错误
-    返回 -9 -> 用户名或密码为空
-    返回-10 -> 账号被锁
+    返回 =  1 : 成功
+    返回 =  0 : 登录被拒绝，错误信息已传至log
+    返回 = -1 : 访问超时
+    返回 = -2 : 访问失败，网络可能存在问题
+    返回 = -3 : IP被封
+    返回 = -4 : 用户名错误或者网站要求输入验证码
+    返回 = -5 : 密码错误
+    返回 = -6 : 用户名或密码为空
+    返回 = -7 : 账号被锁
+    返回 = -8 : 服务器请求出错
     """
-    empty_classroom = data_req.request('e')
+    empty_classroom = data_req.request('e')[0]
+
     # 错误处理
     if empty_classroom == -1:
-        print('usr_name or password is wrong\n')
+        print('登录被拒绝，错误信息已传至log\n')
         return 0
-    if empty_classroom == -2:
-        print('there is something wrong on network\n')
-        return 0
-    if empty_classroom == -3:
-        print('unknown errors\n')
-        return 0
-    if empty_classroom == -4:
-        print('error on the jiaowu web\n')
-        return 0
-    if empty_classroom == -5:
-        return -6
-    if empty_classroom in (-6, -7, -8, -9):
-        return empty_classroom - 1
+    if empty_classroom in (0, -4):
+        print('访问超时')
+        return -1
+    if empty_classroom in (-2, -3, -5, -11, -12):
+        print('访问失败，网络可能存在问题')
+        return -2
+    if empty_classroom in (-6, -7, -8, -9, -10):
+        return empty_classroom + 3
+
     empty_classroom_url = HOST + 'classroom/'
     for each in empty_classroom:
         return_json = json.dumps(each, ensure_ascii=False)
@@ -222,24 +228,27 @@ def req_empty_classroom(data_req):
         except Exception:
             print(traceback.format_exc())
             print('req fail')
-            return -5
+            return -8
     return 1
 
 
 def deal_reqs():
     """
     处理后端发来的临时请求
-    返回 1 -> 成功
-    返回 0 -> 当前不存在临时请求
-    返回 -1 -> 失败
-    返回 -2 -> 暂时不支持空教室请求
-    返回 -5 -> 与后端的get失败
-    返回 -6 -> 与后端的post失败
-    返回 -7 -> IP被封
-    返回 -8 -> 用户名错误或者网站要求输入验证码
-    返回 -9 -> 密码错误
-    返回-10 -> 用户名或密码为空
-    返回-11 -> 账号被锁
+    返回   1 -> 成功
+    返回   0 -> 当前不存在临时请求
+    返回  -1 -> 登录被拒绝，错误信息已传至log
+    返回  -2 -> 访问超时
+    返回  -3 -> 访问失败，网络可能存在问题
+    返回  -4 -> 服务器请求出错
+    返回  -5 -> 与后端的get失败
+    返回  -6 -> 与后端的post失败
+    返回  -7 -> IP被封
+    返回  -8 -> 用户名错误或者网站要求输入验证码
+    返回  -9 -> 密码错误
+    返回 -10 -> 用户名或密码为空
+    返回 -11 -> 账号被锁
+    返回 -12 -> 请求的格式错误
     """
     ask_url = HOST + 'request/'
     # noinspection PyBroadException
@@ -260,46 +269,62 @@ def deal_reqs():
     req_type = data['req_type']
     data_req = DataReq(user, passw)
     success = 0
-    return_id = 1
-    if req_type == 's':
+    return_id = -12
+    if req_type == 'l':
         i = 0
         while success != 1 and i < 3:
-            success = req_schedule(data_req)
-            if success == -6:
+            success = req_lessons(data_req)
+            if success == -3:
                 return_id = -7
-            if success in (-7, -8, -10):
+                break
+            if success in (-4, -5, -6, -7):
                 send_error(success, user, passw)
-                return success - 1
+                return success - 4
+            if success in (0, -1, -2):
+                return_id = success - 1
+            if success == -8:
+                return_id = -4
+            if success == 1:
+                return_id = 1
             i += 1
-    if req_type == 'g':
+    if req_type == 'j':
         i = 0
         while success != 1 and i < 3:
-            success = req_grades(data_req)
-            if success == -6:
+            success = req_jiaowu_msg(data_req)
+            if success == -3:
                 return_id = -7
-            if success in (-7, -8, -10):
+                break
+            if success in (-4, -5, -6, -7):
                 send_error(success, user, passw)
-                return success - 1
+                return success - 4
+            if success in (0, -1, -2):
+                return_id = success - 1
+            if success == -8:
+                return_id = -4
+            if success == 1:
+                return_id = 1
             i += 1
     if req_type == 'd':
         i = 0
         while success != 1 and i < 3:
             success = req_ddl(data_req)
-            if success == -6:
+            if success == -3:
                 return_id = -7
-            if success in (-7, -8, -10):
+                break
+            if success in (-4, -5, -6, -7):
                 send_error(success, user, passw)
-                return success - 1
+                return success - 4
+            if success in (0, -1, -2):
+                return_id = success - 1
+            if success == -8:
+                return_id = -4
+            if success == 1:
+                return_id = 1
             i += 1
 
     # 空教室查询花费时间过长
-    # 暂时不支持这种情况
+    # 不支持这种情况
 
-    if req_type == 'e':
-        # reqEmptyClassroom(dataReq)
-        return -2
-    if success == 0:
-        return_id = -1
     # noinspection PyBroadException
     try:
         if return_id < 0:
@@ -316,58 +341,39 @@ def deal_reqs():
     return return_id
 
 
-def insect_other(insect_id):
+def insect_jiaowu(insect_id):
     """
-    循环获取课表、成绩（空教室）信息
+    循环获取课表、成绩信息
     """
     print('爬虫部署成功！')
-    print('将进行课表、成绩、空教室的查询')
+    print('将进行课表、成绩的查询')
     while True:
         print('开始新一轮循环')
         now = datetime.now()                                # 获取当前时间
 
         all_stu = get_all_stu(insect_id)
         if all_stu == -1:
+            print('请求学生信息失败')
+            time.sleep(5)
             continue
         for j in range(len(all_stu)):                        # 刷新学生信息
+            print('当前总人数：' + str(len(all_stu)))
+            print('当前爬取学生序号：' + str(j + 1))
             usr = all_stu[j]['usr_name']
             passw = decrypt_string(all_stu[j]['usr_password'])
             cur_data_req = DataReq(usr, passw)
-            if j == 0:
-                success = 0
-                i = 0
-                while success != 1 and i < 3:
-                    # success = reqEmptyClassroom(curDataReq) # 空教室只查询一次
-                    if success == -6:
-                        time.sleep(630)                     # ip被封, 等待10分钟
-                    i += 1
-            # dealReqs()
+
             success = 0
             i = 0
             while success != 1 and i < 3:
-                success = req_schedule(cur_data_req)
-                if success == -6:
+                success = req_jiaowu_msg(cur_data_req)
+                if success == -3:
                     time.sleep(630)                        # ip被封, 等待10分钟
-                if success in (-7, -8, -10):
+                if success in (-4, -5, -6, -7):
                     send_error(success, usr, passw)
                     break
                 i += 1
-            if success in (-7, -8, -10):
-                continue
-            # dealReqs()
-            success = 0
-            i = 0
-            while success != 1 and i < 3:
-                success = req_grades(cur_data_req)
-                if success == -6:
-                    time.sleep(630)                        # ip被封, 等待10分钟
-                if success in (-7, -8, -10):
-                    send_error(success, usr, passw)
-                    break
-                i += 1
-            if success in (-7, -8, -10):
-                continue
-            # dealReqs()
+
         print('本轮循环完成，进入待机状态')
         while True:
             after_proc = datetime.now()                      # 获取当前时间
@@ -390,7 +396,10 @@ def insect_ddl(insect_id):
         print('开始新一轮循环')
         all_stu = get_all_stu(insect_id)
         if all_stu == -1:
+            print('请求学生信息失败')
+            time.sleep(5)
             continue
+
         for j in range(len(all_stu)):                        # 刷新学生信息
             print('当前总人数：' + str(len(all_stu)))
             print('当前爬取学生序号：' + str(j + 1))
@@ -401,9 +410,9 @@ def insect_ddl(insect_id):
             i = 0
             while success != 1 and i < 3:
                 success = req_ddl(cur_data_req)
-                if success == -6:
+                if success == -3:
                     time.sleep(630)                        # ip被封, 等待10分钟
-                if success in (-7, -8, -10):
+                if success in (-4, -5, -6, -7):
                     send_error(success, usr, passw)
                     break
                 i += 1
@@ -412,9 +421,93 @@ def insect_ddl(insect_id):
         time.sleep(60)
 
 
+def insect_all_lessons():
+    """
+    获取已选课程信息
+    返回请求失败的用户名的列表
+    """
+    print('爬虫部署成功！')
+    print('将进行已选课程信息的获取')
+
+    all_stu = get_all_stu(-1)
+    failed = []
+    if all_stu == -1:
+        print('请求学生信息失败')
+        return 0
+    for j in range(len(all_stu)):  # 刷新学生信息
+        print('当前总人数：' + str(len(all_stu)))
+        print('当前爬取学生序号：' + str(j + 1))
+        usr = all_stu[j]['usr_name']
+        passw = decrypt_string(all_stu[j]['usr_password'])
+        cur_data_req = DataReq(usr, passw)
+
+        success = 0
+        i = 0
+        while success != 1 and i < 3:
+            success = req_lessons(cur_data_req)
+            if success == -3:
+                time.sleep(630)  # ip被封, 等待10分钟
+            if success in (-4, -5, -6, -7):
+                send_error(success, usr, passw)
+                break
+            i += 1
+        if success != 1:
+            failed.append(usr)
+    print('获取失败的用户名列表：')
+    print(failed)
+    return failed
+
+
+def insect_empty_classroom():
+    """
+    获取空教室信息
+    成功返回：True
+    失败返回：False
+    """
+    print('爬虫部署成功！')
+    print('将进行空教室信息的获取')
+    all_stu = get_all_stu(-1)
+    failed = False
+    if all_stu == -1:
+        print('请求学生信息失败')
+        return 0
+    for j in range(len(all_stu)):  # 刷新学生信息
+        print('当前总人数：' + str(len(all_stu)))
+        print('当前爬取学生序号：' + str(j + 1))
+        usr = all_stu[j]['usr_name']
+        passw = decrypt_string(all_stu[j]['usr_password'])
+        cur_data_req = DataReq(usr, passw)
+
+        success = 0
+        i = 0
+        while success != 1 and i < 3:
+            success = req_empty_classroom(cur_data_req)
+            if success == -3:
+                time.sleep(630)  # ip被封, 等待10分钟
+            if success in (-4, -5, -6, -7):
+                send_error(success, usr, passw)
+                break
+            i += 1
+        if success == 1:
+            failed = True
+    return failed
+
+
 def insect_req():
     """
     循环执行后端发出的临时请求
+    错误码  -1 -> 登录被拒绝，错误信息已传至log
+    错误码  -2 -> 访问超时
+    错误码  -3 -> 访问失败，网络可能存在问题
+    错误码  -4 -> 服务器请求出错
+    错误码  -5 -> 与后端的get失败
+    错误码  -6 -> 与后端的post失败
+    错误码  -7 -> IP被封
+    错误码  -8 -> 用户名错误或者网站要求输入验证码
+    错误码  -9 -> 密码错误
+    错误码 -10 -> 用户名或密码为空
+    错误码 -11 -> 账号被锁
+    错误码 -12 -> 请求的格式错误
     """
     print('爬虫部署成功！')
     print('将进行消息队列的获取与处理')
@@ -437,34 +530,40 @@ def test_time():
     """
     计算耗时
     结果:
+    alpha版本如下：
     空教室查询: 0:20:41.309
     课表查询: 0:00:28.732
     成绩查询: 0.00.55.983
     ddl查询: 0.00.52.933
+    beta版本
+    空教室查询: 0:07:47.332
+    课表成绩查询: 0:00:14.684
+    已选课程查询: 0.00.15.285 (尚未完成老师补全)
+    ddl查询: 0.00.34.670
     """
     usr = input('user: ')
     passw = input('password: ')
     cur_data_req = DataReq(usr, passw)
-    now = datetime.now()
+    start_now = datetime.now()
     req_empty_classroom(cur_data_req)
-    enow = datetime.now()
-    req_schedule(cur_data_req)
-    snow = datetime.now()
-    req_grades(cur_data_req)
-    gnow = datetime.now()
+    empty_now = datetime.now()
+    req_lessons(cur_data_req)
+    lesson_now = datetime.now()
+    req_jiaowu_msg(cur_data_req)
+    jiaowu_now = datetime.now()
     req_ddl(cur_data_req)
-    dnow = datetime.now()
-    deltatime = enow - now
-    print('empty ' + str(deltatime.total_seconds()))
+    ddl_now = datetime.now()
+    deltatime = empty_now - start_now
+    print('空教室查询耗费时间: ' + str(deltatime.total_seconds()))
     print(deltatime)
-    deltatime = snow - enow
-    print('schedule ' + str(deltatime.total_seconds()))
+    deltatime = lesson_now - empty_now
+    print('已选课表查询耗费时间: ' + str(deltatime.total_seconds()))
     print(deltatime)
-    deltatime = gnow - snow
-    print('grade ' + str(deltatime.total_seconds()))
+    deltatime = jiaowu_now - lesson_now
+    print('课表成绩查询耗费时间: ' + str(deltatime.total_seconds()))
     print(deltatime)
-    deltatime = dnow - gnow
-    print('ddl ' + str(deltatime.total_seconds()))
+    deltatime = ddl_now - jiaowu_now
+    print('ddl查询耗费时间: ' + str(deltatime.total_seconds()))
     print(deltatime)
 
 
@@ -472,7 +571,7 @@ def test_time():
 if __name__ == '__main__':
     # testTime()                                 # 计算耗时
     if len(sys.argv) != 3:
-        print('请输入正确参数，-d 整数：启动ddl爬虫，-o 整数：启动其他爬虫, -r 整数：启动消息队列')
+        print('请输入正确参数')
     elif sys.argv[1] == '-d':                     # 获取ddl信息
         while True:
             # noinspection PyBroadException
@@ -481,11 +580,29 @@ if __name__ == '__main__':
             except Exception as err:
                 print(traceback.format_exc())
                 Log('运行过程中出现问题，错误信息: ' + traceback.format_exc())
-    elif sys.argv[1] == '-o':                   # 获取课表和成绩信息
+    elif sys.argv[1] == '-j':                   # 获取课表和成绩信息
         while True:
             # noinspection PyBroadException
             try:
-                insect_other(int(sys.argv[2]))
+                insect_jiaowu(int(sys.argv[2]))
+            except Exception as err:
+                print(traceback.format_exc())
+                Log('运行过程中出现问题，错误信息: ' + traceback.format_exc())
+    elif sys.argv[1] == '-l':                   # 处理后端的临时请求
+        while True:
+            # noinspection PyBroadException
+            try:
+                insect_all_lessons()
+                break
+            except Exception as err:
+                print(traceback.format_exc())
+                Log('运行过程中出现问题，错误信息: ' + traceback.format_exc())
+    elif sys.argv[1] == '-e':                   # 处理后端的临时请求
+        while True:
+            # noinspection PyBroadException
+            try:
+                insect_empty_classroom()
+                break
             except Exception as err:
                 print(traceback.format_exc())
                 Log('运行过程中出现问题，错误信息: ' + traceback.format_exc())
@@ -497,5 +614,14 @@ if __name__ == '__main__':
             except Exception as err:
                 print(traceback.format_exc())
                 Log('运行过程中出现问题，错误信息: ' + traceback.format_exc())
+    elif sys.argv[1] == '-t':                   # 处理后端的临时请求
+        while True:
+            # noinspection PyBroadException
+            try:
+                test_time()
+                break
+            except Exception as err:
+                print(traceback.format_exc())
+                Log('运行过程中出现问题，错误信息: ' + traceback.format_exc())
     else:
-        print('请输入正确参数，-d：启动ddl爬虫，-o：启动其他爬虫, -r 整数：启动消息队列')
+        print('请输入正确参数')

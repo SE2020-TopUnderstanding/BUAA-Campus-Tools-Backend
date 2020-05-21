@@ -94,7 +94,7 @@ class AddCourseRequest(APIView):
     @staticmethod
     def post(request):
         req = request.query_params.dict()
-        if len(req) == 0:
+        if len(req) == 1:
             request_id = add_request('l', req['student_id'])
             return Response([{"id": request_id}])
         raise ArgumentError()

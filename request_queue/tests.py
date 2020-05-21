@@ -39,7 +39,7 @@ class RequestTest(TestCase):
         add_request('s', '17373010')
         client = Client()
         data = {"student_id": "17373010"}
-        request = client.post("/request/timetable/?student_id=17373010", content_type='application/json',
+        request = client.post("/request/add_course/?student_id=17373010", content_type='application/json',
                               data=data)
         self.assertEqual(request.status_code, 200)
 
@@ -59,6 +59,6 @@ class RequestTest(TestCase):
         add_request('s', '17373010')
         client = Client()
         data = {"student_id": "17373010"}
-        request = client.post("/request/score/?student_id=17373010", content_type='application/json',
+        request = client.post("/request/score_course/?student_id=17373010", content_type='application/json',
                               data=data)
         self.assertEqual(request.status_code, 200)

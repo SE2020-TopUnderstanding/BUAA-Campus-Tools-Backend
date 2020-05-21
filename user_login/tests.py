@@ -17,7 +17,7 @@ class UserLoginTests(TestCase):
 
     def test_get_462(self):
         """
-        检测返回状态码为500的get请求
+        检测返回状态码为361的get请求
         1.密码错误
         """
         response = self.client.get('/login/?password=12')
@@ -37,7 +37,7 @@ class UserLoginTests(TestCase):
 
     def test_post_400(self):
         """
-        检测返回状态码为500的post请求
+        检测返回状态码为400的post请求
         1.参数数量错误
         2.参数名称错误
         """

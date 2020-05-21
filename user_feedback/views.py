@@ -35,10 +35,7 @@ class UserFeedback(APIView):
             raise ArgumentError()
         content = []
         for i in result:
-            try:
-                name = i.student_id.name
-            except Student.DoesNotExist:
-                raise UnAuthorizedError()
+            name = i.student_id.name
             content.append({"name": name, "date": i.date, "kind": i.kind, "content": i.content})
         return Response(content)
 

@@ -90,22 +90,12 @@ class Queue(APIView):
         raise ArgumentError()
 
 
-class CourseRequest(APIView):
-    @staticmethod
-    def post(request):
-        req = request.query_params.dict()
-        if len(req) == 1 and 'student_id' in req.keys():
-            request_id = add_request('s', req['student_id'])
-            return Response([{"id": request_id}])
-        raise ArgumentError()
-
-
 class AddCourseRequest(APIView):
     @staticmethod
     def post(request):
         req = request.query_params.dict()
         if len(req) == 0:
-            request_id = add_request('add', req['student_id'])
+            request_id = add_request('l', req['student_id'])
             return Response([{"id": request_id}])
         raise ArgumentError()
 
@@ -120,13 +110,13 @@ class DDLRequest(APIView):
         raise ArgumentError()
 
 
-class ScoreRequest(APIView):
+class ScoreOrCourseRequest(APIView):
 
     @staticmethod
     def post(request):
         req = request.query_params.dict()
         if len(req) == 1 and 'student_id' in req.keys():
-            request_id = add_request('g', req['student_id'])
+            request_id = add_request('j', req['student_id'])
             return Response([{"id": request_id}])
         raise ArgumentError()
 

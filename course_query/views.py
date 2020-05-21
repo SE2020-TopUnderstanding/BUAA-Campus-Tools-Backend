@@ -98,11 +98,12 @@ def add_teacher_relation(teacher, course):
 
 
 def add_student_course(student, semester, info):
-    if len(info) == 10:
-        place = info[6].replace(' ', '')
-        teacher = info[7].replace(' ', '')
-        week = info[8].replace(' ', '')
-        time = info[9]
+    if len(info) == 5:
+        name = info[0].replace(' ', '')
+        place = info[1].replace(' ', '')
+        teacher = info[2].replace(' ', '')
+        week = info[3].replace(' ', '')
+        time = info[4]
         # 增加课程信息
         course = add_course(info[0:5])
         # 保存信息

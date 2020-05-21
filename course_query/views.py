@@ -99,7 +99,7 @@ def add_teacher_relation(teacher, course):
 
 def add_student_course(student, semester, info):
     if len(info) == 5:
-        name = info[0].replace(' ', '')
+        # name = info[0].replace(' ', '')
         place = info[1].replace(' ', '')
         teacher = info[2].replace(' ', '')
         week = info[3].replace(' ', '')

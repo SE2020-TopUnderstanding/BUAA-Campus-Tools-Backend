@@ -68,7 +68,8 @@ def add_course(info):
     bid = info[1].replace(' ', '')
     bid = check_public(name, bid)
     credit = float(info[2].replace(' ', ''))
-    hours = int(info[3].replace(' ', ''))
+    hours = info[3].replace(' ', '')
+    hours = None if hours == "" else int(float(hours))
     department = info[4].replace(' ', '')
     types = info[5].replace(' ', '')
     try:
@@ -90,7 +91,7 @@ def add_teacher(key):
 
 def add_teacher_relation(teacher, course):
     try:
-        course.get(teachercourse__teacher_id__name=teacher.name)
+        Course.objects.get(teachercourse__teacher_id__name=teacher.name)
     except Course.DoesNotExist:
         new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
         new_teacher_course.save()
@@ -329,7 +330,15 @@ class CourseList(viewsets.ViewSet):
         req = request.data
         if 'info' in req.keys():
             for info in req['info']:
-                add_course(info)
+                course = add_course(info)
+                teacher_list = info[6]
+                teachers = teacher_list.split('，')
+                for teacher_name in teachers:
+                    if teacher_name == "":
+                        continue
+                    teacher = add_teacher(teacher_name)
+                    add_teacher_relation(teacher, course)
+            return HttpResponse(status=201)
         raise ArgumentError()
 
 
@@ -341,19 +350,19 @@ class Search(viewsets.ViewSet):
         result = TeacherCourse.objects.all()
         if 1 <= len(req) <= 4:
             results = []
-            for key in req.keys():
-                if key == 'course':
+            for key, value in req.items():
+                if key == 'course' and value != "":
                     name = req['course']
                     result = result.filter(course_id__name__icontains=name)
-                elif key == 'teacher':
+                elif key == 'teacher' and value != "":
                     name = req['teacher']
                     result = result.filter(teacher_id__name__icontains=name)
-                elif key == 'type':
+                elif key == 'type' and value != "":
                     types = req['type']
-                    result = result.filter(course_id__type__icontains=types)
-                elif key == 'department':
+                    result = result.filter(course_id__type=types)
+                elif key == 'department' and value != "":
                     department = req['department']
-                    result = result.filter(course_id__department__icontains=department)
+                    result = result.filter(course_id__department=department)
                 else:
                     raise ArgumentError()
                 results = TeacherCourseSerializer(result, many=True).data

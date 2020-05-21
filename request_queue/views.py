@@ -100,6 +100,16 @@ class CourseRequest(APIView):
         raise ArgumentError()
 
 
+class AddCourseRequest(APIView):
+    @staticmethod
+    def post(request):
+        req = request.query_params.dict()
+        if len(req) == 0:
+            request_id = add_request('add', req['student_id'])
+            return Response([{"id": request_id}])
+        raise ArgumentError()
+
+
 class DDLRequest(APIView):
     @staticmethod
     def post(request):

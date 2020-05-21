@@ -65,7 +65,6 @@ class Login(APIView):
         except RequestRecord.DoesNotExist:
             RequestRecord(name="login", count=1).save()
 
-
         req = request.data
 
         if (len(req) != 2) | ("usr_name" not in req) | ("usr_password" not in req):
@@ -76,7 +75,7 @@ class Login(APIView):
         ans = get_student_info(usr_name, usr_password)
 
         state = ans
-        if (ans == 0) | (ans == -1) | (ans == -2)  | (ans == -3) | (ans == -4) | (ans == -5):
+        if (ans == 0) | (ans == -1) | (ans == -2) | (ans == -3) | (ans == -4) | (ans == -5):
             raise InternalServerError()
 
         if ans == -6:  # IP is banned from the buaa
@@ -97,8 +96,11 @@ class Login(APIView):
         student_id = password_d.aesencrypt(student_id)
         name = ans[2]
         grade = ans[3]
-
-        Student(usr_name=usr_name, usr_password=usr_password, id=student_id, name=name, grade=grade).save()
+        if Student.objects.filter(id=student_id).count() == 0:
+            Student(usr_name=usr_name, usr_password=usr_password, id=student_id, name=name, grade=grade).save()
+            add_request('l', student_id)
+        else:
+            Student(usr_name=usr_name, usr_password=usr_password, id=student_id, name=name, grade=grade).save()
 
         try:  # 学生更新数据最新时间
             student = Student.objects.get(id=student_id)
@@ -107,10 +109,9 @@ class Login(APIView):
         except PostRecord.DoesNotExist:
             PostRecord(student_id=student, name="login").save()
 
-        if len(StudentCourse.objects.filter(student_id_id=student_id)) == 0:
-            add_request('s', student_id)
-        if len(Score.objects.filter(student_id_id=student_id)) == 0:
-            add_request('g', student_id)
+        if len(StudentCourse.objects.filter(student_id_id=student_id)) == 0 or len(
+                Score.objects.filter(student_id_id=student_id)) == 0:
+            add_request('j', student_id)
         if len(DDL.objects.filter(student_id_id=student_id)) == 0:
             add_request('d', student_id)
 

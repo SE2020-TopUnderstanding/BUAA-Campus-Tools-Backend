@@ -203,7 +203,7 @@ class QuerySchoolCalendar(APIView):
         except Student.DoesNotExist:
             raise UnAuthorizedError()
 
-        #该学生未完成的ddl
+        # 该学生未完成的ddl
         ddl = ddl_req.filter((Q(state="尚未提交") | Q(state="草稿 - 进行中"))).values("course", "homework", "ddl")
 
         # 第一学期开始日期+寒假开始日期+第二学期开始日期+第三学期开始日期
@@ -212,7 +212,7 @@ class QuerySchoolCalendar(APIView):
         except SchoolYear.DoesNotExist:
             raise DatabaseNotExitError
 
-        #节假日信息
+        # 节假日信息
         holiday = SchoolCalendar.objects.filter(Q(semester__contains=req["school_year"])
                                                 & ~Q(holiday__contains=req["school_year"]))
 

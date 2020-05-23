@@ -293,7 +293,7 @@ class JiaoWuReq:
         # print(empty_classrooms)
         return empty_classrooms
 
-    def get_schedule(self):
+    def get_schedule(self, choose=1):
         """
         该函数一次性返回该学生当前学期课表
         将数据以列表的形式返回
@@ -320,29 +320,74 @@ class JiaoWuReq:
         if self.check_status(schedule) == -1:
             return -12
 
-        soup = BeautifulSoup(schedule.text.replace('</br>', '\n'), 'lxml')                  # 这里相当关键
-        table = soup.select('table[class="addlist_01"] > tr > td')                          # 使用BeautifulSoup分析网页
-        schedules = []
-        schedule = []
+        soup = BeautifulSoup(schedule.text, 'lxml')
+        table = soup.select('table > tr > td > select[class="XNXQ_CON"] > option')
+        semester = []
         for each in table:
-            strs = each.get_text()
-            # print(strs)
-            if strs in ('上午', '下午', '晚上'):
-                continue
-            if strs.find('其它课程：') != -1:
-                continue
-            if strs[0] == '第' and (strs[2] == '，' or strs[3] == '，'):
-                if len(schedule) != 0:
-                    schedules.append(schedule.copy())
-                schedule.clear()
-                continue
-            if strs[0] == '&':
-                schedule.append('')
-                continue
-            schedule.append(strs)
-        schedules.append((schedule.copy()))
+            # print(each.get_text())
+            # print(each.attrs['value'])
+            if choose == 1 and each.attrs['value'] != '' and 'selected' in each.attrs.keys():  # 获取当前学期选项
+                semester.append(each.attrs['value'])
+            elif choose == 0 and each.attrs['value'] != '':
+                semester.append(each.attrs['value'])
+
+        if len(semester) == 0:
+            return -12
+
+        all_schedules = []
+        for k in range(len(semester)):
+            print('cur_year: ' + semester[k])
+            page = ''
+            i = 0
+            params = {
+                'fhlj': 'kbcx/queryGrkb',
+                'xnxq': semester[k]
+            }
+            headers_grades = {
+                'User-Agent': USER_AGENT,
+                'Referer': 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kbcx/queryGrkb'
+            }
+            while i < 3:
+                try:
+                    page = self.now.post(url=self.schedule_url, headers=headers_grades,
+                                         params=params)
+                    break
+                except requests.exceptions.RequestException as err:
+                    print(err)
+                    i += 1
+                    if i == 3:
+                        return 0
+
+            if self.check_status(page) == -1:
+                return -12
+            time.sleep(1)
+
+            soup = BeautifulSoup(page.text.replace('</br>', '\n'), 'lxml')                  # 这里相当关键
+            table = soup.select('table[class="addlist_01"] > tr > td')                      # 使用BeautifulSoup分析网页
+            schedules = []
+            schedule = []
+            for each in table:
+                strs = each.get_text()
+                # print(strs)
+                if strs in ('上午', '下午', '晚上'):
+                    continue
+                if strs.find('其它课程：') != -1:
+                    continue
+                if strs[0] == '第' and (strs[2] == '，' or strs[3] == '，'):
+                    if len(schedule) != 0:
+                        schedules.append(schedule.copy())
+                    schedule.clear()
+                    continue
+                if strs[0] == '&':
+                    schedule.append('')
+                    continue
+                schedule.append(strs)
+            schedules.append((schedule.copy()))
+            all_schedules.append(schedules)
         # print(schedules)
-        return schedules
+        if choose == 1:
+            return all_schedules[0]
+        return all_schedules
 
     def get_id(self):
         """
@@ -376,7 +421,7 @@ class JiaoWuReq:
         # print(stu_id)
         return stu_id
 
-    def get_all_lessons(self):
+    def get_all_lessons(self, choose=0):
         """
         该函数返回该学生的所有已选课程
         将返回一个列表
@@ -414,7 +459,9 @@ class JiaoWuReq:
         for each in table:
             # print(each.get_text())
             # print(each.attrs['value'])
-            if each.attrs['value'] != '':
+            if choose == 1 and each.attrs['value'] != '' and 'selected' in each.attrs.keys():  # 获取当前学期选项
+                search_list.append(each.attrs['value'])
+            elif choose == 0 and each.attrs['value'] != '':
                 search_list.append(each.attrs['value'])
 
         lessons = []
@@ -470,6 +517,8 @@ class JiaoWuReq:
                     texts.clear()
             lessons.append(semester)
         # print(lessons)
+        if choose == 1:
+            return lessons[0]
         return lessons
 
     def quit(self):

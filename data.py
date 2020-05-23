@@ -75,7 +75,7 @@ class DataReq:
                 print('错误!!!')
                 print('usr_name: ' + self.usr_name)
                 print('requestType: ddl')
-                print(wrong_message[-1 * stu_id])
+                print(wrong_message[-1 * ddls])
                 return ddls, ''
             if isinstance(ddls, int) and ddls == -13:
                 ddls = {'student_id': stu_id}
@@ -102,18 +102,25 @@ class DataReq:
                 print('错误!!!')
                 print('usr_name: ' + self.usr_name)
                 print('requestType: jiaowu')
-                print(wrong_message[-1 * stu_id])
+                print(wrong_message[-1 * grades])
                 return grades, ''
             schedules = session.get_schedule()
-            session.quit()
             if isinstance(schedules, int) and -12 <= int(schedules) <= 0:
                 print('错误!!!')
                 print('usr_name: ' + self.usr_name)
                 print('requestType: jiaowu')
-                print(wrong_message[-1 * stu_id])
+                print(wrong_message[-1 * schedules])
+                return schedules, ''
+            lesson_ids = session.get_all_lessons(1)
+            session.quit()
+            if isinstance(lesson_ids, int) and -12 <= int(lesson_ids) <= 0:
+                print('错误!!!')
+                print('usr_name: ' + self.usr_name)
+                print('requestType: jiaowu')
+                print(wrong_message[-1 * lesson_ids])
                 return schedules, ''
             sorted_grades = self.deal_with_grades(grades, stu_id)
-            sorted_schedules = self.deal_with_schedules(schedules, stu_id)
+            sorted_schedules = self.deal_with_schedules(schedules, lesson_ids, stu_id)
             return sorted_grades, sorted_schedules
 
         if request_type == 'e':                                        # 获取空教室信息
@@ -123,30 +130,170 @@ class DataReq:
                 print('错误!!!')
                 print('usr_name: ' + self.usr_name)
                 print('requestType: empty_classroom')
-                print(wrong_message[-1 * stu_id])
+                print(wrong_message[-1 * empty_classroom])
                 return empty_classroom, ''
             return self.deal_with_empty_classroom(empty_classroom), ''
 
         if request_type == 'l':                                        # 获取课表信息
+            teachers = session.get_schedule(0)
+            if isinstance(teachers, int) and -12 <= teachers <= 0:
+                print('错误!!!')
+                print('usr_name: ' + self.usr_name)
+                print('requestType: empty_classroom')
+                print(wrong_message[-1 * teachers])
+                return teachers, ''
             lessons = session.get_all_lessons()
             session.quit()
             if isinstance(lessons, int) and -12 <= lessons <= 0:
                 print('错误!!!')
                 print('usr_name: ' + self.usr_name)
                 print('requestType: empty_classroom')
-                print(wrong_message[-1 * stu_id])
+                print(wrong_message[-1 * lessons])
                 return lessons, ''
-            return self.deal_with_lessons(lessons), ''
+            return self.deal_with_lessons(lessons, teachers), ''
 
     @staticmethod
-    def deal_with_lessons(lessons):
+    def analysis_lesson(schedules, i, j):
+        section_dict = {0: '1，2', 1: '3，4', 2: '6，7', 3: '8，9', 4: '11，12', 5: '13，14'}
+        # noinspection PyBroadException
+        try:
+            cur_str = schedules[i][j]
+            if cur_str in ('', ' '):
+                return []
+            cur_strs = cur_str.split('节')  # 使用‘节’来划分不同的课
+            lessons = []
+            cur_lesson = ''
+            for k in range(len(cur_strs)):  # 获取所有课程
+                if cur_strs[k] == '':
+                    continue
+                if cur_lesson == '':
+                    cur_lesson = cur_lesson + cur_strs[k]
+                    continue
+                if cur_strs[k][0] == '，':
+                    cur_lesson = cur_lesson + '节' + cur_strs[k]
+                    if k == len(cur_strs) - 2:
+                        cur_lesson = cur_lesson + '节'
+                        lessons.append(cur_lesson)
+                        cur_lesson = ''
+                        break
+                if cur_strs[k][0] != '，':
+                    cur_lesson = cur_lesson + '节'
+                    lessons.append(cur_lesson)
+                    cur_lesson = cur_strs[k]
+                    if k == len(cur_strs) - 2:
+                        cur_lesson = cur_lesson + '节'
+                        lessons.append(cur_lesson)
+                        cur_lesson = ''
+                        break
+            if cur_lesson != '':
+                if cur_lesson[-1] == '：':
+                    lessons.append(cur_lesson)
+                else:
+                    lessons.append(cur_lesson + '节')
+
+            cur_infos = []
+            for cur_str in lessons:  # 获取这个课程的信息
+                cur_strs = cur_str.split('\n')
+                lesson = cur_strs[0]
+                if cur_strs[0] == '':
+                    lesson = cur_strs[1]
+                    cur_strs = cur_strs[1:]
+                info = ''
+                for k in range(len(cur_strs) - 1):
+                    info = info + cur_strs[k + 1]
+                infos = info.split('，')
+                types = []
+                tmp_str = ''
+                for each in infos:  # 处理多课程问题
+                    tmp_str = tmp_str + each
+                    if each[-1] == '节':
+                        types.append(tmp_str)
+                        tmp_str = ''
+                    else:
+                        tmp_str = tmp_str + '，'
+                another_types = []
+                for each in types:
+                    info = each
+                    if len(info.split('[')) > 2:
+                        divide_weeks = info.split('周')
+                        for k in range(len(divide_weeks) - 1):
+                            strs = divide_weeks[k] + '周' + divide_weeks[-1]
+                            if strs[0] == '，':
+                                strs = strs[1:]
+                            another_types.append(strs)
+                    else:
+                        another_types = types
+                types = another_types
+                save_teacher = ''
+                for each in types:
+                    info = each
+                    teachers, info = info.split('[')  # 获取老师信息
+                    if teachers == '' and save_teacher != '':
+                        teachers = save_teacher
+                    save_teacher = teachers
+                    week, info = info.split(']')  # 获取周数信息
+                    if info.find(' ') != -1:
+                        place, aim_time = info.split(' ')  # 获取时间地点信息
+                    else:
+                        info = info.replace('第第', '第')
+                        place, aim_time = info.split('第')
+                        aim_time = '第' + aim_time
+                    # deal with some certain problems
+                    if week in ('', '周'):
+                        week = '1-16'
+                    if place[0] == '单' or place[0] == '双':
+                        week = week + place[0]
+                        place = place[1:]
+                    if aim_time[0] == aim_time[1]:
+                        aim_time = aim_time[1:]
+                    cur_info = [lesson, place[1:], teachers, week, '周' + str(j + 1) + ' ' + aim_time]
+                    cur_infos.append(cur_info)
+        except Exception:
+            print(traceback.format_exc())
+            print('解析课表信息出错')
+            Log(schedules[i][j])
+            Log('解析课表信息出错')
+            Log(traceback.format_exc())
+            cur_str = schedules[i][j]
+            cur_infos = []
+            cur_info = [cur_str.split('\n')[0], '未知', '未知', '1-16']
+            section = section_dict[i]
+            cur_info.append('周' + str(j + 1) + ' 第' + section + '节')
+            cur_infos.append(cur_info)
+        return cur_infos
+
+    def deal_with_lessons(self, lessons, teachers):
         """
         进行已选课程信息的数据整理
         """
-        # TOD O 老师信息补充
         info = []
-        for sememter in lessons:
-            for lesson in sememter:
+        for i in teachers[::-1]:
+            if i[0][0] == '没有数据!':
+                teachers.remove(i)
+
+        for sememter in range(len(teachers)):
+            sememter_teacher = teachers[sememter]
+            sememter_lessons = lessons[sememter]
+            aim_lessons = []
+            for i in range(len(sememter_teacher)):
+                for j in range(len(sememter_teacher[i])):
+                    cur_infos = self.analysis_lesson(sememter_teacher, i, j)
+                    if len(cur_infos) == 0:
+                        continue
+                    aim_lessons.append(cur_infos)
+
+            for lesson in sememter_lessons:
+                sign = 0
+                if lesson[7] == '':
+                    sign = 1
+                for tmp_lessons in aim_lessons:
+                    for each in tmp_lessons:
+                        if each[0].replace(' ', '').find(lesson[2].replace(' ', '')) != -1 \
+                                and each[2].replace(' ', '').find(lesson[7].replace(' ', '')) != -1:
+                            lesson[7] = each[2]
+                            sign = 1
+                if sign == 0:
+                    print('向已选课程中补充教师信息失败')
                 cur_lesson = [lesson[2], lesson[1], lesson[9], lesson[10], lesson[6], lesson[4], lesson[7]]
                 info.append(cur_lesson)
         aim_json = {'info': info}
@@ -338,117 +485,28 @@ class DataReq:
                 aim_jsons.append(cur_datedict)                                # 将这一周的数据整理好放入列表
         return aim_jsons
 
-    @staticmethod
-    def deal_with_schedules(schedules, student_id):
+    def deal_with_schedules(self, schedules, lesson_ids, student_id):
         """
         data sort for schedules
         """
         aim_lessons = []
-        section_dict = {0: '1，2', 1: '3，4', 2: '6，7', 3: '8，9', 4: '11，12', 5: '13，14'}
         for i in range(len(schedules) - 1):
             for j in range(len(schedules[i])):
-                # noinspection PyBroadException
-                try:
-                    cur_str = schedules[i][j]
-                    if cur_str in ('', ' '):
-                        continue
-
-                    cur_strs = cur_str.split('节')                            # 使用‘节’来划分不同的课
-                    lessons = []
-                    cur_lesson = ''
-                    for k in range(len(cur_strs)):                            # 获取所有课程
-                        if cur_strs[k] == '':
-                            continue
-                        if cur_lesson == '':
-                            cur_lesson = cur_lesson + cur_strs[k]
-                            continue
-                        if cur_strs[k][0] == '，':
-                            cur_lesson = cur_lesson + '节' + cur_strs[k]
-                            if k == len(cur_strs) - 2:
-                                cur_lesson = cur_lesson + '节'
-                                lessons.append(cur_lesson)
-                                cur_lesson = ''
-                                break
-                        if cur_strs[k][0] != '，':
-                            cur_lesson = cur_lesson + '节'
-                            lessons.append(cur_lesson)
-                            cur_lesson = cur_strs[k]
-                            if k == len(cur_strs) - 2:
-                                cur_lesson = cur_lesson + '节'
-                                lessons.append(cur_lesson)
-                                cur_lesson = ''
-                                break
-                    if cur_lesson != '':
-                        if cur_lesson[-1] == '：':
-                            lessons.append(cur_lesson)
-                        else:
-                            lessons.append(cur_lesson + '节')
-
-                    cur_infos = []
-                    for cur_str in lessons:                                  # 获取这个课程的信息
-                        cur_strs = cur_str.split('\n')
-                        lesson = cur_strs[0]
-                        if cur_strs[0] == '':
-                            lesson = cur_strs[1]
-                            cur_strs = cur_strs[1:]
-                        info = ''
-                        for k in range(len(cur_strs) - 1):
-                            info = info + cur_strs[k + 1]
-                        infos = info.split('，')
-                        types = []
-                        tmp_str = ''
-                        for each in infos:                                  # 处理多课程问题
-                            tmp_str = tmp_str + each
-                            if each[-1] == '节':
-                                types.append(tmp_str)
-                                tmp_str = ''
-                            else:
-                                tmp_str = tmp_str + '，'
-                        another_types = []
-                        for each in types:
-                            info = each
-                            if len(info.split('[')) > 2:
-                                divide_weeks = info.split('周')
-                                for k in range(len(divide_weeks) - 1):
-                                    strs = divide_weeks[k] + '周' + divide_weeks[-1]
-                                    if strs[0] == '，':
-                                        strs = strs[1:]
-                                    another_types.append(strs)
-                            else:
-                                another_types = types
-                        types = another_types
-                        for each in types:
-                            info = each
-                            teachers, info = info.split('[')                    # 获取老师信息
-                            week, info = info.split(']')                        # 获取周数信息
-                            if info.find(' ') != -1:
-                                place, aim_time = info.split(' ')               # 获取时间地点信息
-                            else:
-                                place, aim_time = info.split('第')
-                                aim_time = '第' + aim_time
-                            # deal with some certain problems
-                            if week in ('', '周'):
-                                week = '1-16'
-                            if place[0] == '单' or place[0] == '双':
-                                week = week + place[0]
-                                place = place[1:]
-                            if aim_time[0] == aim_time[1]:
-                                aim_time = aim_time[1:]
-                            cur_info = [lesson, place[1:], teachers, week, '周' + str(j + 1) + ' ' + aim_time]
-                            cur_infos.append(cur_info)
-                    aim_lessons.append(cur_infos)
-                except Exception:
-                    print(traceback.format_exc())
-                    print('解析课表信息出错')
-                    Log('解析课表信息出错')
-                    Log(traceback.format_exc())
-                    cur_str = schedules[i][j]
-                    cur_infos = []
-                    cur_info = [cur_str.split('\n')[0], '未知', '未知', '1-16']
-                    section = section_dict[i]
-                    cur_info.append('周' + str(j + 1) + ' 第' + section + '节')
-                    cur_infos.append(cur_info)
-                    aim_lessons.append(cur_infos)
+                cur_infos = self.analysis_lesson(schedules, i, j)
+                if len(cur_infos) == 0:
+                    continue
+                for each in cur_infos:
+                    sign = 0
+                    for lesson in lesson_ids:
+                        if each[0].replace(' ', '').find(lesson[2].replace(' ', '')) != -1 \
+                                and each[2].replace(' ', '').find(lesson[7].replace(' ', '')) != -1:
+                            each.insert(0, lesson[1])
+                            sign = 1
+                            break
+                    if sign == 0:
+                        each.insert(0, '')
+                        print('向课表整合课程代码失败')
+                aim_lessons.append(cur_infos)
         schedule_chart = {'student_id': student_id, 'info': aim_lessons}
         return_json = json.dumps(schedule_chart, ensure_ascii=False)      # 使用json进行打包
 

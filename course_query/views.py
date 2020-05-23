@@ -91,21 +91,24 @@ def add_teacher(key):
 
 def add_teacher_relation(teacher, course):
     try:
-        Course.objects.get(teachercourse__teacher_id__name=teacher.name)
-    except Course.DoesNotExist:
+        TeacherCourse.objects.get(teacher_id=teacher, course_id=course)
+    except TeacherCourse.DoesNotExist:
         new_teacher_course = TeacherCourse(teacher_id=teacher, course_id=course)
         new_teacher_course.save()
 
 
 def add_student_course(student, semester, info):
     if len(info) == 5:
-        # name = info[0].replace(' ', '')
+        bid = info[0].replace(' ', '')
         place = info[1].replace(' ', '')
         teacher = info[2].replace(' ', '')
         week = info[3].replace(' ', '')
         time = info[4]
-        # 增加课程信息
-        course = add_course(info[0:5])
+        # 获取课程信息
+        try:
+            course = Course.objects.get(bid=bid)
+        except Course.DoesNotExist:
+            raise NotFoundError()
         # 保存信息
         new_student_course = StudentCourse(student_id=student, course_id=course
                                            , week=split_week(week), time=split_time(time), place=place,
@@ -122,7 +125,8 @@ def add_student_course(student, semester, info):
             relation = TeacherCourseSpecific(student_course_id=new_student_course,
                                              teacher_id=teacher)
             relation.save()
-    # 不是10项表示数据有缺失
+        return HttpResponse(status=201)
+    # 不是5项表示数据有缺失
     raise ArgumentError()
 
 

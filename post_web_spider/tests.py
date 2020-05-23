@@ -80,5 +80,3 @@ class UpdateTimeTests(TestCase):
         """
         response = self.client.get('/spider/update/?student_id=17373349')
         self.assertEqual(response.status_code, 401)
-
-

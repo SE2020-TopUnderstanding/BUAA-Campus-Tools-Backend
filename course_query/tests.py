@@ -1,8 +1,9 @@
 from django.test import TestCase, Client
-from .views import Student, split_week, split_time, check_public, add_course, add_teacher, add_teacher_relation, \
+from course_query.views import Student, split_week, split_time, check_public, add_course, add_teacher, \
+    add_teacher_relation, \
     add_student_course, down_action, up_check, down_check, up_check_teacher, up_count, down_count, up_action, \
     up_count_teacher, format_search, format_serializer_teacher, format_serializer, evaluator_count, get_evaluation
-from .models import Teacher, Course, CourseEvaluation, EvaluationUpRecord, EvaluationDownRecord, \
+from course_query.models import Teacher, Course, CourseEvaluation, EvaluationUpRecord, EvaluationDownRecord, \
     TeacherEvaluationRecord, TeacherCourse
 
 
@@ -84,7 +85,7 @@ class CourseGetTest(TestCase):
         add_teacher_relation(teacher, course)
         self.assertEqual(True, True)
 
-    def test_add_student_course_relation(self):
+    def test_student_course_relation(self):
         student = Student(id='17373456')
         student.save()
         course = Course(bid='111', name='计算机网络', credit='2.0', hours='32', department='计算机学院', type='核心专业类')
@@ -192,6 +193,7 @@ class CourseGetTest(TestCase):
         evaluation = CourseEvaluation(course=course, student=student)
         evaluation.save()
         actor, return_evaluation = get_evaluation({'student_id': '17373456', 'bid': '111', 'actor': '17373010'})
+        actor.save()
         self.assertEqual(return_evaluation, evaluation)
 
     def test_up_action(self):
@@ -306,7 +308,7 @@ class CourseGetTest(TestCase):
         response = client.post("/timetable/evaluation/student/up/", content_type='application/json', data=data)
         self.assertEqual(response.status_code, 201)
 
-    def test_evaluation_cancel_up_action(self):
+    def test_e_cancel_up_action(self):
         client = Client()
         actor = Student(id='17373010', usr_name='111')
         actor.save()
@@ -336,7 +338,7 @@ class CourseGetTest(TestCase):
         response = client.post("/timetable/evaluation/student/down/", content_type='application/json', data=data)
         self.assertEqual(response.status_code, 201)
 
-    def test_evaluation_cancel_down_action(self):
+    def test_e_cancel_down_action(self):
         client = Client()
         actor = Student(id='17373010', usr_name='111')
         actor.save()
@@ -365,7 +367,7 @@ class CourseGetTest(TestCase):
         response = client.post("/timetable/evaluation/teacher/", content_type='application/json', data=data)
         self.assertEqual(response.status_code, 201)
 
-    def test_evaluation_teacher_cancel_up(self):
+    def test_e_teacher_cancel_up(self):
         client = Client()
         actor = Student(id='17373010', usr_name='111')
         actor.save()

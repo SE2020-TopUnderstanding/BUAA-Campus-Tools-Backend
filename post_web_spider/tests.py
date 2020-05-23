@@ -3,7 +3,7 @@ from course_query.models import Student
 
 
 # Create your tests here.
-class ErrorHandlingTests(TestCase):
+class DeleteTests(TestCase):
     def test_post_200(self):
         """
         检测返回状态码为200的post请求
@@ -47,3 +47,38 @@ class ErrorHandlingTests(TestCase):
         }
         response = self.client.post('/spider/delete/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 400)
+
+
+class UpdateTimeTests(TestCase):
+    def test_get_200(self):
+        """
+        检测返回状态码为200的get请求
+        """
+        Student(usr_name="mushan", usr_password="123", id="17373349", name="hbb", grade=3).save()
+        response = self.client.get('/spider/update/?student_id=17373349')
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get('/spider/update/?calendar=1')
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get('/spider/update/?empty_room=1')
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_400(self):
+        """
+        参数数量错误或参数名称错误
+        """
+        response = self.client.get('/spider/update/')
+        self.assertEqual(response.status_code, 400)
+
+        response = self.client.get('/spider/update/?student_d=17373349')
+        self.assertEqual(response.status_code, 400)
+
+    def test_get_401(self):
+        """
+        用户不存在数据库
+        """
+        response = self.client.get('/spider/update/?student_id=17373349')
+        self.assertEqual(response.status_code, 401)
+
+

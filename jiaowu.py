@@ -373,7 +373,7 @@ class JiaoWuReq:
                     continue
                 if strs.find('其它课程：') != -1:
                     continue
-                if strs[0] == '第' and (strs[2] == '，' or strs[3] == '，'):
+                if strs[0] == '第' and (strs[2] == '，' or strs[3] == '，' or strs[2] == ',' or strs[3] == ','):
                     if len(schedule) != 0:
                         schedules.append(schedule.copy())
                     schedule.clear()

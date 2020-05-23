@@ -155,11 +155,22 @@ class DataReq:
     @staticmethod
     def analysis_lesson(schedules, i, j):
         section_dict = {0: '1，2', 1: '3，4', 2: '6，7', 3: '8，9', 4: '11，12', 5: '13，14'}
+        abandon_list = ['第1,2节', '第3,4节', '第5,6节', '第7,8节', '第9,10节', '第11,12节']
         # noinspection PyBroadException
         try:
             cur_str = schedules[i][j]
+            if cur_str in abandon_list:
+                return []
             if cur_str in ('', ' '):
                 return []
+            if cur_str.find('考试时间:') != -1:
+                start = cur_str.find('考试时间:')
+                mid = cur_str.find('考试时间:', start + 1)
+                end = cur_str.find('考试时间:', mid + 1)
+                if end not in (start, -1):
+                    cur_str = cur_str[:start] + abandon_list[i] + cur_str[end + 5:]
+                else:
+                    cur_str = cur_str.replace('考试时间:', abandon_list[i])
             cur_strs = cur_str.split('节')  # 使用‘节’来划分不同的课
             lessons = []
             cur_lesson = ''

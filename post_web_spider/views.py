@@ -6,6 +6,7 @@ from course_query.models import Student
 from request_queue.views import delete_request
 from .models import PostRecord
 
+
 class DeleteStudent(APIView):
     @staticmethod
     def post(request):

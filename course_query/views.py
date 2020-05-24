@@ -98,15 +98,16 @@ def add_teacher_relation(teacher, course):
 
 
 def add_student_course(student, semester, info):
-    if len(info) == 5:
+    if len(info) == 6:
         bid = info[0].replace(' ', '')
-        place = info[1].replace(' ', '')
-        teacher = info[2].replace(' ', '')
-        week = info[3].replace(' ', '')
-        time = info[4]
+        name = info[1].replace(' ', '')
+        place = info[2].replace(' ', '')
+        teacher = info[3].replace(' ', '')
+        week = info[4].replace(' ', '')
+        time = info[5]
         # 获取课程信息
         try:
-            course = Course.objects.get(bid=bid)
+            course = Course.objects.get(bid=bid, name=name)
         except Course.DoesNotExist:
             raise NotFoundError()
         # 保存信息
@@ -125,9 +126,9 @@ def add_student_course(student, semester, info):
             relation = TeacherCourseSpecific(student_course_id=new_student_course,
                                              teacher_id=teacher)
             relation.save()
-        return HttpResponse(status=201)
-    # 不是5项表示数据有缺失
-    raise ArgumentError()
+            return HttpResponse(status=201)
+        # 不是5项表示数据有缺失
+        raise ArgumentError()
 
 
 def evaluator_count(course):

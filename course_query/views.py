@@ -53,20 +53,20 @@ def split_time(time):
 def check_public(course_name, bid):
     # 体育课
     if course_name.find('体育') != -1:
+        course_name = course_name[:2] + course_name[5:]
         try:
             public_course = PublicCourse.objects.get(name=course_name)
         except PublicCourse.DoesNotExist:
             public_course = PublicCourse(name=course_name)
             public_course.save()
-        return bid + str(public_course.id)
-    return bid
+        return course_name, (bid + str(public_course.id))
+    return course_name, bid
 
 
 def add_course(info):
     # 增加课程信息
     name = info[0].replace(' ', '')
     bid = info[1].replace(' ', '')
-    bid = check_public(name, bid)
     credit = float(info[2].replace(' ', ''))
     hours = info[3].replace(' ', '')
     hours = None if hours == "" else int(float(hours))
@@ -101,6 +101,7 @@ def add_student_course(student, semester, info):
     if len(info) == 6:
         bid = info[0].replace(' ', '')
         name = info[1].replace(' ', '')
+        name, bid = check_public(name, bid)
         place = info[2].replace(' ', '')
         teacher = info[3].replace(' ', '')
         week = info[4].replace(' ', '')
@@ -109,7 +110,11 @@ def add_student_course(student, semester, info):
         try:
             course = Course.objects.get(bid=bid, name=name)
         except Course.DoesNotExist:
-            raise NotFoundError()
+            if name.find('体育') != -1:
+                course = Course(bid=bid, name=name)
+                course.save()
+            else:
+                raise NotFoundError(detail=(bid + name))
         # 保存信息
         new_student_course = StudentCourse(student_id=student, course_id=course
                                            , week=split_week(week), time=split_time(time), place=place,
@@ -126,9 +131,9 @@ def add_student_course(student, semester, info):
             relation = TeacherCourseSpecific(student_course_id=new_student_course,
                                              teacher_id=teacher)
             relation.save()
-            return HttpResponse(status=201)
-        # 不是5项表示数据有缺失
-        raise ArgumentError()
+        return HttpResponse(status=201)
+    # 不是5项表示数据有缺失
+    raise ArgumentError()
 
 
 def evaluator_count(course):
@@ -336,10 +341,13 @@ class CourseList(viewsets.ViewSet):
         req = request.data
         if 'info' in req.keys():
             for info in req['info']:
+                if info[0].find('体育') != -1:
+                    continue
                 course = add_course(info)
                 teacher_list = info[6]
                 teachers = teacher_list.split('，')
                 for teacher_name in teachers:
+                    teacher_name = teacher_name.replace(' ', '')
                     if teacher_name == "":
                         continue
                     teacher = add_teacher(teacher_name)

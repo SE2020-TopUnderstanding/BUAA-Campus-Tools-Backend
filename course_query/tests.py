@@ -67,7 +67,7 @@ class CourseGetTest(TestCase):
         self.assertEqual(split_time(time), '2_6_7')
 
     def test_check_public(self):
-        self.assertEqual(check_public("体育（6）", '0001')[1], '1')
+        self.assertEqual(check_public("体育（6）", '0001')[1], 'TY1')
 
     def test_add_course(self):
         info = ['计算机网络', '001', '2.0', '32', '计算机学院', '核心专业类']

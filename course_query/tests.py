@@ -67,7 +67,7 @@ class CourseGetTest(TestCase):
         self.assertEqual(split_time(time), '2_6_7')
 
     def test_check_public(self):
-        self.assertEqual(check_public("体育(6)", '0001'), '00011')
+        self.assertEqual(check_public("体育（6）", '0001')[1], 'TY1')
 
     def test_add_course(self):
         info = ['计算机网络', '001', '2.0', '32', '计算机学院', '核心专业类']
@@ -90,7 +90,7 @@ class CourseGetTest(TestCase):
         student.save()
         course = Course(bid='111', name='计算机网络', credit='2.0', hours='32', department='计算机学院', type='核心专业类')
         course.save()
-        infos = ['111', '(一)305', '荣文戈， 张辉', '1-16', '周1 第3，4节']
+        infos = ['111', '计算机网络', '(一)305', '荣文戈， 张辉', '1-16', '周1 第3，4节']
         add_student_course(student=student, semester='2020_Spring', info=infos)
         self.assertEqual(True, True)
 
@@ -244,7 +244,7 @@ class CourseGetTest(TestCase):
         teacher = Teacher(name='张辉')
         teacher.save()
         add_teacher_relation(teacher, course)
-        infos = ['111', '(一)305', '荣文戈， 张辉', '1-16', '周1 第3，4节']
+        infos = ['111', '计算机网络', '(一)305', '荣文戈， 张辉', '1-16', '周1 第3，4节']
         add_student_course(student=student, semester='2020_Spring', info=infos)
         response = client.get('/timetable/search/default/?student_id=17373010')
         self.assertEqual(response.status_code, 200)

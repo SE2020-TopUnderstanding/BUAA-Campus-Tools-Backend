@@ -53,20 +53,20 @@ def split_time(time):
 def check_public(course_name, bid):
     # 体育课
     if course_name.find('体育') != -1:
+        course_name = course_name[:2] + course_name[5:]
         try:
             public_course = PublicCourse.objects.get(name=course_name)
         except PublicCourse.DoesNotExist:
             public_course = PublicCourse(name=course_name)
             public_course.save()
-        return bid + str(public_course.id)
-    return bid
+        return course_name, ('TY' + str(public_course.id))
+    return course_name, bid
 
 
 def add_course(info):
     # 增加课程信息
     name = info[0].replace(' ', '')
     bid = info[1].replace(' ', '')
-    bid = check_public(name, bid)
     credit = float(info[2].replace(' ', ''))
     hours = info[3].replace(' ', '')
     hours = None if hours == "" else int(float(hours))
@@ -98,17 +98,23 @@ def add_teacher_relation(teacher, course):
 
 
 def add_student_course(student, semester, info):
-    if len(info) == 5:
+    if len(info) == 6:
         bid = info[0].replace(' ', '')
-        place = info[1].replace(' ', '')
-        teacher = info[2].replace(' ', '')
-        week = info[3].replace(' ', '')
-        time = info[4]
+        name = info[1].replace(' ', '')
+        name, bid = check_public(name, bid)
+        place = info[2].replace(' ', '')
+        teacher = info[3].replace(' ', '')
+        week = info[4].replace(' ', '')
+        time = info[5]
         # 获取课程信息
         try:
-            course = Course.objects.get(bid=bid)
+            course = Course.objects.get(bid=bid, name=name)
         except Course.DoesNotExist:
-            raise NotFoundError()
+            if name.find('体育') != -1:
+                course = Course(bid=bid, name=name)
+                course.save()
+            else:
+                raise NotFoundError(detail=(bid + name))
         # 保存信息
         new_student_course = StudentCourse(student_id=student, course_id=course
                                            , week=split_week(week), time=split_time(time), place=place,
@@ -335,10 +341,13 @@ class CourseList(viewsets.ViewSet):
         req = request.data
         if 'info' in req.keys():
             for info in req['info']:
+                if info[0].find('体育') != -1:
+                    continue
                 course = add_course(info)
                 teacher_list = info[6]
                 teachers = teacher_list.split('，')
                 for teacher_name in teachers:
+                    teacher_name = teacher_name.replace(' ', '')
                     if teacher_name == "":
                         continue
                     teacher = add_teacher(teacher_name)

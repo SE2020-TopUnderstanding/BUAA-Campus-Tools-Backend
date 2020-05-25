@@ -115,7 +115,10 @@ def add_student_course(student, semester, info):
         try:
             course = Course.objects.get(bid=bid, name=name)
         except Course.DoesNotExist:
-            course = Course(bid=bid, name=name)
+            if name.find('体育') != -1:
+                course = Course(bid=bid, name=name, credit=0.5, hours=16, department='体育部', type='体育类')
+            else:
+                course = Course(bid=bid, name=name)
             course.save()
         # 保存信息
         new_student_course = StudentCourse(student_id=student, course_id=course

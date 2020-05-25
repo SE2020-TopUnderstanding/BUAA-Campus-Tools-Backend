@@ -74,6 +74,11 @@ def add_course(info):
     types = info[5].replace(' ', '')
     try:
         course = Course.objects.get(bid=bid)
+        course.credit = credit
+        course.hours = hours
+        course.department = department
+        course.type = types
+        course.save()
     except Course.DoesNotExist:
         course = Course(bid=bid, name=name, credit=credit, hours=hours, department=department, type=types)
         course.save()
@@ -111,10 +116,10 @@ def add_student_course(student, semester, info):
             course = Course.objects.get(bid=bid, name=name)
         except Course.DoesNotExist:
             if name.find('体育') != -1:
-                course = Course(bid=bid, name=name)
-                course.save()
+                course = Course(bid=bid, name=name, credit=0.5, hours=16, department='体育部', type='体育类')
             else:
-                raise NotFoundError(detail=(bid + name))
+                course = Course(bid=bid, name=name)
+            course.save()
         # 保存信息
         new_student_course = StudentCourse(student_id=student, course_id=course
                                            , week=split_week(week), time=split_time(time), place=place,

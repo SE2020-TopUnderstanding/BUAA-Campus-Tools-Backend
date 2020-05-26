@@ -371,16 +371,16 @@ class Search(viewsets.ViewSet):
             for key, value in req.items():
                 if value == "":
                     continue
-                elif key == 'course' and value != "":
+                elif key == 'course':
                     name = req['course']
                     result = result.filter(course_id__name__icontains=name)
-                elif key == 'teacher' and value != "":
+                elif key == 'teacher':
                     name = req['teacher']
                     result = result.filter(teacher_id__name__icontains=name)
-                elif key == 'type' and value != "":
+                elif key == 'type':
                     types = req['type']
                     result = result.filter(course_id__type=types)
-                elif key == 'department' and value != "":
+                elif key == 'department':
                     department = req['department']
                     result = result.filter(course_id__department=department)
                 else:

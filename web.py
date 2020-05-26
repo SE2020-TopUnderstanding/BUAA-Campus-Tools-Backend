@@ -1,4 +1,5 @@
 import requests
+from bs4 import BeautifulSoup
 from log import Log
 
 URL = 'https://e2.buaa.edu.cn/users/sign_in'
@@ -141,6 +142,39 @@ class WebLogin:
                     return -4
         # print(web.text)
         aim_web = 'https://jwxt-7001.e2.buaa.edu.cn:443/ieas2.1/welcome'
+
+        if web.url.find('login') != -1:
+            print('进行二次登录')
+            soup = BeautifulSoup(web.text, 'lxml')
+            table = soup.select('div[class="clearfix login_btncont"] > input')  # 获取选项的值
+            code = ''
+            for each in table:
+                if each.attrs['name'] == 'lt':
+                    code = each.attrs['value']
+            if code == '':
+                return -3
+            params = {
+                'username': self.usr_name,
+                'password': self.password,
+                'code': '',
+                'lt': code,
+                'execution': 'e1s1',
+                '_eventId': 'submit',
+                'submit': '登录'
+            }
+            i = 0
+            this_url = web.url.split('?')[0]
+            web = ''
+            while i < 3:
+                try:
+                    web = self.now.post(url=this_url, headers=self.headers_vpn, params=params, timeout=5)
+                    break
+                except requests.exceptions.RequestException as err:
+                    print(err)
+                    i += 1
+                    if i == 3:
+                        return -4
+
         if web == '':
             return 0
         try:
@@ -186,9 +220,49 @@ class WebLogin:
                     return 0
         # print(web.text)
         aim_web = 'https://course.e2.buaa.edu.cn/portal'
-        if web != '' and web.status_code == 200 and web.url == aim_web:
-            return 1
-        return 0
+        if web.url.find('login') != -1:
+            soup = BeautifulSoup(web.text, 'lxml')
+            table = soup.select('div[class="clearfix login_btncont"] > input')  # 获取选项的值
+            code = ''
+            for each in table:
+                if each.attrs['name'] == 'lt':
+                    code = each.attrs['value']
+            if code == '':
+                return -3
+            params = {
+                'username': self.usr_name,
+                'password': self.password,
+                'code': '',
+                'lt': code,
+                'execution': 'e1s1',
+                '_eventId': 'submit',
+                'submit': '登录'
+            }
+            i = 0
+            this_url = web.url
+            web = ''
+            while i < 3:
+                try:
+                    web = self.now.post(url=this_url, headers=self.headers_vpn, params=params, timeout=5)
+                    break
+                except requests.exceptions.RequestException as err:
+                    print(err)
+                    i += 1
+                    if i == 3:
+                        return -4
+
+        if web == '':
+            return 0
+        try:
+            web.raise_for_status()
+        except requests.exceptions.RequestException as err:
+            print(err)
+            return -5
+        if web.status_code != 200:
+            return -2
+        if web.url != aim_web:
+            return -3
+        return 1
 
 
 # 测试用

@@ -516,7 +516,14 @@ class DataReq:
                             break
                     if sign == 0:
                         each.insert(0, '')
-                        print('向课表整合课程代码失败')
+                for aim in cur_infos:
+                    if aim[0] == '':
+                        for each in cur_infos:
+                            if each[0] != '' and aim[1].replace(' ', '') == each[1].replace(' ', ''):
+                                aim[0] = each[0]
+                                break
+                        if aim[0] == '':
+                            print('向课表整合课程代码失败')
                 aim_lessons.append(cur_infos)
         schedule_chart = {'student_id': student_id, 'info': aim_lessons}
         return_json = json.dumps(schedule_chart, ensure_ascii=False)      # 使用json进行打包

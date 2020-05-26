@@ -371,7 +371,7 @@ class Search(viewsets.ViewSet):
             for key, value in req.items():
                 if value == "":
                     continue
-                elif key == 'course':
+                if key == 'course':
                     name = req['course']
                     result = result.filter(course_id__name__icontains=name)
                 elif key == 'teacher':

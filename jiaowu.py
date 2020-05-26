@@ -110,7 +110,7 @@ class JiaoWuReq:
         i = 0
         while i < 3:
             try:
-                grade = self.now.get(url=self.final_exam_grade_url, headers=self.headers_jw)    # 先获取完整网页
+                grade = self.now.get(url=self.final_exam_grade_url, headers=self.headers_jw, timeout=20)  # 先获取完整网页
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -148,7 +148,7 @@ class JiaoWuReq:
             while i < 3:
                 try:
                     grade = self.now.post(url=self.final_exam_grade_url, headers=headers_grades,
-                                          params=params)
+                                          params=params, timeout=20)
                     break
                 except requests.exceptions.RequestException as err:
                     print(err)
@@ -202,7 +202,8 @@ class JiaoWuReq:
         i = 0
         while i < 3:
             try:
-                empty_classroom = self.now.get(url=self.empty_classroom_url, headers=self.headers_jw)   # 先获取完整网页
+                empty_classroom = self.now.get(url=self.empty_classroom_url,
+                                               headers=self.headers_jw, timeout=20)   # 先获取完整网页
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -251,7 +252,7 @@ class JiaoWuReq:
                 while i < 3:
                     try:
                         empty_classroom = self.now.post(url=self.empty_classroom_url, headers=headers_ec,
-                                                        params=params)
+                                                        params=params, timeout=20)
                         break
                     except requests.exceptions.RequestException as err:
                         print(err)
@@ -309,7 +310,7 @@ class JiaoWuReq:
         i = 0
         while i < 3:
             try:
-                schedule = self.now.get(url=self.schedule_url, headers=self.headers_jw)     # 先获取完整网页
+                schedule = self.now.get(url=self.schedule_url, headers=self.headers_jw, timeout=20)     # 先获取完整网页
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -350,7 +351,7 @@ class JiaoWuReq:
             while i < 3:
                 try:
                     page = self.now.post(url=self.schedule_url, headers=headers_grades,
-                                         params=params)
+                                         params=params, timeout=20)
                     break
                 except requests.exceptions.RequestException as err:
                     print(err)
@@ -399,7 +400,7 @@ class JiaoWuReq:
         i = 0
         while i < 3:
             try:
-                schedule = self.now.get(url=self.schedule_url, headers=self.headers_jw)     # 获取完整网页
+                schedule = self.now.get(url=self.schedule_url, headers=self.headers_jw, timeout=20)     # 获取完整网页
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -443,7 +444,8 @@ class JiaoWuReq:
         i = 0
         while i < 3:
             try:
-                lesson = self.now.get(url=self.all_lesson_url, headers=self.headers_jw)         # 先获取完整网页
+                lesson = self.now.get(url=self.all_lesson_url,
+                                      headers=self.headers_jw, timeout=20)         # 先获取完整网页
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -482,7 +484,7 @@ class JiaoWuReq:
             while i < 3:
                 try:
                     lesson = self.now.post(url=self.all_lesson_url, headers=headers_grades,
-                                           params=params)
+                                           params=params, timeout=20)
                     break
                 except requests.exceptions.RequestException as err:
                     print(err)

@@ -47,7 +47,7 @@ class WebLogin:
         i = 0
         while i < 3:
             try:
-                page = self.now.get(url=URL, headers=self.headers_vpn, timeout=5)
+                page = self.now.get(url=URL, headers=self.headers_vpn, timeout=20)
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -72,7 +72,7 @@ class WebLogin:
         i = 0
         while i < 3:
             try:
-                page = self.now.post(url=URL, headers=self.headers_login, params=params, timeout=5)
+                page = self.now.post(url=URL, headers=self.headers_login, params=params, timeout=20)
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -133,7 +133,7 @@ class WebLogin:
         web = ''
         while i < 3:
             try:
-                web = self.now.get(url=JW_URL, headers=self.headers_vpn, timeout=5)
+                web = self.now.get(url=JW_URL, headers=self.headers_vpn, timeout=20)
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -167,7 +167,7 @@ class WebLogin:
             web = ''
             while i < 3:
                 try:
-                    web = self.now.post(url=this_url, headers=self.headers_vpn, params=params, timeout=5)
+                    web = self.now.post(url=this_url, headers=self.headers_vpn, params=params, timeout=20)
                     break
                 except requests.exceptions.RequestException as err:
                     print(err)
@@ -211,7 +211,7 @@ class WebLogin:
         web = ''
         while i < 3:
             try:
-                web = self.now.get(url=COURSE_URL, headers=self.headers_vpn, timeout=5)
+                web = self.now.get(url=COURSE_URL, headers=self.headers_vpn, timeout=20)
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -243,7 +243,7 @@ class WebLogin:
             web = ''
             while i < 3:
                 try:
-                    web = self.now.post(url=this_url, headers=self.headers_vpn, params=params, timeout=5)
+                    web = self.now.post(url=this_url, headers=self.headers_vpn, params=params, timeout=20)
                     break
                 except requests.exceptions.RequestException as err:
                     print(err)

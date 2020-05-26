@@ -299,13 +299,16 @@ class DataReq:
                     sign = 1
                 for tmp_lessons in aim_lessons:
                     for each in tmp_lessons:
-                        if each[0].replace(' ', '').find(lesson[2].replace(' ', '')) != -1 \
-                                and each[2].replace(' ', '').find(lesson[7].replace(' ', '')) != -1:
-                            lesson[7] = each[2]
+                        if each[0].replace(' ', '').replace('，', ',').find(lesson[2].replace(' ', '')) != -1:
+                            teachers_name = each[2].split('，')
+                            for teacher_name in teachers_name:
+                                if lesson[7].replace(' ', '').find(teacher_name.replace(' ', '')) == -1:
+                                    lesson[7] += ',' + teacher_name
                             sign = 1
                 if sign == 0:
                     print('向已选课程中补充教师信息失败')
-                cur_lesson = [lesson[2], lesson[1], lesson[9], lesson[10], lesson[6], lesson[4], lesson[7]]
+                cur_lesson = [lesson[2], lesson[1], lesson[9],
+                              lesson[10], lesson[6], lesson[4], lesson[7].replace(' ', '')]
                 info.append(cur_lesson)
         aim_json = {'info': info}
         return_json = json.dumps(aim_json, ensure_ascii=False)  # 使用json打包
@@ -314,7 +317,7 @@ class DataReq:
         # f = open('ddl.txt', 'a', encoding='utf-8')
         # f.write(returnJson)
         # f.close()
-        # print(return_json)
+        print(return_json)
 
         return return_json
 

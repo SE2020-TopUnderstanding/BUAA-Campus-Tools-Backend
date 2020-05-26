@@ -100,7 +100,7 @@ class CourseRequest:
         i = 0
         while i < 3:
             try:
-                page = self.now.get(url=self.course_url, headers=self.headers_course)  # 先获取完整网页
+                page = self.now.get(url=self.course_url, headers=self.headers_course, timeout=20)  # 先获取完整网页
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -131,7 +131,7 @@ class CourseRequest:
             i = 0
             while i < 3:
                 try:
-                    lesson = self.now.get(url=url, headers=self.headers_course)         # 访问该课程的主页
+                    lesson = self.now.get(url=url, headers=self.headers_course, timeout=20)         # 访问该课程的主页
                     break
                 except requests.exceptions.RequestException as err:
                     print(err)
@@ -156,7 +156,7 @@ class CourseRequest:
             i = 0
             while i < 3:
                 try:
-                    lesson = self.now.get(url=info_url, headers=self.headers_course)    # 访问作业部分
+                    lesson = self.now.get(url=info_url, headers=self.headers_course, timeout=20)    # 访问作业部分
                     break
                 except requests.exceptions.RequestException as err:
                     print(err)
@@ -180,7 +180,7 @@ class CourseRequest:
             i = 0
             while i < 3:
                 try:
-                    lesson = self.now.get(url=iframe_url, headers=self.headers_course)  # 访问iframe
+                    lesson = self.now.get(url=iframe_url, headers=self.headers_course, timeout=20)  # 访问iframe
                     break
                 except requests.exceptions.RequestException as err:
                     print(err)
@@ -224,7 +224,7 @@ class CourseRequest:
         i = 0
         while i < 3:
             try:
-                page = self.now.get(url=self.course_url, headers=self.headers_course)   # 先获取完整网页
+                page = self.now.get(url=self.course_url, headers=self.headers_course, timeout=20)   # 先获取完整网页
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -249,7 +249,7 @@ class CourseRequest:
         i = 0
         while i < 3:
             try:
-                page = self.now.get(url=info_url, headers=self.headers_course)          # 访问个人信息网址
+                page = self.now.get(url=info_url, headers=self.headers_course, timeout=20)          # 访问个人信息网址
                 break
             except requests.exceptions.RequestException as err:
                 print(err)
@@ -272,7 +272,7 @@ class CourseRequest:
         i = 0
         while i < 3:
             try:
-                page = self.now.get(url=iframe_url, headers=self.headers_course)        # 访问iframe
+                page = self.now.get(url=iframe_url, headers=self.headers_course, timeout=20)        # 访问iframe
                 break
             except requests.exceptions.RequestException as err:
                 print(err)

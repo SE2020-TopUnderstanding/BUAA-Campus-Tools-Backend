@@ -10,12 +10,10 @@ from request_queue.views import add_request
 
 from api_exception.exceptions import ArgumentError, UnAuthorizedError, DatabasePasswordError, InternalServerError
 from api_exception.exceptions import IPBannedError, AccountLockedError
-from API.settings import PASSWORD_SPIDER
+from API.settings import PASSWORD_SPIDER, N_SERVER
 from post_web_spider.models import PostRecord
 from .login_request.password_utils import Aescrypt, KEY, MODEL, IV, ENCODE_
 from .login_request.login_judge import get_student_info
-
-N_SERVER = 4  # 爬虫服务器数量
 
 
 class Login(APIView):

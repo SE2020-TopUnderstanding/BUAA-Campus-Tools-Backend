@@ -15,6 +15,9 @@ KEY = b'2020042820200428'
 #爬虫获取信息密码
 PASSWORD_SPIDER = "123"
 
+# 爬虫服务器数量
+N_SERVER = 1
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

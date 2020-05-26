@@ -368,23 +368,24 @@ class Search(viewsets.ViewSet):
         req = request.query_params.dict()
         result = TeacherCourse.objects.all()
         if 1 <= len(req) <= 4:
-            results = []
             for key, value in req.items():
-                if key == 'course' and value != "":
+                if value == "":
+                    continue
+                if key == 'course':
                     name = req['course']
                     result = result.filter(course_id__name__icontains=name)
-                elif key == 'teacher' and value != "":
+                elif key == 'teacher':
                     name = req['teacher']
                     result = result.filter(teacher_id__name__icontains=name)
-                elif key == 'type' and value != "":
+                elif key == 'type':
                     types = req['type']
                     result = result.filter(course_id__type=types)
-                elif key == 'department' and value != "":
+                elif key == 'department':
                     department = req['department']
                     result = result.filter(course_id__department=department)
                 else:
                     raise ArgumentError()
-                results = TeacherCourseSerializer(result, many=True).data
+            results = TeacherCourseSerializer(result, many=True).data
             return Response(format_search(results))
         raise ArgumentError()
 

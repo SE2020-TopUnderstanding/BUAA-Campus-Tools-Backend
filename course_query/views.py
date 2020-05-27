@@ -64,7 +64,7 @@ def check_public(course_name, bid):
         try:
             public_course = PublicCourse.objects.get(name=course_name)
         except PublicCourse.DoesNotExist:
-            public_course = PublicCourse(name = course_name)
+            public_course = PublicCourse(name=course_name)
             public_course.save()
         return course_name, ('Null' + str(public_course.id))
     return course_name, bid

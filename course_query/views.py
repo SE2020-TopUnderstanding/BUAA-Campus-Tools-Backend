@@ -101,6 +101,7 @@ def add_teacher(key):
         teacher.save()
     return teacher
 
+
 def add_teacher_relation(teacher, course):
     try:
         TeacherCourse.objects.get(teacher_id=teacher, course_id=course)

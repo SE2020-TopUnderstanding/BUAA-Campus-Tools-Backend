@@ -46,7 +46,7 @@ class CourseGetTest(TestCase):
         client = Client()
         response = client.post("/timetable/", content_type='application/json',
                                data={"student_id": "17373010",
-                                     "info": [["111", "(一)305", "荣文戈", "1-16", "周1 第3，4节"]]})
+                                     "info": [["111", "(一)305", "荣文戈", "1-16", "周1 第3,4节"]]})
         self.assertEqual(response.status_code, 401)
 
     def test_post3(self):
@@ -55,15 +55,15 @@ class CourseGetTest(TestCase):
         student.save()
         response = client.post("/timetable/", content_type='application/json',
                                data={"student_id": "17373010",
-                                     "info": [["111", "(一)305", "荣文戈", "1-16", "周1 第3，4节"]]})
+                                     "info": [["111", "(一)305", "荣文戈", "1-16", "周1 第3,4节"]]})
         self.assertEqual(response.status_code, 400)
 
     def test_split_week(self):
-        week = "1，2-4单，5-9双，10-11，12"
+        week = "1,2-4单,5-9双,10-11,12"
         self.assertEqual(split_week(week), '1,3,6,8,10,11,12,')
 
     def test_split_time(self):
-        time = "周2 第6，7节"
+        time = "周2 第6,7节"
         self.assertEqual(split_time(time), '2_6_7')
 
     def test_check_public(self):
@@ -90,7 +90,7 @@ class CourseGetTest(TestCase):
         student.save()
         course = Course(bid='111', name='计算机网络', credit='2.0', hours='32', department='计算机学院', type='核心专业类')
         course.save()
-        infos = ['111', '计算机网络', '(一)305', '荣文戈， 张辉', '1-16', '周1 第3，4节']
+        infos = ['111', '计算机网络', '(一)305', '荣文戈, 张辉', '1-16', '周1 第3,4节']
         add_student_course(student=student, semester='2020_Spring', info=infos)
         self.assertEqual(True, True)
 
@@ -244,7 +244,7 @@ class CourseGetTest(TestCase):
         teacher = Teacher(name='张辉')
         teacher.save()
         add_teacher_relation(teacher, course)
-        infos = ['111', '计算机网络', '(一)305', '荣文戈， 张辉', '1-16', '周1 第3，4节']
+        infos = ['111', '计算机网络', '(一)305', '荣文戈, 张辉', '1-16', '周1 第3,4节']
         add_student_course(student=student, semester='2020_Spring', info=infos)
         response = client.get('/timetable/search/default/?student_id=17373010')
         self.assertEqual(response.status_code, 200)

@@ -262,8 +262,9 @@ class DataReq:
         except Exception:
             print(traceback.format_exc())
             print('解析课表信息出错')
-            Log(schedules[i][j])
+
             Log('解析课表信息出错')
+            Log('信息内容：' + schedules[i][j])
             Log(traceback.format_exc())
             cur_str = schedules[i][j]
             cur_infos = []
@@ -303,16 +304,19 @@ class DataReq:
                             teachers_name = each[2].split('，')
                             for teacher_name in teachers_name:
                                 if lesson[7].replace(' ', '').find(teacher_name.replace(' ', '')) == -1:
-                                    lesson[7] += ',' + teacher_name
+                                    lesson[7] += '，' + teacher_name
                             sign = 1
                 if sign == 0:
                     print('向已选课程中补充教师信息失败')
+                    Log('向已选课程中补充教师信息失败')
+                    Log('所需补充的课程：' + str(lesson))
+                    Log('用户名: ' + self.usr_name)
                 cur_lesson = [lesson[2], lesson[1], lesson[9],
                               lesson[10], lesson[6], lesson[4], lesson[7].replace(' ', '')]
                 info.append(cur_lesson)
         aim_json = {'info': info}
         return_json = json.dumps(aim_json, ensure_ascii=False)  # 使用json打包
-
+        return_json = return_json.replace('，', ',')
         # 测试用
         # f = open('ddl.txt', 'a', encoding='utf-8')
         # f.write(returnJson)
@@ -527,15 +531,18 @@ class DataReq:
                                 break
                         if aim[0] == '':
                             print('向课表整合课程代码失败')
+                            Log('向课表整合课程代码失败')
+                            Log('所需整合的课程：' + str(aim))
+                            Log('用户名: ' + self.usr_name)
                 aim_lessons.append(cur_infos)
         schedule_chart = {'student_id': student_id, 'info': aim_lessons}
         return_json = json.dumps(schedule_chart, ensure_ascii=False)      # 使用json进行打包
-
+        return_json = return_json.replace('，', ',')
         # 测试用
         # f = open('schedule.txt', 'a', encoding='utf-8')
         # f.write(returnJson)
         # f.close()
-        # print(return_json)
+        print(return_json)
 
         return return_json
 

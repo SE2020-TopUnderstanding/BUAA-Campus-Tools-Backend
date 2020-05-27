@@ -201,6 +201,17 @@ def format_search(result):
     return result_list
 
 
+def get_score_info(course):
+    score_info = []
+    evaluation = CourseEvaluation.objects.filter(course=course)
+    score_info.append(evaluation.filter(score=1.0).count())
+    score_info.append(evaluation.filter(score=2.0).count())
+    score_info.append(evaluation.filter(score=3.0).count())
+    score_info.append(evaluation.filter(score=4.0).count())
+    score_info.append(evaluation.filter(score=5.0).count())
+    return score_info
+
+
 def get_evaluation(req):
     try:
         student_id = req['student_id']
@@ -444,6 +455,7 @@ class CourseEvaluations(APIView):
             info_dict["avg_score"] = avg_score
             info_dict["teacher_info"] = teacher_info
             info_dict["info"] = info
+            info_dict["score_info"] = get_score_info(course)
             return Response(info_dict)
         raise ArgumentError()
 

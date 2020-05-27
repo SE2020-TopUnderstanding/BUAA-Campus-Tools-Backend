@@ -19,7 +19,7 @@ def split_week(week):
     input: 1,2,3-5,4-6双
     output: 1,2,3,4,5,4,6,
     """
-    parts = week.split("，")
+    parts = week.split(",")
     output = ""
     for value in parts:
         if '-' in value:
@@ -46,7 +46,7 @@ def split_week(week):
 def split_time(time):
     times = time.strip().split(' ')
     day = times[0][1]
-    time_list = times[1].lstrip('第').rstrip('节').split('，')
+    time_list = times[1].lstrip('第').rstrip('节').split(',')
     return day + '_' + time_list[0] + '_' + time_list[-1]
 
 
@@ -60,6 +60,13 @@ def check_public(course_name, bid):
             public_course = PublicCourse(name=course_name)
             public_course.save()
         return course_name, ('TY' + str(public_course.id))
+    if bid == "":
+        try:
+            public_course = PublicCourse.objects.get(name=course_name)
+        except PublicCourse.DoesNotExist:
+            public_course = PublicCourse(name = course_name)
+            public_course.save()
+        return course_name, ('Null' + str(public_course.id))
     return course_name, bid
 
 
@@ -67,6 +74,7 @@ def add_course(info):
     # 增加课程信息
     name = info[0].replace(' ', '')
     bid = info[1].replace(' ', '')
+    name, bid = check_public(name, bid)
     credit = float(info[2].replace(' ', ''))
     hours = info[3].replace(' ', '')
     hours = None if hours == "" else int(float(hours))
@@ -126,7 +134,7 @@ def add_student_course(student, semester, info):
                                            semester=semester)
         new_student_course.save()
         # 增加教师信息
-        teachers = teacher.split('，')
+        teachers = teacher.split(',')
         # 一门课程可能有多个教师
         for key in teachers:
             teacher = add_teacher(key)
@@ -330,7 +338,7 @@ class CourseList(viewsets.ViewSet):
     def post(request):
         """
         根据post的json文件来将相关数据插入数据库；
-        格式：{student_id:(id), semester:(sm), info:[[课程名称1，地点1...],[课程名称2，地点2...]}
+        格式：{student_id:(id), semester:(sm), info:[[课程名称1,地点1...],[课程名称2,地点2...]}
         """
         req = request.data
         # 确保数据库中有这个同学的信息
@@ -361,7 +369,7 @@ class CourseList(viewsets.ViewSet):
                     continue
                 course = add_course(info)
                 teacher_list = info[6]
-                teachers = teacher_list.split('，')
+                teachers = teacher_list.split(',')
                 for teacher_name in teachers:
                     teacher_name = teacher_name.replace(' ', '')
                     if teacher_name == "":

@@ -321,7 +321,7 @@ class DataReq:
         # f = open('ddl.txt', 'a', encoding='utf-8')
         # f.write(returnJson)
         # f.close()
-        print(return_json)
+        # print(return_json)
 
         return return_json
 
@@ -542,7 +542,7 @@ class DataReq:
         # f = open('schedule.txt', 'a', encoding='utf-8')
         # f.write(returnJson)
         # f.close()
-        print(return_json)
+        # print(return_json)
 
         return return_json
 

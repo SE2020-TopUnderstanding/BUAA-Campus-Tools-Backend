@@ -459,6 +459,7 @@ class CourseEvaluations(APIView):
             info = CourseEvaluationSerializer(result, many=True).data
             info = format_serializer(info, student)
             avg_score = result.aggregate(Avg('score'))['score__avg']
+            avg_score = 0.0 if avg_score is None else avg_score
             evaluation_num = evaluator_count(course)
             info_dict["course_name"] = course.name
             info_dict["evaluation_num"] = evaluation_num

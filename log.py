@@ -24,4 +24,4 @@ class Log:
         print(res.json())
 
 if __name__ == "__main__":
-    Log("测试一下报错功能对不对")
+    Log("服务器爬虫已启动！")

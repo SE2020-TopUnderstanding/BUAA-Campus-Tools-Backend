@@ -194,14 +194,6 @@ def format_serializer_teacher(result, student):
     return result
 
 
-def my_cmp(x, y):
-    if x is None:
-        x = 0.0
-    if y is None:
-        y = 0.0
-    return x < y
-
-
 def format_search(result):
     exist_bid = []
     result_list = []

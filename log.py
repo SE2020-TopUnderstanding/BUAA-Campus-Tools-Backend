@@ -2,7 +2,7 @@ import json
 import requests
 
 CORP_ID = "ww925c7744e023b5f2"
-SECRET = "XkZmRzGdersPoNTwXUhs1uyfjN6cffbwni8xP94Lm9w"
+SECRET = "XkZmRzGdersPoNTwXUhs1uyfjN6cffbwni8xP94Lm9"
 
 class Log:
     def __init__(self, message):
@@ -25,4 +25,3 @@ class Log:
 
 if __name__ == "__main__":
     Log("测试一下报错功能对不对")
-    

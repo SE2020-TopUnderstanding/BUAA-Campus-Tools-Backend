@@ -194,6 +194,14 @@ def format_serializer_teacher(result, student):
     return result
 
 
+def my_cmp(x, y):
+    if x is None:
+        x = 0.0
+    if y is None:
+        y = 0.0
+    return x < y
+
+
 def format_search(result):
     exist_bid = []
     result_list = []
@@ -204,8 +212,10 @@ def format_search(result):
         exist_bid.append(dicts['bid'])
         evaluations = CourseEvaluation.objects.filter(course=course)
         avg_score = evaluations.aggregate(Avg('score'))['score__avg']
+        avg_score = 0.0 if avg_score is None else avg_score
         dicts['avg_score'] = avg_score
         result_list.append(dicts)
+    result_list.sort(key=lambda e: e.__getitem__('avg_score'), reverse=True)
     return result_list
 
 

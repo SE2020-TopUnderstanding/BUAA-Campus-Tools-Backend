@@ -508,7 +508,7 @@ class DataReq:
         data sort for schedules
         """
         aim_lessons = []
-        for i in range(len(schedules) - 1):
+        for i in range(len(schedules)):
             for j in range(len(schedules[i])):
                 cur_infos = self.analysis_lesson(schedules, i, j)
                 if len(cur_infos) == 0:

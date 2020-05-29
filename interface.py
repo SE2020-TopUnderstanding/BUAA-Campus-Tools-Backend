@@ -27,7 +27,11 @@ def encrypt_string(message):
 def send_error(error_id, usr, passw):
     encode_result = encrypt_string(passw)
     url = HOST + 'spider/delete/'
-    err_json = {'usr_name': usr, 'password': encode_result}
+    if error_id == -7:
+        error_type = 1
+    else:
+        error_type = 0
+    err_json = {'usr_name': usr, 'password': encode_result, 'error_type': error_type}
     err_json = json.dumps(err_json, ensure_ascii=False)      # 获取json包
     print('send error ' + str(error_id))
     # noinspection PyBroadException

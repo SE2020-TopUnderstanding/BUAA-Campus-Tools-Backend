@@ -150,7 +150,7 @@ class CourseGetTest(TestCase):
         course.save()
         evaluation = CourseEvaluation(course=course, student=student)
         evaluation.save()
-        result = [{"id": 1}]
+        result = [{"id": 1, "up": 1, "down": 1}]
         format_serializer(result, student)
         self.assertEqual(True, True)
 

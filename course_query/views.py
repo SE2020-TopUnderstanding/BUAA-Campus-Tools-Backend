@@ -204,7 +204,7 @@ def format_search(result):
         exist_bid.append(dicts['bid'])
         evaluations = CourseEvaluation.objects.filter(course=course)
         avg_score = evaluations.aggregate(Avg('score'))['score__avg']
-        avg_score = 0.0 if avg_score is None else avg_score
+        avg_score = 0.0 if avg_score is None else round(avg_score, 1)
         dicts['avg_score'] = avg_score
         result_list.append(dicts)
     result_list.sort(key=lambda e: e.__getitem__('avg_score'), reverse=True)
@@ -459,7 +459,7 @@ class CourseEvaluations(APIView):
             info = CourseEvaluationSerializer(result, many=True).data
             info = format_serializer(info, student)
             avg_score = result.aggregate(Avg('score'))['score__avg']
-            avg_score = 0.0 if avg_score is None else avg_score
+            avg_score = 0.0 if avg_score is None else round(avg_score, 1)
             evaluation_num = evaluator_count(course)
             info_dict["course_name"] = course.name
             info_dict["evaluation_num"] = evaluation_num

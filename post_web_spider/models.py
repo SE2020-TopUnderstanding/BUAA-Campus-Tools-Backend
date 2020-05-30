@@ -11,3 +11,9 @@ class PostRecord(models.Model):
     time = models.DateTimeField(auto_now_add=True)
     # 学生学号，可以为空
     student_id = models.ForeignKey(Student, on_delete=models.CASCADE, null=True)
+
+
+class StudentError(models.Model):
+    objects = models.Manager()
+    number = models.IntegerField(default=0)
+    student_id = models.ForeignKey(Student, on_delete=models.CASCADE)

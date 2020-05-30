@@ -7,7 +7,7 @@ from django.db.models import Q
 from api_exception.exceptions import ArgumentError, UnAuthorizedError, DatabaseNotExitError
 from course_query.models import Student
 from request_queue.models import RequestRecord
-from post_web_spider.models import PostRecord
+from post_web_spider.models import PostRecord, StudentError
 from .models import DDL, SchoolCalendar, SchoolYear
 
 
@@ -148,6 +148,8 @@ class QueryDdl(APIView):  # 输入学号：输出作业，dll，提交状态，�
             PostRecord.objects.get(student_id=student, name="ddl").save()
         except PostRecord.DoesNotExist:
             PostRecord(student_id=student, name="ddl").save()
+
+        StudentError.objects.filter(student_id=student.id).update(number=0)
 
         if "ddl" not in req:
             raise ArgumentError()

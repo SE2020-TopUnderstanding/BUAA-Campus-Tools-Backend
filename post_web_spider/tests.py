@@ -14,10 +14,8 @@ class DeleteTests(TestCase):
         data = {
             "usr_name": "mushan",
             "password": "2020",
+            "error_type": "1",
         }
-        response = self.client.post('/spider/delete/', content_type='application/json', data=data)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["state"], 0)
 
         Student(usr_name="mushan", usr_password="123", id="17373349", name="hbb", grade=3).save()
         response = self.client.post('/spider/delete/', content_type='application/json', data=data)
@@ -38,6 +36,7 @@ class DeleteTests(TestCase):
         data = {
             "usr_nam": "mushan",
             "password": "2020",
+            "error_type": "1",
         }
         response = self.client.post('/spider/delete/', content_type='application/json', data=data)
         self.assertEqual(response.status_code, 400)

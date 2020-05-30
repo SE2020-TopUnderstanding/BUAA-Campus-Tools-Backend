@@ -274,6 +274,18 @@ class DataReq:
             cur_infos.append(cur_info)
         return cur_infos
 
+    @staticmethod
+    def match(str1, str2):
+        special_lessons = ['体育（', '大英B', '大英A']                                 # 有待补充
+        new_str1 = str1.replace(' ', '').replace('，', ',')
+        new_str2 = str2.replace(' ', '').replace('，', ',')
+        for each in special_lessons:
+            if str1.find(each) != -1 and new_str1.find(new_str2) != -1:
+                return True
+        if new_str1 == new_str2:
+            return True
+        return False
+
     def deal_with_lessons(self, lessons, teachers):
         """
         进行已选课程信息的数据整理
@@ -300,12 +312,13 @@ class DataReq:
                     sign = 1
                 for tmp_lessons in aim_lessons:
                     for each in tmp_lessons:
-                        if each[0].replace(' ', '').replace('，', ',').find(lesson[2].replace(' ', '')) != -1:
+                        if self.match(each[0], lesson[2]):
                             teachers_name = each[2].split('，')
                             for teacher_name in teachers_name:
                                 if lesson[7].replace(' ', '').find(teacher_name.replace(' ', '')) == -1:
                                     lesson[7] += '，' + teacher_name
                             sign = 1
+
                 if sign == 0:
                     print('向已选课程中补充教师信息失败')
                     Log('向已选课程中补充教师信息失败')
@@ -516,8 +529,7 @@ class DataReq:
                 for each in cur_infos:
                     sign = 0
                     for lesson in lesson_ids:
-                        if each[0].replace(' ', '').find(lesson[2].replace(' ', '')) != -1 \
-                                and each[2].replace(' ', '').find(lesson[7].replace(' ', '')) != -1:
+                        if self.match(each[0], lesson[2]):
                             each.insert(0, lesson[1])
                             sign = 1
                             break

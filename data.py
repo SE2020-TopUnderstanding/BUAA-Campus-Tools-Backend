@@ -1,5 +1,6 @@
 import traceback
 import json
+import re
 from datetime import datetime, timedelta
 from jiaowu import JiaoWuReq
 from course import CourseRequest
@@ -171,7 +172,16 @@ class DataReq:
                     cur_str = cur_str[:start] + abandon_list[i] + cur_str[end + 5:]
                 else:
                     cur_str = cur_str.replace('考试时间:', abandon_list[i])
-            cur_strs = cur_str.split('节')  # 使用‘节’来划分不同的课
+            cur_str = cur_str.replace('节节', '节')
+            pattern = r'(\d节)'
+            cur_strs = re.split(pattern, cur_str)  # 使用‘节’来划分不同的课
+            # print(cur_strs)
+            for i in range(len(cur_strs) - 1):
+                if re.match(pattern, cur_strs[i + 1]) is not None:
+                    cur_strs[i] += cur_strs[i + 1][0]
+            for each in cur_strs[::-1]:
+                if re.match(pattern, each) is not None:
+                    cur_strs.remove(each)
             lessons = []
             cur_lesson = ''
             for k in range(len(cur_strs)):  # 获取所有课程
@@ -226,7 +236,17 @@ class DataReq:
                 for each in types:
                     info = each
                     if len(info.split('[')) > 2:
-                        divide_weeks = info.split('周')
+
+                        pattern = r'([单双\]]周)'
+                        divide_weeks = re.split(pattern, info)
+                        # print(divide_weeks)
+                        for i in range(len(divide_weeks) - 1):
+                            if re.match(pattern, divide_weeks[i + 1]) is not None:
+                                divide_weeks[i] += divide_weeks[i + 1][0]
+                        for each_item in divide_weeks[::-1]:
+                            if re.match(pattern, each_item) is not None:
+                                divide_weeks.remove(each_item)
+
                         for k in range(len(divide_weeks) - 1):
                             strs = divide_weeks[k] + '周' + divide_weeks[-1]
                             if strs[0] == '，':

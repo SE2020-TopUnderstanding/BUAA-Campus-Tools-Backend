@@ -176,9 +176,9 @@ class DataReq:
             pattern = r'(\d节)'
             cur_strs = re.split(pattern, cur_str)  # 使用‘节’来划分不同的课
             # print(cur_strs)
-            for i in range(len(cur_strs) - 1):
-                if re.match(pattern, cur_strs[i + 1]) is not None:
-                    cur_strs[i] += cur_strs[i + 1][0]
+            for k in range(len(cur_strs) - 1):
+                if re.match(pattern, cur_strs[k + 1]) is not None:
+                    cur_strs[k] += cur_strs[k + 1][0]
             for each in cur_strs[::-1]:
                 if re.match(pattern, each) is not None:
                     cur_strs.remove(each)
@@ -240,9 +240,9 @@ class DataReq:
                         pattern = r'([单双\]]周)'
                         divide_weeks = re.split(pattern, info)
                         # print(divide_weeks)
-                        for i in range(len(divide_weeks) - 1):
-                            if re.match(pattern, divide_weeks[i + 1]) is not None:
-                                divide_weeks[i] += divide_weeks[i + 1][0]
+                        for ite in range(len(divide_weeks) - 1):
+                            if re.match(pattern, divide_weeks[ite + 1]) is not None:
+                                divide_weeks[ite] += divide_weeks[ite + 1][0]
                         for each_item in divide_weeks[::-1]:
                             if re.match(pattern, each_item) is not None:
                                 divide_weeks.remove(each_item)

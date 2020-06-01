@@ -382,6 +382,19 @@ class CourseList(viewsets.ViewSet):
             return HttpResponse(status=201)
         raise ArgumentError()
 
+    @staticmethod
+    def delete(request):
+        req = request.data
+        if 'ack' in req.keys() and req['ack'] == "sure":
+            course = Course.objects.all()
+            teacher = Teacher.objects.all()
+            public_course = PublicCourse.objects.all()
+            course.delete()
+            teacher.delete()
+            public_course.delete()
+            return HttpResponse(status=204)
+        raise ArgumentError(detail=None)
+
 
 class Search(viewsets.ViewSet):
 

@@ -4,7 +4,7 @@ from course_query.views import Student, split_week, split_time, check_public, ad
     add_student_course, down_action, up_check, down_check, up_check_teacher, up_count, down_count, up_action, \
     up_count_teacher, format_search, format_serializer_teacher, format_serializer, evaluator_count, get_evaluation
 from course_query.models import Teacher, Course, CourseEvaluation, EvaluationUpRecord, EvaluationDownRecord, \
-    TeacherEvaluationRecord, TeacherCourse
+    TeacherEvaluationRecord, TeacherCourse, StudentCourse
 
 
 # Create your tests here.
@@ -382,3 +382,24 @@ class CourseGetTest(TestCase):
         data = {"teacher": "张辉", "bid": "111", "actor": "17373010", "action": "cancel_up"}
         response = client.post("/timetable/evaluation/teacher/", content_type='application/json', data=data)
         self.assertEqual(response.status_code, 201)
+
+    def test_course_delete(self):
+        client = Client()
+        student = Student(id='17373010')
+        student.save()
+        course = Course(bid='111', name='计算机网络', credit='2.0', hours='32', department='计算机学院', type='核心专业类')
+        course.save()
+        teacher = Teacher(name='张辉')
+        teacher.save()
+        add_teacher_relation(teacher, course)
+        infos = ['111', '计算机网络', '(一)305', '荣文戈, 张辉', '1-16', '周1 第3,4节']
+        add_student_course(student=student, semester='2020_Spring', info=infos)
+        data = {"bid": "111", "text": "233", "score": 3, "student_id": "17373010"}
+        client.put("/timetable/evaluation/student/", content_type='application/json', data=data)
+        data = {"ack": "sure"}
+        client.delete("/timetable/", content_type='application/json', data=data)
+        self.assertEqual(Student.objects.all().count(), 1)
+        self.assertEqual(Course.objects.all().count(), 0)
+        self.assertEqual(StudentCourse.objects.all().count(), 0)
+        self.assertEqual(StudentCourse.objects.all().count(), 0)
+        self.assertEqual(CourseEvaluation.objects.all().count(), 0)

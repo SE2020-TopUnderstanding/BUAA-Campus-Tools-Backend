@@ -139,7 +139,7 @@ class DataReq:
             if isinstance(teachers, int) and -12 <= teachers <= 0:
                 print('错误!!!')
                 print('usr_name: ' + self.usr_name)
-                print('requestType: empty_classroom')
+                print('requestType: lesson')
                 print(wrong_message[-1 * teachers])
                 return teachers, ''
             lessons = session.get_all_lessons()
@@ -147,7 +147,7 @@ class DataReq:
             if isinstance(lessons, int) and -12 <= lessons <= 0:
                 print('错误!!!')
                 print('usr_name: ' + self.usr_name)
-                print('requestType: empty_classroom')
+                print('requestType: lesson')
                 print(wrong_message[-1 * lessons])
                 return lessons, ''
             return self.deal_with_lessons(lessons, teachers), ''

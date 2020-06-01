@@ -1,6 +1,7 @@
 import time
 import requests
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 from web import WebLogin
 from log import Log
 
@@ -195,18 +196,30 @@ class CourseRequest:
             table = soup.select('table[class="listHier lines nolines"] > tr')           # 获取所有作业的信息
             for each in table[1:]:
                 # print(each.get_text())
-                title = each.contents[3].get_text().replace('  ', '')
-                title = title.replace('\n', '')
-                title = title.replace('\t', '')
-                state = each.contents[5].get_text().replace('  ', '')
-                state = state.replace('\n', '')
-                state = state.replace('\t', '')
-                begin = each.contents[7].get_text().replace('  ', '')
-                begin = begin.replace('\n', '')
-                begin = begin.replace('\t', '')
-                end = each.contents[9].get_text().replace('  ', '')
-                end = end.replace('\n', '')
-                end = end.replace('\t', '')
+                sign = 0
+                title = ''
+                state = ''
+                begin = ''
+                end = ''
+                for each_cont in each.children:
+                    if isinstance(each_cont, Tag):
+                        if sign == 1:
+                            title = each_cont.get_text().replace('  ', '')
+                            title = title.replace('\n', '')
+                            title = title.replace('\t', '')
+                        if sign == 2:
+                            state = each_cont.get_text().replace('  ', '')
+                            state = state.replace('\n', '')
+                            state = state.replace('\t', '')
+                        if sign == 3:
+                            begin = each_cont.get_text().replace('  ', '')
+                            begin = begin.replace('\n', '')
+                            begin = begin.replace('\t', '')
+                        if sign == 4:
+                            end = each_cont.get_text().replace('  ', '')
+                            end = end.replace('\n', '')
+                            end = end.replace('\t', '')
+                        sign += 1
                 work_ddls = [title, state, begin, end]
                 this_ddls.append(work_ddls)
             ddls[lesson_title] = this_ddls

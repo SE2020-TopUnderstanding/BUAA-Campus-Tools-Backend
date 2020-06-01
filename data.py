@@ -310,6 +310,7 @@ class DataReq:
         """
         进行已选课程信息的数据整理
         """
+        ignore_list = ['仪光科技基础综合训练(3)']
         info = []
         for i in teachers[::-1]:
             if i[0][0] == '没有数据!':
@@ -340,10 +341,26 @@ class DataReq:
                             sign = 1
 
                 if sign == 0:
-                    print('向已选课程中补充教师信息失败')
-                    Log('向已选课程中补充教师信息失败')
-                    Log('所需补充的课程：' + str(lesson))
-                    Log('用户名: ' + self.usr_name)
+                    out_sign = 0
+                    for each in ignore_list:
+                        if each == lesson[2]:
+                            out_sign = 1
+                            break
+                    if not out_sign:
+                        print('向已选课程中补充教师信息失败')
+                        Log('向已选课程中补充教师信息失败')
+                        Log('所需补充的课程：' + str(lesson))
+                        Log('用户名: ' + self.usr_name)
+                        Log('相关课程')
+                        for tmp_lessons in aim_lessons:
+                            for each in tmp_lessons:
+                                new_str1 = each[0].replace(' ', '').replace('，', ',')
+                                new_str2 = lesson[2].replace(' ', '').replace('，', ',')
+                                if new_str1.find(new_str2) != -1:
+                                    Log('可能相关的课程：' + each[0])
+                                if new_str2.find(new_str1) != -1:
+                                    Log('可能相关的课程：' + each[0])
+                        Log('相关课程结束')
                 cur_lesson = [lesson[2], lesson[1], lesson[9],
                               lesson[10], lesson[6], lesson[4], lesson[7].replace(' ', '')]
                 info.append(cur_lesson)

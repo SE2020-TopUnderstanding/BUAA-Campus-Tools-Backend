@@ -206,19 +206,19 @@ class CourseRequest:
                         if sign == 1:
                             title = each_cont.get_text().replace('  ', '')
                             title = title.replace('\n', '')
-                            title = title.replace('\t', '')
+                            title = title.replace('\t', '').lstrip()
                         if sign == 2:
                             state = each_cont.get_text().replace('  ', '')
                             state = state.replace('\n', '')
-                            state = state.replace('\t', '')
+                            state = state.replace('\t', '').lstrip()
                         if sign == 3:
                             begin = each_cont.get_text().replace('  ', '')
                             begin = begin.replace('\n', '')
-                            begin = begin.replace('\t', '')
+                            begin = begin.replace('\t', '').lstrip()
                         if sign == 4:
                             end = each_cont.get_text().replace('  ', '')
                             end = end.replace('\n', '')
-                            end = end.replace('\t', '')
+                            end = end.replace('\t', '').lstrip()
                         sign += 1
                 work_ddls = [title, state, begin, end]
                 this_ddls.append(work_ddls)

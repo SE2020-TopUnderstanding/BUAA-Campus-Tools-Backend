@@ -443,6 +443,7 @@ class Search(viewsets.ViewSet):
         req = request.query_params.dict()
         teacher_courses = []
         if 'student_id' in req.keys():
+            output = {}
             student_id = req['student_id']
             try:
                 student = Student.objects.get(id=student_id)
@@ -454,7 +455,13 @@ class Search(viewsets.ViewSet):
                 teacher_course = TeacherCourse.objects.filter(course_id=select_course)[0]
                 teacher_courses.append(teacher_course)
             result = TeacherCourseSerializer(teacher_courses, many=True).data
-            return Response(format_search(result))
+            info = format_search(result)
+            total = teacher_courses.count()
+            output['total'] = total
+            output['cur_page'] = 1
+            output['total_page'] = 1
+            output['info'] = info
+            return Response(output)
         raise ArgumentError()
 
 

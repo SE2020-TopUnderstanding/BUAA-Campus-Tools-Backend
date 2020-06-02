@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 
 from django.db.models import Avg
@@ -402,7 +403,9 @@ class Search(viewsets.ViewSet):
     def get(request):
         req = request.query_params.dict()
         result = TeacherCourse.objects.all()
-        if 1 <= len(req) <= 4:
+        if 1 <= len(req) <= 5:
+            page = 1
+            output = {}
             for key, value in req.items():
                 if value == "":
                     continue
@@ -418,10 +421,21 @@ class Search(viewsets.ViewSet):
                 elif key == 'department':
                     department = req['department']
                     result = result.filter(course_id__department=department)
+                elif key == 'page':
+                    page = req['page']
                 else:
                     raise ArgumentError()
+            total = result.count()
+            start = 100 * (page - 1)
+            end = min(page * 100, total)
+            result = result[start:end]
             results = TeacherCourseSerializer(result, many=True).data
-            return Response(format_search(results))
+            info = format_search(results)
+            output['total'] = total
+            output['cur_page'] = page
+            output['total_page'] = max(1, math.ceil(total / 100))
+            output['info'] = info
+            return Response(output)
         raise ArgumentError()
 
     @staticmethod
@@ -429,6 +443,7 @@ class Search(viewsets.ViewSet):
         req = request.query_params.dict()
         teacher_courses = []
         if 'student_id' in req.keys():
+            output = {}
             student_id = req['student_id']
             try:
                 student = Student.objects.get(id=student_id)
@@ -440,7 +455,13 @@ class Search(viewsets.ViewSet):
                 teacher_course = TeacherCourse.objects.filter(course_id=select_course)[0]
                 teacher_courses.append(teacher_course)
             result = TeacherCourseSerializer(teacher_courses, many=True).data
-            return Response(format_search(result))
+            info = format_search(result)
+            total = len(info)
+            output['total'] = total
+            output['cur_page'] = 1
+            output['total_page'] = 1
+            output['info'] = info
+            return Response(output)
         raise ArgumentError()
 
 

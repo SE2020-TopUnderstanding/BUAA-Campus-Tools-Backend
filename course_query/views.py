@@ -84,7 +84,7 @@ def add_course(info):
     types = info[5].replace(' ', '')
     try:
         course = Course.objects.get(bid=bid)
-        if len(name) <= course.name:
+        if len(name) <= len(course.name):
             course.name = name
             course.credit = credit
             course.hours = hours
@@ -126,7 +126,7 @@ def add_student_course(student, semester, info):
         # 获取课程信息
         try:
             course = Course.objects.get(bid=bid)
-            if len(name) <= course.name:
+            if len(name) <= len(course.name):
                 course.name = name
                 course.save()
         except Course.DoesNotExist:

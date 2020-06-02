@@ -456,7 +456,7 @@ class Search(viewsets.ViewSet):
                 teacher_courses.append(teacher_course)
             result = TeacherCourseSerializer(teacher_courses, many=True).data
             info = format_search(result)
-            total = teacher_courses.count()
+            total = len(teacher_courses)
             output['total'] = total
             output['cur_page'] = 1
             output['total_page'] = 1

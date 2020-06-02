@@ -307,8 +307,8 @@ class DataReq:
         return cur_infos
 
     def match(self, str1, str2):
-        new_str1 = str1.replace(' ', '').replace('，', ',')
-        new_str2 = str2.replace(' ', '').replace('，', ',')
+        new_str1 = str1.replace(' ', '').replace('，', ',').lower()
+        new_str2 = str2.replace(' ', '').replace('，', ',').lower()
         for each in self.special_lessons:
             if str1.find(each) != -1 and new_str1.find(new_str2) != -1:
                 return True
@@ -353,7 +353,7 @@ class DataReq:
                 if sign == 0:
                     out_sign = 0
                     for each in ignore_list:
-                        if each == lesson[2].replace(' ', ''):
+                        if each == lesson[2].replace(' ', '').replace('(', '（').replace(')', '）'):
                             out_sign = 1
                             break
                     for tmp_lessons in aim_lessons:

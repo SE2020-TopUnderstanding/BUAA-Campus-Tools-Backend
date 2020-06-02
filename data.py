@@ -310,7 +310,7 @@ class DataReq:
         """
         进行已选课程信息的数据整理
         """
-        ignore_list = ['仪光科技基础综合训练(3)']
+        ignore_list = ['仪光科技基础综合训练（3）', '高等代数（1）', '高等代数（2）', '物理学实验（1）']
         info = []
         for i in teachers[::-1]:
             if i[0][0] == '没有数据!':
@@ -343,7 +343,7 @@ class DataReq:
                 if sign == 0:
                     out_sign = 0
                     for each in ignore_list:
-                        if each == lesson[2]:
+                        if each == lesson[2].replace(' ', ''):
                             out_sign = 1
                             break
                     if not out_sign:

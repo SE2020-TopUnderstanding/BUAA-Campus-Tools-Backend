@@ -355,6 +355,15 @@ class DataReq:
                         if each == lesson[2].replace(' ', ''):
                             out_sign = 1
                             break
+                    for tmp_lessons in aim_lessons:
+                        for each in tmp_lessons:
+                            if self.match(each[0], lesson[2] + '(实验)'):
+                                self.special_lessons.append(lesson[2])
+                                teachers_name = each[2].split('，')
+                                for teacher_name in teachers_name:
+                                    if lesson[7].replace(' ', '').find(teacher_name.replace(' ', '')) == -1:
+                                        lesson[7] += '，' + teacher_name
+                                out_sign = 1
                     if not out_sign:
                         print('向已选课程中补充教师信息失败')
                         Log('向已选课程中补充教师信息失败')

@@ -21,6 +21,8 @@ class DataReq:
     def __init__(self, user_name, pw):
         self.usr_name = user_name
         self.password = pw
+        # 有待补充
+        self.special_lessons = ['体育（', '大英B', '大英A', '汽车构造及拆装实习', '面向对象程序设计(JAVA)']
 
     def request(self, request_type):
         """
@@ -122,6 +124,8 @@ class DataReq:
                 return schedules, ''
             sorted_grades = self.deal_with_grades(grades, stu_id)
             sorted_schedules = self.deal_with_schedules(schedules, lesson_ids, stu_id)
+            with open("special_lessons.txt", "w") as out_file:
+                out_file.write(str(self.special_lessons))
             return sorted_grades, sorted_schedules
 
         if request_type == 'e':                                        # 获取空教室信息
@@ -294,12 +298,10 @@ class DataReq:
             cur_infos.append(cur_info)
         return cur_infos
 
-    @staticmethod
-    def match(str1, str2):
-        special_lessons = ['体育（', '大英B', '大英A']                                 # 有待补充
+    def match(self, str1, str2):
         new_str1 = str1.replace(' ', '').replace('，', ',')
         new_str2 = str2.replace(' ', '').replace('，', ',')
-        for each in special_lessons:
+        for each in self.special_lessons:
             if str1.find(each) != -1 and new_str1.find(new_str2) != -1:
                 return True
         if new_str1 == new_str2:
@@ -578,6 +580,14 @@ class DataReq:
                             if each[0] != '' and aim[1].replace(' ', '') == each[1].replace(' ', ''):
                                 aim[0] = each[0]
                                 break
+                        if aim[1].find('(实验)') != -1:
+                            pattern = r'(\(实验\))'
+                            add_item = re.split(pattern, aim[1])[0]
+                            self.special_lessons.append(add_item)
+                            for lesson in lesson_ids:
+                                if self.match(aim[1], lesson[2]):
+                                    aim[0] = lesson[1]
+                                    break
                         if aim[0] == '':
                             print('向课表整合课程代码失败')
                             Log('向课表整合课程代码失败')

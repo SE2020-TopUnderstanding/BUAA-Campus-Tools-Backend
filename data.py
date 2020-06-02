@@ -22,7 +22,8 @@ class DataReq:
         self.usr_name = user_name
         self.password = pw
         # 有待补充
-        self.special_lessons = ['体育（', '大英B', '大英A', '汽车构造及拆装实习', '面向对象程序设计(JAVA)']
+        self.special_lessons = ['体育（', '大英B', '大英A', '汽车构造及拆装实习', '面向对象程序设计(JAVA)', '英语读说写',
+                                '批判阅读与写作', '英语听说写', '学业英语阅读与写作']
 
     def request(self, request_type):
         """
@@ -124,8 +125,8 @@ class DataReq:
                 return schedules, ''
             sorted_grades = self.deal_with_grades(grades, stu_id)
             sorted_schedules = self.deal_with_schedules(schedules, lesson_ids, stu_id)
-            with open("special_lessons.txt", "w") as out_file:
-                out_file.write(str(self.special_lessons))
+            # with open("special_lessons.txt", "w") as out_file:
+            #    out_file.write(str(self.special_lessons))
             return sorted_grades, sorted_schedules
 
         if request_type == 'e':                                        # 获取空教室信息

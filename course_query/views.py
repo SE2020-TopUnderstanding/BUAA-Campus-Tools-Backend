@@ -402,7 +402,8 @@ class Search(viewsets.ViewSet):
     def get(request):
         req = request.query_params.dict()
         result = TeacherCourse.objects.all()
-        if 1 <= len(req) <= 4:
+        if 1 <= len(req) <= 5:
+            page = 1
             for key, value in req.items():
                 if value == "":
                     continue
@@ -418,8 +419,13 @@ class Search(viewsets.ViewSet):
                 elif key == 'department':
                     department = req['department']
                     result = result.filter(course_id__department=department)
+                elif key == 'page':
+                    page = req['page']
                 else:
                     raise ArgumentError()
+            start = 100 * (page - 1)
+            end = min(page * 100, result.count())
+            result = result[start:end]
             results = TeacherCourseSerializer(result, many=True).data
             return Response(format_search(results))
         raise ArgumentError()

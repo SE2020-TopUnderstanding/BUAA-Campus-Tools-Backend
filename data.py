@@ -222,6 +222,13 @@ class DataReq:
                 lesson = cur_strs[0]
                 if cur_strs[0] == '':
                     lesson = cur_strs[1]
+                    if lesson == '航空发动机结构设':
+                        lesson += cur_strs[2]
+                        cur_strs = cur_strs[2:]
+                    else:
+                        cur_strs = cur_strs[1:]
+                elif lesson == '航空发动机结构设':
+                    lesson += cur_strs[1]
                     cur_strs = cur_strs[1:]
                 info = ''
                 for k in range(len(cur_strs) - 1):

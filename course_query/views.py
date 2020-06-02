@@ -76,7 +76,8 @@ def add_course(info):
     name = info[0].replace(' ', '')
     bid = info[1].replace(' ', '')
     name, bid = check_public(name, bid)
-    credit = float(info[2].replace(' ', ''))
+    credit = info[2].replace(' ', '')
+    credit = 0.0 if credit == "" else float(credit)
     hours = info[3].replace(' ', '')
     hours = None if hours == "" else int(float(hours))
     department = info[4].replace(' ', '')
@@ -422,18 +423,18 @@ class Search(viewsets.ViewSet):
                     department = req['department']
                     result = result.filter(course_id__department=department)
                 elif key == 'page':
-                    page = req['page']
+                    page = int(req['page'])
                 else:
                     raise ArgumentError()
             total = result.count()
-            start = 100 * (page - 1)
-            end = min(page * 100, total)
+            start = 30 * (page - 1)
+            end = min(page * 30, total)
             result = result[start:end]
             results = TeacherCourseSerializer(result, many=True).data
             info = format_search(results)
             output['total'] = total
             output['cur_page'] = page
-            output['total_page'] = max(1, math.ceil(total / 100))
+            output['total_page'] = max(1, math.ceil(total / 30))
             output['info'] = info
             return Response(output)
         raise ArgumentError()

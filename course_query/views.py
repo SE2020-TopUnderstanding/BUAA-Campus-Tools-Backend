@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 
 from django.db.models import Avg
@@ -404,6 +405,7 @@ class Search(viewsets.ViewSet):
         result = TeacherCourse.objects.all()
         if 1 <= len(req) <= 5:
             page = 1
+            output = {}
             for key, value in req.items():
                 if value == "":
                     continue
@@ -423,11 +425,17 @@ class Search(viewsets.ViewSet):
                     page = req['page']
                 else:
                     raise ArgumentError()
+            total = result.count()
             start = 100 * (page - 1)
-            end = min(page * 100, result.count())
+            end = min(page * 100, total)
             result = result[start:end]
             results = TeacherCourseSerializer(result, many=True).data
-            return Response(format_search(results))
+            info = format_search(results)
+            output['total'] = total
+            output['cur_page'] = page
+            output['total_page'] = max(1, math.ceil(total / 100))
+            output['info'] = info
+            return Response(output)
         raise ArgumentError()
 
     @staticmethod

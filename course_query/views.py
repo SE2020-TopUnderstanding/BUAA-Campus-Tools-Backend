@@ -426,11 +426,12 @@ class Search(viewsets.ViewSet):
                     page = int(req['page'])
                 else:
                     raise ArgumentError()
-            total = result.count()
+            results = TeacherCourseSerializer(result, many=True).data
+            result = format_search(results)
+            total = len(result)
             start = 30 * (page - 1)
             end = min(page * 30, total)
-            results = TeacherCourseSerializer(result, many=True).data
-            result = format_search(results)[start:end]
+            result = result[start:end]
             output['total'] = total
             output['cur_page'] = page
             output['total_page'] = max(1, math.ceil(total / 30))

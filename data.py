@@ -23,7 +23,7 @@ class DataReq:
         self.password = pw
         # 有待补充
         self.special_lessons = ['体育（', '大英B', '大英A', '汽车构造及拆装实习', '面向对象程序设计(JAVA)', '英语读说写',
-                                '批判阅读与写作', '英语听说写', '学业英语阅读与写作']
+                                '批判阅读与写作', '英语听说写', '学业英语阅读与写作', '高级英语听说写', '理解与辩论', '高级英语读说写']
 
     def request(self, request_type):
         """

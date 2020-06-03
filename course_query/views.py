@@ -184,6 +184,8 @@ def format_serializer(result, student):
     for dicts in result:
         evaluation_id = dicts['id']
         evaluation = CourseEvaluation.objects.get(id=evaluation_id)
+        dicts['up'] = up_count(evaluation)
+        dicts['down'] = down_count(evaluation)
         dicts['has_up'] = up_check(student, evaluation)
         dicts['has_down'] = down_check(student, evaluation)
     result.sort(key=lambda e: e.__getitem__('up') - e.__getitem__('down'), reverse=True)

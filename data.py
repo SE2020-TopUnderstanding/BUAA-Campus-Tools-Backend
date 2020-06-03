@@ -219,17 +219,18 @@ class DataReq:
                     lessons.append(cur_lesson + '节')
 
             cur_infos = []
+            splited_lesson = ['航空发动机结构设', '模式识别与智能系']
             for cur_str in lessons:  # 获取这个课程的信息
                 cur_strs = cur_str.split('\n')
                 lesson = cur_strs[0]
                 if cur_strs[0] == '':
                     lesson = cur_strs[1]
-                    if lesson == '航空发动机结构设':
+                    if lesson in splited_lesson:
                         lesson += cur_strs[2]
                         cur_strs = cur_strs[2:]
                     else:
                         cur_strs = cur_strs[1:]
-                elif lesson == '航空发动机结构设':
+                elif lesson in splited_lesson:
                     lesson += cur_strs[1]
                     cur_strs = cur_strs[1:]
                 info = ''

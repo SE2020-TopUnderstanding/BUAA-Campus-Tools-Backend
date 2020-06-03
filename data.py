@@ -33,6 +33,7 @@ class DataReq:
         """
         print('start to get the data, usr_name: ' + self.usr_name)
         print('requestType: ' + request_type)
+        print('当前时间：' + str(datetime.now()))
 
         if request_type == 'd':
             session = CourseRequest(self.usr_name, self.password)      # 获取该学生的学号

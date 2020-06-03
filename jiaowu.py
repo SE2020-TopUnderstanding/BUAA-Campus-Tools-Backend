@@ -132,7 +132,7 @@ class JiaoWuReq:
         grades = []
         for k in range(len(search_list)):
             semester = []
-            print('cur_year: ' + search_list[k])
+            # print('cur_year: ' + search_list[k])
             grade = ''
             i = 0
             params = {
@@ -228,7 +228,7 @@ class JiaoWuReq:
 
         empty_classrooms = []
         for k in range(19):
-            print('week: ' + str(k + 1))
+            # print('week: ' + str(k + 1))
             cur_dict = {}
             for j in range(9):
                 # print('page: ' + str(j + 1))
@@ -337,7 +337,7 @@ class JiaoWuReq:
 
         all_schedules = []
         for k in range(len(semester)):
-            print('cur_year: ' + semester[k])
+            # print('cur_year: ' + semester[k])
             page = ''
             i = 0
             params = {
@@ -469,7 +469,7 @@ class JiaoWuReq:
         lessons = []
         for k in range(len(search_list)):
             semester = []
-            print('cur_year: ' + search_list[k])
+            # print('cur_year: ' + search_list[k])
             lesson = ''
             i = 0
             params = {

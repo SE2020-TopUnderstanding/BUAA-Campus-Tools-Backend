@@ -502,7 +502,8 @@ def insect_empty_classroom():
                 break
             i += 1
         if success == 1:
-            failed = True
+            print('爬取成功，爬虫退出')
+            return True
     return failed
 
 
@@ -525,7 +526,6 @@ def insect_req():
     print('爬虫部署成功！')
     print('将进行消息队列的获取与处理')
     while True:
-        print('开始新一轮循环')
         success = deal_reqs()
         if success == -7:
             time.sleep(630)                     # ip被封, 等待10分钟
@@ -535,7 +535,6 @@ def insect_req():
             print('暂时没有req存在')
         else:
             print('处理出现问题，错误码为：' + str(success))
-        print('本轮循环结束，将进行5s待机')
         time.sleep(5)
 
 

@@ -257,8 +257,8 @@ def up_action(evaluation, actor):
     try:
         # 已经赞过
         EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
-        up_cnt = evaluation.up
-        down_cnt = evaluation.down
+        up_cnt = up_count(evaluation)
+        down_cnt = down_count(evaluation)
         return Response({"up": up_cnt, "down": down_cnt}, status=202)
     except EvaluationUpRecord.DoesNotExist:
         try:
@@ -268,11 +268,8 @@ def up_action(evaluation, actor):
             pass
         up_record = EvaluationUpRecord(evaluation=evaluation, student=actor)
         up_record.save()
-        evaluation.up = up_count(evaluation)
-        evaluation.down = down_count(evaluation)
-        evaluation.save()
-        up_cnt = evaluation.up
-        down_cnt = evaluation.down
+        up_cnt = up_count(evaluation)
+        down_cnt = down_count(evaluation)
         return Response({"up": up_cnt, "down": down_cnt}, status=201)
 
 
@@ -280,8 +277,8 @@ def down_action(evaluation, actor):
     try:
         # 已经踩过
         EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
-        up_cnt = evaluation.up
-        down_cnt = evaluation.down
+        up_cnt = up_count(evaluation)
+        down_cnt = down_count(evaluation)
         return Response({"up": up_cnt, "down": down_cnt}, status=202)
     except EvaluationDownRecord.DoesNotExist:
         try:
@@ -291,11 +288,8 @@ def down_action(evaluation, actor):
             pass
         down = EvaluationDownRecord(evaluation=evaluation, student=actor)
         down.save()
-        evaluation.up = up_count(evaluation)
-        evaluation.down = down_count(evaluation)
-        evaluation.save()
-        up_cnt = evaluation.up
-        down_cnt = evaluation.down
+        up_cnt = up_count(evaluation)
+        down_cnt = down_count(evaluation)
         return Response({"up": up_cnt, "down": down_cnt}, status=201)
 
 
@@ -587,10 +581,8 @@ class CourseEvaluationAction(viewsets.ViewSet):
             try:
                 up_record = EvaluationUpRecord.objects.get(evaluation=evaluation, student=actor)
                 up_record.delete()
-                evaluation.up = up_count(evaluation)
-                evaluation.save()
-                up_cnt = evaluation.up
-                down_cnt = evaluation.down
+                up_cnt = up_count(evaluation)
+                down_cnt = down_count(evaluation)
                 return Response({"up": up_cnt, "down": down_cnt}, status=201)
             except EvaluationUpRecord.DoesNotExist:
                 raise NotFoundError(detail="不存在这条点赞记录")
@@ -612,10 +604,8 @@ class CourseEvaluationAction(viewsets.ViewSet):
             try:
                 down = EvaluationDownRecord.objects.get(evaluation=evaluation, student=actor)
                 down.delete()
-                evaluation.down = down_count(evaluation)
-                evaluation.save()
-                up_cnt = evaluation.up
-                down_cnt = evaluation.down
+                up_cnt = up_count(evaluation)
+                down_cnt = down_count(evaluation)
                 return Response({"up": up_cnt, "down": down_cnt}, status=201)
             except EvaluationDownRecord.DoesNotExist:
                 raise NotFoundError(detail="不存在这条被踩记录")

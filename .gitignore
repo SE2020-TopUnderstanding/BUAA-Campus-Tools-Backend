@@ -144,3 +144,4 @@ cython_debug/
 migrations
 log.txt
 .stackdump
+*.bat

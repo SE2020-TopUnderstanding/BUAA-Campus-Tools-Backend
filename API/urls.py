@@ -22,7 +22,6 @@ urlpatterns = [
     path('classroom/', include('empty_room_query.urls')),
     path('ddl/', include('ddl_query.urls')),
     path('score/', include('score_query.urls')),
-    path('tests/', include('tests_query.urls')),
     path('login/', include('user_login.urls')),
     path('ping/', include('ping.urls')),
     path('request/', include('request_queue.urls')),

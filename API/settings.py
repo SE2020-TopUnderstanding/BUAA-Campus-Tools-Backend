@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'empty_room_query',
     'ddl_query',
     'score_query',
-    'tests_query',
     'user_login',
     'ping',
     'request_queue',

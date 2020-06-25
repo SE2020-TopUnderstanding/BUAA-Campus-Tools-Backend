@@ -133,6 +133,10 @@ class WebGetId:
                 if i == 3:
                     return 0
 
+        web = self.secondary_login(web)
+        if web == 0:
+            return web
+
         name_start = web.text.find('<div class="welcome">您好！') + 24
         name_end = web.text.find('同学</div>', name_start)
         name = web.text[name_start:name_end]
@@ -172,6 +176,43 @@ class WebGetId:
 
         ans = [stu_id, self.usr_name, name, grade]
         return ans
+
+    def secondary_login(self, web):
+        if web.url.find('login') != -1:
+            print('进行二次登录')
+            soup = BeautifulSoup(web.text, 'lxml')
+            table = soup.select('div[class="clearfix login_btncont"] > input')  # 获取选项的值
+            code = ''
+            for each in table:
+                if each.attrs['name'] == 'lt':
+                    code = each.attrs['value']
+            if code == '':
+                return 0
+            params = {
+                'username': self.usr_name,
+                'password': self.password,
+                'code': '',
+                'lt': code,
+                'execution': 'e1s1',
+                '_eventId': 'submit',
+                'submit': '登录'
+            }
+            i = 0
+            this_url = web.url.split('?')[0]
+            web = ''
+            while i < 3:
+                try:
+                    web = self.now.post(url=this_url, headers=self.headers_vpn, params=params, timeout=20)
+                    break
+                except requests.exceptions.RequestException as err:
+                    print(err)
+                    i += 1
+                    if i == 3:
+                        return 0
+
+        if web == '':
+            return 0
+        return web
 
 
 if __name__ == "__main__":

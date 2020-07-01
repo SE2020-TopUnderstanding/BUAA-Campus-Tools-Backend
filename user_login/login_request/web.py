@@ -116,10 +116,6 @@ class WebGetId:
                -10 -> 账户被锁定了
         密码和专业暂时不能返回
         年级的计算可能出现问题，因为年级是根据学号计算的，请一定注意
-        """
-        success = self.login()
-        if success < 0:
-            return success
 
         web = ''
         i = 0
@@ -133,7 +129,7 @@ class WebGetId:
                 if i == 3:
                     return 0
 
-        web = self.secondary_login(web)
+        web = self.secondary_login_course(web)
         if web == 0:
             return web
 
@@ -175,9 +171,152 @@ class WebGetId:
         grade = year - in_year + offset
 
         ans = [stu_id, self.usr_name, name, grade]
+        """
+        success = self.login()
+        if success < 0:
+            return success
+
+        i = 0
+        web = ''
+        while i < 3:
+            try:
+                web = self.now.get(url=COURSE_URL, headers=self.headers_vpn, timeout=20)
+                break
+            except requests.exceptions.RequestException as err:
+                print(err)
+                i += 1
+                if i == 3:
+                    return 0
+        self.secondary_login_course(web)
+        return self.get_info()
+
+    def get_info(self):
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
+                     'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
+        course_url = 'https://course.e2.buaa.edu.cn/portal'
+        headers_course = {
+            'Referer': 'https://course.e2.buaa.edu.cn/portal',
+            'User-Agent': user_agent
+        }
+        page = ''
+        i = 0
+        while i < 3:
+            try:
+                page = self.now.get(url=course_url, headers=headers_course, timeout=20)  # 先获取完整网页
+                break
+            except requests.exceptions.RequestException as err:
+                print(err)
+                i += 1
+                if i == 3:
+                    return 0
+
+        if page == 0:
+            return page
+
+        soup = BeautifulSoup(page.text, 'lxml')
+        table = soup.select('a[class="toolMenuLink"]')  # 获取个人信息的网址
+        info_url = ''
+        for each in table:
+            # print(each.attrs['title'])
+            if each.attrs['title'].find('查看和修改我的个人信息') != -1:
+                info_url = each.attrs['href']
+                break
+
+        if info_url == '':
+            return 0
+        i = 0
+        while i < 3:
+            try:
+                page = self.now.get(url=info_url, headers=headers_course, timeout=20)  # 访问个人信息网址
+                break
+            except requests.exceptions.RequestException as err:
+                print(err)
+                i += 1
+                if i == 3:
+                    return 0
+
+        soup = BeautifulSoup(page.text, 'lxml')
+        table = soup.select('div[class="portletMainWrap"] > iframe')  # 获取iframe的网址
+        iframe_url = ''
+        for each in table:
+            iframe_url = each.attrs['src']
+            break
+
+        if iframe_url == '':
+            return 0
+        i = 0
+        while i < 3:
+            try:
+                page = self.now.get(url=iframe_url, headers=headers_course, timeout=20)  # 访问iframe
+                break
+            except requests.exceptions.RequestException as err:
+                print(err)
+                i += 1
+                if i == 3:
+                    return 0
+
+        soup = BeautifulSoup(page.text, 'lxml')
+        table = soup.select('div[class="shorttext"]')  # 获取学号
+        stu_id = ''
+        name = ''
+        for each in table:
+            # print(each.get_text())
+            strs = each.get_text()
+            label = strs.split('\n')[1]
+            if label == '用户ID':
+                stu_id = strs.split('\n')[2].replace(' ', '')
+            if label == '姓':
+                name = strs.split('\n')[2].replace(' ', '')
+        if stu_id == '' or name == '':
+            return 0
+        year = int(datetime.datetime.now().year) - 2000
+        month = int(datetime.datetime.now().month)
+        in_year = int(stu_id[0:2])
+        offset = 0
+        if month > 6:
+            offset = 1
+        grade = year - in_year + offset
+
+        ans = [stu_id, self.usr_name, name, grade]
         return ans
 
-    def secondary_login(self, web):
+    def secondary_login_course(self, web):
+        if web.url.find('login') != -1:
+            soup = BeautifulSoup(web.text, 'lxml')
+            table = soup.select('div[class="clearfix login_btncont"] > input')  # 获取选项的值
+            code = ''
+            for each in table:
+                if each.attrs['name'] == 'lt':
+                    code = each.attrs['value']
+            if code == '':
+                return -3
+            params = {
+                'username': self.usr_name,
+                'password': self.password,
+                'code': '',
+                'lt': code,
+                'execution': 'e1s1',
+                '_eventId': 'submit',
+                'submit': '登录'
+            }
+            i = 0
+            this_url = web.url
+            web = ''
+            while i < 3:
+                try:
+                    web = self.now.post(url=this_url, headers=self.headers_vpn, params=params, timeout=20)
+                    break
+                except requests.exceptions.RequestException as err:
+                    print(err)
+                    i += 1
+                    if i == 3:
+                        return -4
+
+        if web == '':
+            return 0
+        return web
+
+    def secondary_login_jiaowu(self, web):
         if web.url.find('login') != -1:
             print('进行二次登录')
             soup = BeautifulSoup(web.text, 'lxml')

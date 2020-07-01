@@ -82,6 +82,9 @@ def req_jiaowu_msg(data_req):
     """
     grades, schedule = data_req.request('j')
 
+    if schedule == '':
+        print('无效代码')
+
     # 错误处理
     if grades == -1:
         print('登录被拒绝，错误信息已传至log\n')
@@ -95,15 +98,18 @@ def req_jiaowu_msg(data_req):
     if grades in (-6, -7, -8, -9, -10):
         return grades + 3
 
-    schedule_url = HOST + 'timetable/'
+    # 暂时关闭课程爬取
+    # """
+    # schedule_url = HOST + 'timetable/'
     # noinspection PyBroadException
-    try:
-        req = requests.post(url=schedule_url, headers=HEADERS, data=schedule.encode('utf-8'))
-        req.raise_for_status()
-    except Exception:
-        print('req fail')
-        print(traceback.format_exc())
-        return -8
+    # try:
+    #     req = requests.post(url=schedule_url, headers=HEADERS, data=schedule.encode('utf-8'))
+    #     req.raise_for_status()
+    # except Exception:
+    #     print('req fail')
+    #     print(traceback.format_exc())
+    #     return -8
+    # """
     grades_url = HOST + 'score/'
     for each in grades:
         # noinspection PyBroadException
@@ -391,8 +397,9 @@ def insect_jiaowu(insect_id):
             after_proc = datetime.now()                      # 获取当前时间
             deltatime = after_proc - now
             seconds = deltatime.total_seconds()
-            limit_time = 60 * 60 * 24
-            if seconds >= limit_time:                        # 24小时后重新开始循环
+            # limit_time = 60 * 60 * 24
+            limit_time = 60
+            if seconds >= limit_time:                        # 24小时后重新开始循环，暂时改为1分钟
                 break
             # dealReqs()
             time.sleep(10)                                  # 防止轮询占用大量cpu资源

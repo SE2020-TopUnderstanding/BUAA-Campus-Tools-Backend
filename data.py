@@ -35,12 +35,21 @@ class DataReq:
         print('requestType: ' + request_type)
         print('当前时间：' + str(datetime.now()))
 
+        # """
+        # 教务网站的当前学期查询暂时关闭，使用课程中心进行查询
+        # if request_type == 'd':
+        #    session = CourseRequest(self.usr_name, self.password)      # 获取该学生的学号
+        #    stu_id = session.get_id()
+        # else:
+        #    session = JiaoWuReq(self.usr_name, self.password)          # 获取该学生的学号
+        #    stu_id = session.get_id()
+        # """
+        session = CourseRequest(self.usr_name, self.password)  # 获取该学生的学号
+        stu_id = session.get_id()
         if request_type == 'd':
-            session = CourseRequest(self.usr_name, self.password)      # 获取该学生的学号
-            stu_id = session.get_id()
+            session = CourseRequest(self.usr_name, self.password)  # 获取该学生的学号
         else:
-            session = JiaoWuReq(self.usr_name, self.password)          # 获取该学生的学号
-            stu_id = session.get_id()
+            session = JiaoWuReq(self.usr_name, self.password)  # 获取该学生的学号
         print('studentId: ' + str(stu_id))
 
         wrong_message = [
@@ -109,23 +118,30 @@ class DataReq:
                 print('requestType: jiaowu')
                 print(wrong_message[-1 * grades])
                 return grades, ''
-            schedules = session.get_schedule()
+            # schedules = session.get_schedule()
+            # 课表暂时关闭服务了
+            schedules = 'empty'
             if isinstance(schedules, int) and -12 <= int(schedules) <= 0:
+                schedules = 0           # 由于schedules被指定为字符串，导致pylint报出异常，只能先凑活做了
                 print('错误!!!')
                 print('usr_name: ' + self.usr_name)
                 print('requestType: jiaowu')
                 print(wrong_message[-1 * schedules])
                 return schedules, ''
-            lesson_ids = session.get_all_lessons(1)
+            # lesson_ids = session.get_all_lessons(1)
+            # 课表暂时关闭服务了
+            lesson_ids = 'empty'
             session.quit()
             if isinstance(lesson_ids, int) and -12 <= int(lesson_ids) <= 0:
+                lesson_ids = 0                  # 由于lesson_ids被指定为字符串，导致pylint报出异常，只能先凑活做了
                 print('错误!!!')
                 print('usr_name: ' + self.usr_name)
                 print('requestType: jiaowu')
                 print(wrong_message[-1 * lesson_ids])
                 return schedules, ''
             sorted_grades = self.deal_with_grades(grades, stu_id)
-            sorted_schedules = self.deal_with_schedules(schedules, lesson_ids, stu_id)
+            # sorted_schedules = self.deal_with_schedules(schedules, lesson_ids, stu_id)
+            sorted_schedules = 'empty'
             # with open("special_lessons.txt", "w") as out_file:
             #    out_file.write(str(self.special_lessons))
             return sorted_grades, sorted_schedules

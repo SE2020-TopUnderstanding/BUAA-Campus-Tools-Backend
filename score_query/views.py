@@ -37,12 +37,8 @@ def insert_failed_course(old_score, semester, label, origin_score, score):
         old_score.origin_score = '不通过'
         old_score.score = score
     else:
-        if int(origin_score) >= 60:
-            old_score.origin_score = str(max(60, int(int(origin_score) * 0.8)))
-            old_score.score = str(max(60, int(int(origin_score) * 0.8)))
-        else:
-            old_score.origin_score = origin_score
-            old_score.score = score
+        old_score.origin_score = origin_score
+        old_score.score = score
     old_score.semester = semester
     old_score.save()
 
@@ -67,6 +63,10 @@ def insert_score(student, semester, key):
                 old_score.origin_score = origin_score
                 old_score.score = score
                 old_score.semester = semester
+                old_score.save()
+            else:
+                old_score.origin_score = origin_score
+                old_score.score = score
                 old_score.save()
         except Score.DoesNotExist:
             new_score = Score(student_id=student, semester=semester, course_name=course_name

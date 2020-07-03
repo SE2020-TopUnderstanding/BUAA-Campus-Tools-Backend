@@ -116,26 +116,6 @@ class WebGetId:
                -10 -> 账户被锁定了
         密码和专业暂时不能返回
         年级的计算可能出现问题，因为年级是根据学号计算的，请一定注意
-
-        web = ''
-        i = 0
-        while i < 3:
-            try:
-                web = self.now.get(url=JW_URL, headers=self.headers_vpn, timeout=5)
-                break
-            except requests.exceptions.RequestException as err:
-                print(err)
-                i += 1
-                if i == 3:
-                    return 0
-
-        web = self.secondary_login_course(web)
-        if web == 0:
-            return web
-
-        name_start = web.text.find('<div class="welcome">您好！') + 24
-        name_end = web.text.find('同学</div>', name_start)
-        name = web.text[name_start:name_end]
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
                      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
         table_url = 'https://jwxt-7001.e2.buaa.edu.cn/ieas2.1/kbcx/queryGrkb'
@@ -172,9 +152,30 @@ class WebGetId:
 
         ans = [stu_id, self.usr_name, name, grade]
         """
+
         success = self.login()
         if success < 0:
             return success
+
+        web = ''
+        i = 0
+        while i < 3:
+            try:
+                web = self.now.get(url=JW_URL, headers=self.headers_vpn, timeout=5)
+                break
+            except requests.exceptions.RequestException as err:
+                print(err)
+                i += 1
+                if i == 3:
+                    return 0
+
+        web = self.secondary_login_jiaowu(web)
+        if web == 0:
+            return web
+
+        name_start = web.text.find('<div class="welcome">您好！') + 24
+        name_end = web.text.find('同学</div>', name_start)
+        name = web.text[name_start:name_end]
 
         i = 0
         web = ''
@@ -188,9 +189,9 @@ class WebGetId:
                 if i == 3:
                     return 0
         self.secondary_login_course(web)
-        return self.get_info()
+        return self.get_info(name)
 
-    def get_info(self):
+    def get_info(self, name):
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
                      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36'
         course_url = 'https://course.e2.buaa.edu.cn/portal'
@@ -258,15 +259,12 @@ class WebGetId:
         soup = BeautifulSoup(page.text, 'lxml')
         table = soup.select('div[class="shorttext"]')  # 获取学号
         stu_id = ''
-        name = ''
         for each in table:
             # print(each.get_text())
             strs = each.get_text()
             label = strs.split('\n')[1]
             if label == '用户ID':
                 stu_id = strs.split('\n')[2].replace(' ', '')
-            if label == '姓':
-                name = strs.split('\n')[2].replace(' ', '')
         if stu_id == '' or name == '':
             return 0
         year = int(datetime.datetime.now().year) - 2000
@@ -357,4 +355,4 @@ class WebGetId:
 if __name__ == "__main__":
     USR_NAME = input('Your username: ')
     PW = input('Your password: ')
-    WebGetId(USR_NAME, PW).get_student_info()
+    print(WebGetId(USR_NAME, PW).get_student_info())

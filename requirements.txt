@@ -7,4 +7,4 @@ pycryptodome==3.9.7
 pylint==2.5.2
 pylint-django==2.0.15
 selenium==3.141.0
-lxml==4.5.0
+lxml==4.6.3
